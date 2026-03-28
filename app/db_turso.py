@@ -19,21 +19,25 @@ def get_turso_connection():
     
     try:
         import libsql_experimental as libsql
-        _turso_connection = libsql.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
-        
-        # Override query method to match libsql-client interface for existing code
-        original_execute = _turso_connection.execute
+        raw_conn = libsql.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
         
         class TursoResult:
             def __init__(self, cursor):
                 self.columns = [description[0] for description in cursor.description] if cursor.description else []
                 self.rows = cursor.fetchall()
-
-        def custom_query(sql, params=None):
-            cursor = original_execute(sql, params or [])
-            return TursoResult(cursor)
-            
-        _turso_connection.query = custom_query
+        
+        class ConnectionWrapper:
+            def __init__(self, conn):
+                self._conn = conn
+                
+            def execute(self, sql, params=None):
+                return self._conn.execute(sql, params or [])
+                
+            def query(self, sql, params=None):
+                cursor = self._conn.execute(sql, params or [])
+                return TursoResult(cursor)
+                
+        _turso_connection = ConnectionWrapper(raw_conn)
         return _turso_connection
     except ImportError:
         raise RuntimeError("No libsql client available. Install libsql-experimental.")
