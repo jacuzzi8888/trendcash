@@ -31,10 +31,18 @@ def get_turso_connection():
                 self._conn = conn
                 
             def execute(self, sql, params=None):
-                return self._conn.execute(sql, params or [])
+                if params is None:
+                    params = ()
+                elif isinstance(params, list):
+                    params = tuple(params)
+                return self._conn.execute(sql, params)
                 
             def query(self, sql, params=None):
-                cursor = self._conn.execute(sql, params or [])
+                if params is None:
+                    params = ()
+                elif isinstance(params, list):
+                    params = tuple(params)
+                cursor = self._conn.execute(sql, params)
                 return TursoResult(cursor)
                 
         _turso_connection = ConnectionWrapper(raw_conn)
