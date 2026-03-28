@@ -4,9 +4,17 @@ from datetime import datetime, timezone
 
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-DEFAULT_DB_PATH = os.path.join(BASE_DIR, "data", "ntc.db")
 
-USE_TURSO = bool(os.environ.get("TURSO_DATABASE_URL"))
+# Vercel provides a writable /tmp directory if we absolutely need sqlite,
+# but we prefer Turso. If not on Vercel, use local data folder.
+is_vercel = os.environ.get("VERCEL") == "1"
+if is_vercel:
+    DEFAULT_DB_PATH = "/tmp/ntc.db"
+else:
+    DEFAULT_DB_PATH = os.path.join(BASE_DIR, "data", "ntc.db")
+
+# Force Turso if URL is provided
+USE_TURSO = "TURSO_DATABASE_URL" in os.environ and os.environ.get("TURSO_DATABASE_URL") != ""
 
 
 def _utc_now():
