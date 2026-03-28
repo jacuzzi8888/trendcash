@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Naija Trend-to-Cash | {% if post %}{{ post.title }}{% else %}Not found{% endif %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <a class="button ghost" href="{{ url_for('site_index') }}">Back</a>
+      {% if post %}
+        <div class="card">
+          <div class="section-title">{{ post.title }}</div>
+          <div class="muted">{{ post.category }} • {{ post.published_at }}</div>
+          <div style="margin-top: 16px; white-space: pre-wrap;">{{ post.content }}</div>
+        </div>
+      {% else %}
+        <div class="card">
+          <p class="muted">Post not found.</p>
+        </div>
+      {% endif %}
+    </main>
+  </body>
+</html>

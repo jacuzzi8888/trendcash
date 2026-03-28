@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>{{ site.id if site else 'Add New Site' }}</h2>
+
+<div class="card">
+  <form method="POST">
+    <div class="grid two">
+      <div>
+        <label for="name">Site Name *</label>
+        <input type="text" id="name" name="name" value="{{ site.name if site else '' }}" required placeholder="My Finance Blog">
+      </div>
+      <div>
+        <label for="slug">Slug *</label>
+        <input type="text" id="slug" name="slug" value="{{ site.slug if site else '' }}" required placeholder="my-finance-blog">
+        <small class="muted">URL-friendly identifier, lowercase, no spaces</small>
+      </div>
+    </div>
+
+    <div class="grid two" style="margin-top: 16px;">
+      <div>
+        <label for="niche">Niche *</label>
+        <select id="niche" name="niche" required>
+          <option value="">Select a niche</option>
+          <option value="finance" {% if site and site.niche == 'finance' %}selected{% endif %}>Finance</option>
+          <option value="technology" {% if site and site.niche == 'technology' %}selected{% endif %}>Technology</option>
+          <option value="education" {% if site and site.niche == 'education' %}selected{% endif %}>Education</option>
+          <option value="entertainment" {% if site and site.niche == 'entertainment' %}selected{% endif %}>Entertainment</option>
+          <option value="health" {% if site and site.niche == 'health' %}selected{% endif %}>Health</option>
+          <option value="news" {% if site and site.niche == 'news' %}selected{% endif %}>News</option>
+          <option value="sports" {% if site and site.niche == 'sports' %}selected{% endif %}>Sports</option>
+          <option value="lifestyle" {% if site and site.niche == 'lifestyle' %}selected{% endif %}>Lifestyle</option>
+          <option value="other" {% if site and site.niche == 'other' %}selected{% endif %}>Other</option>
+        </select>
+      </div>
+      <div>
+        <label for="categories">Categories (comma-separated)</label>
+        <input type="text" id="categories" name="categories" value="{{ site.categories_list|join(', ') if site and site.categories_list else '' }}" placeholder="grants, loans, budgeting">
+        <small class="muted">Categories this site accepts</small>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <label for="description">Description</label>
+      <textarea id="description" name="description" rows="2" placeholder="Brief description of the site">{{ site.description if site else '' }}</textarea>
+    </div>
+
+    <div class="card" style="margin-top: 24px; background: #fdf8f4;">
+      <h4>API Configuration</h4>
+      <div class="grid two">
+        <div>
+          <label for="api_url">API URL *</label>
+          <input type="url" id="api_url" name="api_url" value="{{ site.api_url if site else '' }}" required placeholder="https://mysite.com/api/content">
+          <small class="muted">Full URL to the content endpoint</small>
+        </div>
+        <div>
+          <label for="api_key">API Key</label>
+          <input type="password" id="api_key" name="api_key" value="{{ site.api_key if site else '' }}" placeholder="Bearer token for authentication">
+          <small class="muted">Sent as Authorization: Bearer {key}</small>
+        </div>
+      </div>
+    </div>
+
+    <div style="margin-top: 16px;">
+      <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+        <input type="checkbox" name="is_active" {% if not site or site.is_active %}checked{% endif %}>
+        <span>Site is active (can receive content)</span>
+      </label>
+    </div>
+
+    <div style="margin-top: 24px;">
+      <button type="submit" class="button">{{ 'Update Site' if site else 'Create Site' }}</button>
+      <a href="{{ url_for('sites.list_sites') }}" class="button ghost">Cancel</a>
+    </div>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,61 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card">
+    <div class="section-title">Source Pack for "{{ candidate.topic }}"</div>
+    <p class="muted">At least 2 sources are required before drafting.</p>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Add Source</div>
+    <form method="post" class="grid two">
+      <div>
+        <label>Source URL</label>
+        <input name="url" placeholder="https://official.gov.ng/..." required />
+      </div>
+      <div>
+        <label>Publisher</label>
+        <input name="publisher" placeholder="Official Agency, Newsroom" required />
+      </div>
+      <div>
+        <label>Published at (optional)</label>
+        <input name="published_at" placeholder="2026-03-25" />
+      </div>
+      <div>
+        <label>Notes</label>
+        <input name="notes" placeholder="Key facts or link section" />
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="button" type="submit">Add Source</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Existing Sources</div>
+    {% if sources %}
+      <table>
+        <thead>
+          <tr>
+            <th>Publisher</th>
+            <th>URL</th>
+            <th>Published</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for s in sources %}
+            <tr>
+              <td>{{ s.publisher }}</td>
+              <td><a href="{{ s.url }}" target="_blank">{{ s.url }}</a></td>
+              <td>{{ s.published_at or "-" }}</td>
+              <td>{{ s.notes or "-" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No sources yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

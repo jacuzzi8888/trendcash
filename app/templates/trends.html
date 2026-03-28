@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card">
+    <div class="section-title">Add Trend Candidate</div>
+    <form method="post" class="grid two">
+      <div>
+        <label>Topic</label>
+        <input name="topic" placeholder="Fuel price increase March 2026" required />
+      </div>
+      <div>
+        <label>Category</label>
+        <input name="category" placeholder="Fuel & Transport" required />
+      </div>
+      <div>
+        <label>Source (monitor)</label>
+        <input name="source" placeholder="Google Trends, Nairaland, TikTok" required />
+      </div>
+      <div>
+        <label>Velocity score (0-10)</label>
+        <input name="velocity_score" type="number" step="0.1" value="0" />
+      </div>
+      <div>
+        <label>Advertiser safety score (0-10)</label>
+        <input name="advertiser_safety_score" type="number" step="0.1" value="0" />
+      </div>
+      <div>
+        <label>Commercial intent score (0-10)</label>
+        <input name="commercial_intent_score" type="number" step="0.1" value="0" />
+      </div>
+      <div>
+        <label>Evergreen score (0-10)</label>
+        <input name="evergreen_score" type="number" step="0.1" value="0" />
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="button" type="submit">Add Candidate</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Trend Candidates</div>
+    {% if categories %}
+      <div class="muted">Filter:
+        {% for c in categories %}
+          <a href="{{ url_for('trends', category=c) }}">{{ c }}</a>
+        {% endfor %}
+      </div>
+    {% endif %}
+    {% if candidates %}
+      <table>
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Category</th>
+            <th>Velocity</th>
+            <th>Safety</th>
+            <th>Intent</th>
+            <th>Evergreen</th>
+            <th>Sources</th>
+            <th>Draft</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for c in candidates %}
+            <tr>
+              <td>{{ c.topic }}</td>
+              <td>{{ c.category }}</td>
+              <td>{{ c.velocity_score }}</td>
+              <td>{{ c.advertiser_safety_score }}</td>
+              <td>{{ c.commercial_intent_score }}</td>
+              <td>{{ c.evergreen_score }}</td>
+              <td>
+                <a href="{{ url_for('sources', candidate_id=c.id) }}">Add sources</a>
+              </td>
+              <td>
+                <form method="post" action="{{ url_for('create_draft', candidate_id=c.id) }}">
+                  <button class="button ghost" type="submit">Create Draft</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No candidates yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

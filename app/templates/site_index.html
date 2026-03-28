@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Naija Trend-to-Cash | Latest</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+  </head>
+  <body>
+    <main class="container">
+      <div class="card">
+        <div class="section-title">Latest Updates</div>
+        <p class="muted">Utility-first coverage for Nigerian readers.</p>
+      </div>
+
+      {% if posts %}
+        {% for p in posts %}
+          <div class="card">
+            <div class="section-title">
+              <a href="{{ url_for('site_post', slug=p.slug) }}">{{ p.title }}</a>
+            </div>
+            <div class="muted">{{ p.category }} • {{ p.published_at }}</div>
+            <p>{{ p.excerpt or "" }}</p>
+            <a class="button ghost" href="{{ url_for('site_post', slug=p.slug) }}">Read</a>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="card">
+          <p class="muted">No posts published yet.</p>
+        </div>
+      {% endif %}
+    </main>
+  </body>
+</html>

@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{{ post.title }}</title>
+    <style>
+      * { box-sizing: border-box; }
+      body {
+        font-family: system-ui, -apple-system, sans-serif;
+        max-width: 800px;
+        margin: 0 auto;
+        padding: 20px;
+        line-height: 1.6;
+        color: #333;
+      }
+      h1 { color: #1a1a1a; }
+      a { color: #c65d2a; }
+      .meta { color: #666; font-size: 14px; margin-bottom: 24px; }
+      .content { white-space: pre-wrap; }
+      .back { margin-bottom: 24px; }
+    </style>
+  </head>
+  <body>
+    <div class="back">
+      <a href="/">&larr; Back to all posts</a>
+    </div>
+    
+    <h1>{{ post.title }}</h1>
+    <div class="meta">
+      <span class="category">{{ post.category }}</span> · 
+      {{ post.created_at[:10] }}
+    </div>
+    
+    <div class="content">{{ post.content }}</div>
+  </body>
+</html>

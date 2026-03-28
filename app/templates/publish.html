@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card">
+    <div class="section-title">Approved Drafts</div>
+    {% if approved %}
+      {% if sites %}
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Topic</th>
+            <th>Category</th>
+            <th>Publish to Site</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in approved %}
+            <tr>
+              <td><a href="{{ url_for('edit_draft', draft_id=d.id) }}">{{ d.title[:50] }}{% if d.title|length > 50 %}...{% endif %}</a></td>
+              <td>{{ d.topic }}</td>
+              <td><span class="pill">{{ d.category }}</span></td>
+              <td>
+                <form method="post" style="display: flex; gap: 8px; align-items: center;">
+                  <input type="hidden" name="action" value="publish" />
+                  <input type="hidden" name="draft_id" value="{{ d.id }}" />
+                  <select name="site_id" required style="width: auto; padding: 6px 10px;">
+                    <option value="">Select site...</option>
+                    {% for site in sites %}
+                      <option value="{{ site.id }}">{{ site.name }} ({{ site.niche }})</option>
+                    {% endfor %}
+                  </select>
+                  <button class="button" type="submit" style="padding: 6px 12px;">Publish</button>
+                </form>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+      {% else %}
+        <p class="muted">No sites connected. <a href="{{ url_for('sites.new_site') }}">Add a site</a> to start publishing.</p>
+      {% endif %}
+    {% else %}
+      <p class="muted">No approved drafts ready to publish. <a href="{{ url_for('qc') }}">Review drafts in QC</a>.</p>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="section-title">Publish History</div>
+    {% if history %}
+      <table>
+        <thead>
+          <tr>
+            <th>Draft</th>
+            <th>Site</th>
+            <th>Status</th>
+            <th>URL</th>
+            <th>Published</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for h in history %}
+            <tr>
+              <td>{{ h.draft_title[:40] }}{% if h.draft_title|length > 40 %}...{% endif %}</td>
+              <td>{{ h.site_name }}</td>
+              <td>
+                {% if h.status == 'success' %}
+                  <span class="pill" style="background: #e8f6f1; color: var(--success);">Success</span>
+                {% else %}
+                  <span class="pill" style="background: #fde8ee; color: var(--error);">Failed</span>
+                {% endif %}
+              </td>
+              <td>
+                {% if h.published_url %}
+                  <a href="{{ h.published_url }}" target="_blank" class="muted">View</a>
+                {% else %}
+                  <span class="muted">-</span>
+                {% endif %}
+              </td>
+              <td class="muted">{{ h.published_at or h.created_at }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No publish history yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

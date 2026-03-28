@@ -1,0 +1,68 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card">
+    <div class="section-title">Search Console Metrics</div>
+    <form method="post" class="grid two">
+      <div>
+        <label>Date</label>
+        <input name="metric_date" placeholder="2026-03-25" required />
+      </div>
+      <div>
+        <label>Indexing rate %</label>
+        <input name="indexing_rate" placeholder="42.5" />
+      </div>
+      <div>
+        <label>Queries</label>
+        <input name="queries" placeholder="1200" />
+      </div>
+      <div>
+        <label>CTR %</label>
+        <input name="ctr" placeholder="1.8" />
+      </div>
+      <div>
+        <label>Average position</label>
+        <input name="avg_position" placeholder="28.4" />
+      </div>
+      <div>
+        <label>Notes</label>
+        <input name="notes" placeholder="Indexing slowed after 15 posts/day" />
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="button" type="submit">Add Metrics</button>
+      </div>
+    </form>
+  </div>
+
+  <div class="card">
+    <div class="section-title">History</div>
+    {% if metrics %}
+      <table>
+        <thead>
+          <tr>
+            <th>Date</th>
+            <th>Index %</th>
+            <th>Queries</th>
+            <th>CTR %</th>
+            <th>Avg Pos</th>
+            <th>Notes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for m in metrics %}
+            <tr>
+              <td>{{ m.metric_date }}</td>
+              <td>{{ m.indexing_rate or "-" }}</td>
+              <td>{{ m.queries or "-" }}</td>
+              <td>{{ m.ctr or "-" }}</td>
+              <td>{{ m.avg_position or "-" }}</td>
+              <td>{{ m.notes or "-" }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No metrics yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

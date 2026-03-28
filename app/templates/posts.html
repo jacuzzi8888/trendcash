@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card">
+    <div class="section-title">Published Posts</div>
+    {% if posts %}
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Category</th>
+            <th>Slug</th>
+            <th>Published</th>
+            <th>View</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for p in posts %}
+            <tr>
+              <td>{{ p.title }}</td>
+              <td>{{ p.category }}</td>
+              <td>{{ p.slug }}</td>
+              <td>{{ p.published_at }}</td>
+              <td><a href="{{ url_for('site_post', slug=p.slug) }}">Open</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No published posts yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}

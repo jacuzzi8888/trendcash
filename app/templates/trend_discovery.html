@@ -1,0 +1,325 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="page-header">
+    <h1>Trend Discovery</h1>
+    <p class="muted">Fetch and explore trending topics from Google Trends</p>
+  </div>
+
+  <div class="card">
+    <div class="section-title">Fetch from Google Trends</div>
+    <form method="post" action="{{ url_for('fetch_trends') }}" class="grid two">
+      <div>
+        <label>Region</label>
+        <select name="geo">
+          <option value="NG" {% if geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
+          <option value="US" {% if geo == 'US' %}selected{% endif %}>United States (US)</option>
+          <option value="GB" {% if geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
+          <option value="" {% if geo == '' %}selected{% endif %}>Global</option>
+        </select>
+      </div>
+      <div>
+        <label>Category for new trends</label>
+        <input name="category" placeholder="general" value="{{ category }}" />
+      </div>
+      <div>
+        <label>Default velocity score</label>
+        <input name="velocity" type="number" step="0.1" min="0" max="10" value="0.5" />
+      </div>
+      <div>
+        <label>Default advertiser safety</label>
+        <input name="advertiser_safety" type="number" step="0.1" min="0" max="10" value="0.5" />
+      </div>
+      <div>
+        <label>Default commercial intent</label>
+        <input name="commercial_intent" type="number" step="0.1" min="0" max="10" value="0.5" />
+      </div>
+      <div>
+        <label>Default evergreen score</label>
+        <input name="evergreen" type="number" step="0.1" min="0" max="10" value="0.5" />
+      </div>
+      <div class="full-width">
+        <button class="button" type="submit">Fetch Trends</button>
+      </div>
+    </form>
+    {% if fetch_result %}
+      <div class="fetch-result {% if fetch_result.success %}success{% else %}error{% endif %}">
+        {% if fetch_result.success %}
+          Fetched: {{ fetch_result.fetched }} | Added: {{ fetch_result.added }} | Skipped: {{ fetch_result.skipped }}
+        {% else %}
+          Error: {{ fetch_result.error }}
+        {% endif %}
+      </div>
+    {% endif %}
+  </div>
+
+  <div class="card">
+    <div class="section-title">Explore a Keyword</div>
+    <form method="get" class="grid two">
+      <div>
+        <label>Keyword</label>
+        <input name="keyword" placeholder="Enter keyword to explore" value="{{ keyword or '' }}" />
+      </div>
+      <div>
+        <label>Region</label>
+        <select name="explore_geo">
+          <option value="NG" {% if explore_geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
+          <option value="US" {% if explore_geo == 'US' %}selected{% endif %}>United States (US)</option>
+          <option value="GB" {% if explore_geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
+        </select>
+      </div>
+      <div class="full-width">
+        <button class="button" type="submit">Explore</button>
+      </div>
+    </form>
+  </div>
+
+  {% if keyword %}
+    {% if interest_data %}
+      <div class="card">
+        <div class="section-title">Interest Over Time: "{{ keyword }}"</div>
+        <div class="chart-container">
+          <canvas id="interestChart"></canvas>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if related_queries and (related_queries.rising or related_queries.top) %}
+      <div class="card">
+        <div class="section-title">Related Queries</div>
+        <div class="grid two">
+          <div>
+            <h3>Rising Queries</h3>
+            {% if related_queries.rising %}
+              <ul class="trend-list">
+                {% for q in related_queries.rising[:10] %}
+                  <li>
+                    <span class="query-text">{{ q.query }}</span>
+                    {% if q.value %}
+                      <span class="query-value">+{{ q.value }}%</span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="muted">No rising queries found.</p>
+            {% endif %}
+          </div>
+          <div>
+            <h3>Top Queries</h3>
+            {% if related_queries.top %}
+              <ul class="trend-list">
+                {% for q in related_queries.top[:10] %}
+                  <li>
+                    <span class="query-text">{{ q.query }}</span>
+                    {% if q.value %}
+                      <span class="query-value">{{ q.value }}%</span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="muted">No top queries found.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if related_topics and (related_topics.rising or related_topics.top) %}
+      <div class="card">
+        <div class="section-title">Related Topics</div>
+        <div class="grid two">
+          <div>
+            <h3>Rising Topics</h3>
+            {% if related_topics.rising %}
+              <ul class="trend-list">
+                {% for t in related_topics.rising[:10] %}
+                  <li>
+                    <span class="query-text">{{ t.topic }}</span>
+                    <span class="query-type">({{ t.type }})</span>
+                    {% if t.value %}
+                      <span class="query-value">+{{ t.value }}%</span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="muted">No rising topics found.</p>
+            {% endif %}
+          </div>
+          <div>
+            <h3>Top Topics</h3>
+            {% if related_topics.top %}
+              <ul class="trend-list">
+                {% for t in related_topics.top[:10] %}
+                  <li>
+                    <span class="query-text">{{ t.topic }}</span>
+                    <span class="query-type">({{ t.type }})</span>
+                    {% if t.value %}
+                      <span class="query-value">{{ t.value }}%</span>
+                    {% endif %}
+                  </li>
+                {% endfor %}
+              </ul>
+            {% else %}
+              <p class="muted">No top topics found.</p>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    {% if suggestions %}
+      <div class="card">
+        <div class="section-title">Suggestions</div>
+        <div class="suggestions-grid">
+          {% for s in suggestions %}
+            <a href="{{ url_for('trend_discovery', keyword=s.title, explore_geo=explore_geo) }}" class="suggestion-chip">
+              {{ s.title }}
+              <span class="suggestion-type">{{ s.type }}</span>
+            </a>
+          {% endfor %}
+        </div>
+      </div>
+    {% endif %}
+  {% endif %}
+
+  <div class="card">
+    <div class="section-title">Recently Fetched Trends</div>
+    {% if recent_trends %}
+      <table>
+        <thead>
+          <tr>
+            <th>Topic</th>
+            <th>Category</th>
+            <th>Source</th>
+            <th>Created</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for t in recent_trends %}
+            <tr>
+              <td>{{ t.topic }}</td>
+              <td>{{ t.category }}</td>
+              <td>{{ t.source }}</td>
+              <td>{{ t.created_at[:10] }}</td>
+              <td>
+                <a href="{{ url_for('sources', candidate_id=t.id) }}">Add sources</a>
+              </td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No trends fetched yet. Click "Fetch Trends" above to get started.</p>
+    {% endif %}
+  </div>
+
+  {% if interest_data %}
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+      const ctx = document.getElementById('interestChart').getContext('2d');
+      const data = {{ interest_data | tojson }};
+      const labels = data.map(d => d.date.split('T')[0]);
+      const values = data.map(d => d['{{ keyword }}'] || 0);
+      
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: labels,
+          datasets: [{
+            label: '{{ keyword }}',
+            data: values,
+            borderColor: '#2563eb',
+            backgroundColor: 'rgba(37, 99, 235, 0.1)',
+            fill: true,
+            tension: 0.3
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            y: {
+              beginAtZero: true,
+              max: 100
+            }
+          }
+        }
+      });
+    </script>
+  {% endif %}
+
+  <style>
+    .chart-container {
+      height: 300px;
+      margin: 1rem 0;
+    }
+    .fetch-result {
+      padding: 0.75rem 1rem;
+      border-radius: 4px;
+      margin-top: 1rem;
+    }
+    .fetch-result.success {
+      background: #d1fae5;
+      color: #065f46;
+    }
+    .fetch-result.error {
+      background: #fee2e2;
+      color: #991b1b;
+    }
+    .trend-list {
+      list-style: none;
+      padding: 0;
+    }
+    .trend-list li {
+      padding: 0.5rem 0;
+      border-bottom: 1px solid #e5e7eb;
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .trend-list li:last-child {
+      border-bottom: none;
+    }
+    .query-text {
+      flex: 1;
+    }
+    .query-type {
+      color: #6b7280;
+      font-size: 0.875rem;
+    }
+    .query-value {
+      background: #dbeafe;
+      color: #1d4ed8;
+      padding: 0.125rem 0.5rem;
+      border-radius: 4px;
+      font-size: 0.75rem;
+    }
+    .suggestions-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+    .suggestion-chip {
+      background: #f3f4f6;
+      padding: 0.5rem 1rem;
+      border-radius: 20px;
+      text-decoration: none;
+      color: #374151;
+      font-size: 0.875rem;
+    }
+    .suggestion-chip:hover {
+      background: #e5e7eb;
+    }
+    .suggestion-type {
+      color: #6b7280;
+      font-size: 0.75rem;
+      margin-left: 0.25rem;
+    }
+    .full-width {
+      grid-column: 1 / -1;
+    }
+  </style>
+{% endblock %}

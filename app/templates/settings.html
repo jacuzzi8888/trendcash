@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card">
+    <div class="section-title">Settings</div>
+    <form method="post" class="grid two">
+      <div>
+        <label>Publish daily limit</label>
+        <input name="publish_daily_limit" value="{{ settings.publish_daily_limit }}" />
+      </div>
+      <div>
+        <label>Default image policy</label>
+        <select name="image_policy_default">
+          {% for option in ["none", "priority", "branded"] %}
+            <option value="{{ option }}" {% if settings.image_policy_default == option %}selected{% endif %}>{{ option }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="full-width">
+        <label>Gemini API Key</label>
+        <input type="password" name="gemini_api_key" value="{{ settings.gemini_api_key }}" placeholder="Enter your Gemini API key" />
+        <small class="muted">Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></small>
+      </div>
+      <div>
+        <label>&nbsp;</label>
+        <button class="button" type="submit">Save Settings</button>
+      </div>
+    </form>
+  </div>
+  
+  <style>
+    .full-width {
+      grid-column: 1 / -1;
+    }
+    .full-width small {
+      display: block;
+      margin-top: 0.25rem;
+    }
+  </style>
+{% endblock %}

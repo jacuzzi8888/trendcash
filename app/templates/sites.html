@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="page-header">
+  <h2>Connected Sites</h2>
+  <a href="{{ url_for('sites.new_site') }}" class="button">Add New Site</a>
+</div>
+
+{% if sites %}
+<table>
+  <thead>
+    <tr>
+      <th>Name</th>
+      <th>Niche</th>
+      <th>API URL</th>
+      <th>Status</th>
+      <th>Actions</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for site in sites %}
+    <tr>
+      <td>
+        <strong>{{ site.name }}</strong>
+        <br><span class="muted">{{ site.slug }}</span>
+      </td>
+      <td><span class="pill">{{ site.niche }}</span></td>
+      <td class="muted">{{ site.api_url[:40] }}{% if site.api_url|length > 40 %}...{% endif %}</td>
+      <td>
+        {% if site.is_active %}
+        <span class="pill" style="background: #e8f6f1; color: var(--success);">Active</span>
+        {% else %}
+        <span class="pill" style="background: #fde8ee; color: var(--error);">Inactive</span>
+        {% endif %}
+      </td>
+      <td>
+        <a href="{{ url_for('sites.edit_site', site_id=site.id) }}" class="button ghost" style="padding: 6px 12px;">Edit</a>
+        <form action="{{ url_for('sites.delete_site', site_id=site.id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this site?');">
+          <button type="submit" class="button ghost" style="padding: 6px 12px; color: var(--error); border-color: var(--error);">Delete</button>
+        </form>
+      </td>
+    </tr>
+    {% endfor %}
+  </tbody>
+</table>
+{% else %}
+<div class="card">
+  <p class="muted">No sites connected yet. <a href="{{ url_for('sites.new_site') }}">Add your first site</a> to start publishing.</p>
+</div>
+{% endif %}
+
+<div class="card" style="margin-top: 24px;">
+  <h3>How to Connect a Site</h3>
+  <ol style="color: var(--muted); line-height: 1.8;">
+    <li>Build your external website with an API endpoint at <code>/api/content</code></li>
+    <li>The endpoint should accept POST requests with JSON payload containing: <code>title, content, category, slug, meta</code></li>
+    <li>Secure the endpoint with a Bearer token (API key)</li>
+    <li>Add the site here with its API URL and key</li>
+    <li>Publish content from the dashboard to your site</li>
+  </ol>
+</div>
+{% endblock %}

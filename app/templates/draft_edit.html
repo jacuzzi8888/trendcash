@@ -1,0 +1,382 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="draft-edit-container">
+    <div class="draft-main">
+      <div class="card">
+        <div class="section-title">Edit Draft</div>
+        <form method="post" id="draftForm">
+          <div class="grid two">
+            <div>
+              <label>Title</label>
+              <input name="title" id="title" value="{{ draft.title }}" required />
+            </div>
+            <div>
+              <label>Last Updated</label>
+              <input name="last_updated" value="{{ draft.last_updated }}" required />
+            </div>
+            <div>
+              <label>Image Policy</label>
+              <select name="image_policy">
+                {% for option in ["none", "priority", "branded"] %}
+                  <option value="{{ option }}" {% if draft.image_policy == option %}selected{% endif %}>{{ option }}</option>
+                {% endfor %}
+              </select>
+            </div>
+            <div>
+              <label>Image Prompt (optional)</label>
+              <input name="image_prompt" value="{{ draft.image_prompt or '' }}" />
+            </div>
+          </div>
+          <div>
+            <label>Content</label>
+            <textarea name="content" id="content" rows="20">{{ draft.content }}</textarea>
+          </div>
+          <div style="margin-top: 12px;">
+            <button class="button" type="submit" name="status_action" value="save">Save</button>
+            <button class="button secondary" type="submit" name="status_action" value="send_qc">Send to QC</button>
+          </div>
+        </form>
+      </div>
+    </div>
+    
+    <div class="draft-sidebar">
+      <div class="card ai-assistant">
+        <div class="section-title">AI Assistant</div>
+        
+        <div class="ai-section">
+          <h4>Generate Headlines</h4>
+          <select id="headlineAngle">
+            <option value="news">News style</option>
+            <option value="how-to">How-to style</option>
+            <option value="listicle">Listicle style</option>
+            <option value="opinion">Opinion style</option>
+          </select>
+          <button class="button ghost" onclick="generateHeadlines()" id="btnHeadlines">Generate</button>
+          <div id="headlinesResult" class="ai-result"></div>
+        </div>
+        
+        <div class="ai-section">
+          <h4>Generate Excerpt</h4>
+          <input type="number" id="excerptLength" value="160" max="300" placeholder="Max length" />
+          <button class="button ghost" onclick="generateExcerpt()" id="btnExcerpt">Generate</button>
+          <div id="excerptResult" class="ai-result"></div>
+        </div>
+        
+        <div class="ai-section">
+          <h4>Improve Content</h4>
+          <select id="improveType">
+            <option value="Improve clarity and flow">Clarity & flow</option>
+            <option value="Make more engaging and conversational">More engaging</option>
+            <option value="Simplify language for general audience">Simplify</option>
+            <option value="Add more detail and depth">Add detail</option>
+          </select>
+          <button class="button ghost" onclick="improveContent()" id="btnImprove">Improve</button>
+          <div id="improveResult" class="ai-result"></div>
+        </div>
+        
+        <div class="ai-section">
+          <h4>Generate FAQs</h4>
+          <input type="text" id="faqContext" placeholder="Additional context (optional)" />
+          <button class="button ghost" onclick="generateFaqs()" id="btnFaqs">Generate</button>
+          <div id="faqsResult" class="ai-result"></div>
+        </div>
+        
+        {% if candidate %}
+        <div class="ai-section">
+          <h4>Regenerate Article</h4>
+          <select id="articleStyle">
+            <option value="informative">Informative</option>
+            <option value="news">News report</option>
+            <option value="guide">How-to guide</option>
+            <option value="analysis">Analysis</option>
+          </select>
+          <input type="number" id="wordCount" value="800" min="300" max="2000" step="100" />
+          <button class="button ghost" onclick="regenerateArticle()" id="btnRegenerate">Regenerate</button>
+          <div id="regenerateResult" class="ai-result"></div>
+        </div>
+        {% endif %}
+        
+        <div class="ai-section">
+          <button class="button secondary" onclick="testAIConnection()">Test AI Connection</button>
+          <div id="testResult" class="ai-result"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const candidateId = {{ candidate.id if candidate else 'null' }};
+    const topic = "{{ candidate.topic if candidate else '' }}";
+    
+    function setLoading(btnId, loading) {
+      const btn = document.getElementById(btnId);
+      if (loading) {
+        btn.disabled = true;
+        btn.dataset.originalText = btn.textContent;
+        btn.textContent = 'Loading...';
+      } else {
+        btn.disabled = false;
+        btn.textContent = btn.dataset.originalText;
+      }
+    }
+    
+    function showResult(containerId, html) {
+      document.getElementById(containerId).innerHTML = html;
+    }
+    
+    async function generateHeadlines() {
+      setLoading('btnHeadlines', true);
+      const angle = document.getElementById('headlineAngle').value;
+      const topicText = topic || document.getElementById('title').value;
+      
+      try {
+        const formData = new FormData();
+        formData.append('topic', topicText);
+        formData.append('angle', angle);
+        
+        const response = await fetch('/ai/headlines', { method: 'POST', body: formData });
+        const result = await response.json();
+        
+        if (result.success) {
+          const headlinesHtml = result.headlines.map((h, i) => 
+            `<div class="headline-option" onclick="useHeadline('${h.replace(/'/g, "\\'")}')">${i + 1}. ${h}</div>`
+          ).join('');
+          showResult('headlinesResult', headlinesHtml);
+        } else {
+          showResult('headlinesResult', `<span class="error">${result.error}</span>`);
+        }
+      } catch (e) {
+        showResult('headlinesResult', `<span class="error">Request failed: ${e.message}</span>`);
+      }
+      setLoading('btnHeadlines', false);
+    }
+    
+    function useHeadline(headline) {
+      document.getElementById('title').value = headline;
+    }
+    
+    async function generateExcerpt() {
+      setLoading('btnExcerpt', true);
+      const content = document.getElementById('content').value;
+      const maxLength = document.getElementById('excerptLength').value;
+      
+      try {
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('max_length', maxLength);
+        
+        const response = await fetch('/ai/excerpt', { method: 'POST', body: formData });
+        const result = await response.json();
+        
+        if (result.success) {
+          showResult('excerptResult', `<div class="excerpt-text">${result.excerpt}</div>`);
+        } else {
+          showResult('excerptResult', `<span class="error">${result.error}</span>`);
+        }
+      } catch (e) {
+        showResult('excerptResult', `<span class="error">Request failed: ${e.message}</span>`);
+      }
+      setLoading('btnExcerpt', false);
+    }
+    
+    async function improveContent() {
+      setLoading('btnImprove', true);
+      const content = document.getElementById('content').value;
+      const instructions = document.getElementById('improveType').value;
+      
+      if (!content.trim()) {
+        showResult('improveResult', '<span class="error">No content to improve</span>');
+        setLoading('btnImprove', false);
+        return;
+      }
+      
+      try {
+        const formData = new FormData();
+        formData.append('content', content);
+        formData.append('instructions', instructions);
+        
+        const response = await fetch('/ai/improve', { method: 'POST', body: formData });
+        const result = await response.json();
+        
+        if (result.success) {
+          showResult('improveResult', 
+            `<button class="button ghost small" onclick="applyImproved()">Apply Changes</button>
+             <div class="improved-content" id="improvedContent" style="display:none;">${result.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`);
+          window.improvedContent = result.content;
+        } else {
+          showResult('improveResult', `<span class="error">${result.error}</span>`);
+        }
+      } catch (e) {
+        showResult('improveResult', `<span class="error">Request failed: ${e.message}</span>`);
+      }
+      setLoading('btnImprove', false);
+    }
+    
+    function applyImproved() {
+      if (window.improvedContent) {
+        document.getElementById('content').value = window.improvedContent;
+        showResult('improveResult', '<span class="success">Content updated!</span>');
+      }
+    }
+    
+    async function generateFaqs() {
+      setLoading('btnFaqs', true);
+      const topicText = topic || document.getElementById('title').value;
+      const context = document.getElementById('faqContext').value;
+      
+      try {
+        const formData = new FormData();
+        formData.append('topic', topicText);
+        formData.append('context', context);
+        
+        const response = await fetch('/ai/faqs', { method: 'POST', body: formData });
+        const result = await response.json();
+        
+        if (result.success) {
+          showResult('faqsResult', `<pre class="faqs-preview">${result.faqs}</pre>`);
+        } else {
+          showResult('faqsResult', `<span class="error">${result.error}</span>`);
+        }
+      } catch (e) {
+        showResult('faqsResult', `<span class="error">Request failed: ${e.message}</span>`);
+      }
+      setLoading('btnFaqs', false);
+    }
+    
+    async function regenerateArticle() {
+      if (!candidateId) {
+        showResult('regenerateResult', '<span class="error">No candidate linked</span>');
+        return;
+      }
+      
+      if (!confirm('This will replace your current content. Continue?')) return;
+      
+      setLoading('btnRegenerate', true);
+      const style = document.getElementById('articleStyle').value;
+      const wordCount = document.getElementById('wordCount').value;
+      
+      try {
+        const formData = new FormData();
+        formData.append('style', style);
+        formData.append('word_count', wordCount);
+        
+        const response = await fetch(`/ai/generate/${candidateId}`, { method: 'POST', body: formData });
+        const result = await response.json();
+        
+        if (result.success) {
+          document.getElementById('content').value = result.content;
+          showResult('regenerateResult', '<span class="success">Article generated!</span>');
+        } else {
+          showResult('regenerateResult', `<span class="error">${result.error}</span>`);
+        }
+      } catch (e) {
+        showResult('regenerateResult', `<span class="error">Request failed: ${e.message}</span>`);
+      }
+      setLoading('btnRegenerate', false);
+    }
+    
+    async function testAIConnection() {
+      try {
+        const response = await fetch('/ai/test', { method: 'POST' });
+        const result = await response.json();
+        
+        if (result.success) {
+          showResult('testResult', `<span class="success">AI connected: ${result.response}</span>`);
+        } else {
+          showResult('testResult', `<span class="error">Connection failed: ${result.error}</span>`);
+        }
+      } catch (e) {
+        showResult('testResult', `<span class="error">Request failed: ${e.message}</span>`);
+      }
+    }
+  </script>
+
+  <style>
+    .draft-edit-container {
+      display: grid;
+      grid-template-columns: 1fr 320px;
+      gap: 1.5rem;
+    }
+    .draft-main {
+      min-width: 0;
+    }
+    .draft-sidebar {
+      position: sticky;
+      top: 1rem;
+      height: fit-content;
+    }
+    .ai-assistant {
+      max-height: calc(100vh - 4rem);
+      overflow-y: auto;
+    }
+    .ai-section {
+      padding: 0.75rem 0;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .ai-section:last-child {
+      border-bottom: none;
+    }
+    .ai-section h4 {
+      margin: 0 0 0.5rem 0;
+      font-size: 0.875rem;
+      color: #374151;
+    }
+    .ai-section select,
+    .ai-section input[type="number"],
+    .ai-section input[type="text"] {
+      width: 100%;
+      margin-bottom: 0.5rem;
+    }
+    .ai-section button {
+      width: 100%;
+    }
+    .ai-result {
+      margin-top: 0.5rem;
+      font-size: 0.875rem;
+    }
+    .headline-option {
+      padding: 0.5rem;
+      margin: 0.25rem 0;
+      background: #f9fafb;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 0.8rem;
+    }
+    .headline-option:hover {
+      background: #e5e7eb;
+    }
+    .excerpt-text {
+      padding: 0.5rem;
+      background: #f9fafb;
+      border-radius: 4px;
+      font-size: 0.85rem;
+    }
+    .faqs-preview {
+      white-space: pre-wrap;
+      font-size: 0.8rem;
+      background: #f9fafb;
+      padding: 0.5rem;
+      border-radius: 4px;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+    .success {
+      color: #059669;
+    }
+    .error {
+      color: #dc2626;
+    }
+    .button.small {
+      padding: 0.25rem 0.5rem;
+      font-size: 0.75rem;
+    }
+    @media (max-width: 900px) {
+      .draft-edit-container {
+        grid-template-columns: 1fr;
+      }
+      .draft-sidebar {
+        position: static;
+      }
+    }
+  </style>
+{% endblock %}

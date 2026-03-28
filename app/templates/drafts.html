@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+{% block content %}
+  <div class="card">
+    <div class="section-title">Drafts</div>
+    <div class="muted">
+      Filter:
+      <a href="{{ url_for('drafts') }}">All</a> |
+      <a href="{{ url_for('drafts', status='draft') }}">Draft</a> |
+      <a href="{{ url_for('drafts', status='qc') }}">QC</a> |
+      <a href="{{ url_for('drafts', status='approved') }}">Approved</a> |
+      <a href="{{ url_for('drafts', status='published') }}">Published</a>
+    </div>
+  </div>
+
+  <div class="card">
+    {% if drafts %}
+      <table>
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Topic</th>
+            <th>Status</th>
+            <th>Updated</th>
+            <th>Edit</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in drafts %}
+            <tr>
+              <td>{{ d.title }}</td>
+              <td>{{ d.topic }}</td>
+              <td><span class="pill">{{ d.status }}</span></td>
+              <td>{{ d.updated_at }}</td>
+              <td><a href="{{ url_for('edit_draft', draft_id=d.id) }}">Edit</a></td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="muted">No drafts yet.</p>
+    {% endif %}
+  </div>
+{% endblock %}
