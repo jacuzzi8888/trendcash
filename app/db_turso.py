@@ -9,14 +9,8 @@ def _utc_now():
 TURSO_DATABASE_URL = os.environ.get('TURSO_DATABASE_URL', '')
 TURSO_AUTH_TOKEN = os.environ.get('TURSO_AUTH_TOKEN', '')
 
-_turso_connection = None
-
 
 def get_turso_connection():
-    global _turso_connection
-    if _turso_connection is not None:
-        return _turso_connection
-    
     try:
         import libsql_experimental as libsql
         raw_conn = libsql.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
@@ -45,8 +39,7 @@ def get_turso_connection():
                 cursor = self._conn.execute(sql, params)
                 return TursoResult(cursor)
                 
-        _turso_connection = ConnectionWrapper(raw_conn)
-        return _turso_connection
+        return ConnectionWrapper(raw_conn)
     except ImportError:
         raise RuntimeError("No libsql client available. Install libsql-experimental.")
 
