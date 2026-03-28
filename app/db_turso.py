@@ -18,24 +18,16 @@ def get_turso_connection():
         return _turso_connection
     
     try:
-        from libsql_client import LibsqlClient
-        _turso_connection = LibsqlClient(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
+        from libsql_client import create_client_sync
+        _turso_connection = create_client_sync(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
         return _turso_connection
     except ImportError:
-        try:
-            import libsql
-            _turso_connection = libsql.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
-            return _turso_connection
-        except ImportError:
-            raise RuntimeError("No libsql client available. Install libsql-client or libsql.")
+        raise RuntimeError("No libsql client available. Install libsql-client.")
 
 
 def turso_execute(sql, params=None):
     conn = get_turso_connection()
-    if hasattr(conn, 'execute'):
-        return conn.execute(sql, params or [])
-    else:
-        return conn.query(sql, params or [])
+    return conn.execute(sql, params or [])
 
 
 def turso_executescript(sql):
