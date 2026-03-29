@@ -15,8 +15,13 @@
           <div class="title">Naija Trend-to-Cash</div>
           <div class="subtitle">Content operations dashboard</div>
         </div>
+        <div class="hamburger" onclick="toggleNav()">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
       </div>
-      <nav class="nav">
+      <nav class="nav" id="main-nav">
         <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">
           <i class="fa-solid fa-chart-line"></i>Dashboard
         </a>
@@ -61,5 +66,13 @@
       {% endwith %}
       {% block content %}{% endblock %}
     </main>
+    <script>
+      function toggleNav() {
+        const nav = document.getElementById('main-nav');
+        const hamburger = document.querySelector('.hamburger');
+        nav.classList.toggle('open');
+        hamburger.classList.toggle('open');
+      }
+    </script>
   </body>
 </html>

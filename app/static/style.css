@@ -120,13 +120,51 @@ body {
     padding: 12px 16px;
   }
   .nav {
-    gap: 4px;
+    display: none;
+    flex-direction: column;
+    gap: 8px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+    margin-top: 12px;
+  }
+  .nav.open {
+    display: flex;
   }
   .nav a {
-    font-size: 12px;
-    padding: 5px 8px;
+    font-size: 14px;
+    padding: 10px 12px;
   }
   .nav a i {
+    display: inline;
+    width: 24px;
+  }
+  .hamburger {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    cursor: pointer;
+    padding: 8px;
+    margin-left: auto;
+  }
+  .hamburger span {
+    width: 24px;
+    height: 2px;
+    background: var(--ink);
+    transition: all 0.3s ease;
+  }
+  .hamburger.open span:nth-child(1) {
+    transform: rotate(45deg) translate(5px, 5px);
+  }
+  .hamburger.open span:nth-child(2) {
+    opacity: 0;
+  }
+  .hamburger.open span:nth-child(3) {
+    transform: rotate(-45deg) translate(5px, -5px);
+  }
+}
+
+@media (min-width: 769px) {
+  .hamburger {
     display: none;
   }
 }
@@ -227,9 +265,14 @@ tbody tr:hover {
 @media (max-width: 768px) {
   table {
     font-size: 12px;
+    min-width: 600px;
   }
   th, td {
     padding: 8px 6px;
+  }
+  .table-wrapper {
+    margin: 0 -18px;
+    padding: 0 18px;
   }
 }
 

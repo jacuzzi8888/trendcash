@@ -319,6 +319,7 @@ def create_app():
                     "added": added,
                     "skipped": skipped,
                     "sources_added": sources_added,
+                    "category": category,
                 }
             else:
                 fetch_result = {"success": False, "error": result.get("error", "Unknown error")}
