@@ -9,11 +9,20 @@ HEADERS = {
 }
 
 SEED_KEYWORDS_NIGERIA = [
-    'nigeria', 'naira', 'fuel price', 'cbn', 'jamb', 'asuu', 'inec',
-    'bitcoin', 'dollar', 'exchange rate', 'immigration', 'recruitment',
-    'bank loan', 'scholarship', 'visa', 'passport', 'election',
-    'football', 'super eagles', 'premier league',
-    'davido', 'burna boy', 'wizkid', 'tinubu', 'lagos'
+    'nigeria news', 'nigerian', 'nigeria election', 'nigeria football',
+    'naira to dollar', 'naira exchange', 'nigerian naira',
+    'cbn nigeria', 'central bank nigeria',
+    'jamb 2026', 'jamb result', 'jamb portal',
+    'asuu strike', 'asuu news',
+    'inec nigeria', 'inec voter',
+    'nigerian immigration', 'nigeria passport',
+    'nigeria visa', 'travel to nigeria',
+    'davido nigeria', 'burna boy', 'wizkid nigeria',
+    'super eagles', 'nigeria premier league',
+    'fuel scarcity nigeria', 'fuel price nigeria',
+    'lagos nigeria', 'abuja nigeria',
+    'nigeria banking', 'nigeria loan',
+    'bitcoin nigeria', 'crypto nigeria',
 ]
 
 
@@ -36,18 +45,36 @@ def fetch_all_trends(geo='NG'):
     all_trends = []
     seen = set()
     
+    nigeria_terms = [
+        'nigeria', 'nigerian', 'naira', 'lagos', 'abuja', 'ibadan',
+        'kano', 'port harcourt', 'benin', 'kaduna', 'jos',
+        'super eagles', 'falcons', 'npfl', 'npl',
+        'jamb', 'waec', 'neco', 'asuu', 'nysc',
+        'inec', 'pvc', 'apc', 'pdp', 'labour party',
+        'cbn', 'gtbank', 'access bank', 'uba', 'zenith',
+        'dangote', 'nnpc', 'mtn nigeria',
+        'davido', 'burna boy', 'wizkid', 'tiwa savage', 'rema',
+        'afrobeat', 'afrobeats', 'nollywood',
+        'fuel', 'petrol', 'diesel', 'kerosene',
+        'visa', 'passport', 'immigration',
+        'scholarship', 'recruitment', 'job',
+    ]
+    
     for keyword in SEED_KEYWORDS_NIGERIA:
         topics = get_autocomplete_topics(keyword)
         for t in topics:
             title = t.get('title', '')
-            if title and title.lower() not in seen:
-                seen.add(title.lower())
-                all_trends.append({
-                    'topic': title,
-                    'source': 'google_autocomplete',
-                    'geo': geo,
-                    'fetched_at': datetime.now(timezone.utc).isoformat()
-                })
+            title_lower = title.lower()
+            if title and title_lower not in seen:
+                is_relevant = any(term in title_lower for term in nigeria_terms)
+                if is_relevant or len(title) > 10:
+                    seen.add(title_lower)
+                    all_trends.append({
+                        'topic': title,
+                        'source': 'google_autocomplete',
+                        'geo': geo,
+                        'fetched_at': datetime.now(timezone.utc).isoformat()
+                    })
     
     return {
         'success': True,
