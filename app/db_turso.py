@@ -90,8 +90,10 @@ class TursoConnection:
             stmt_result = result[0]
             if 'error' in stmt_result:
                 raise RuntimeError(f"SQL error: {stmt_result['error']}")
-            columns = stmt_result.get('cols', [])
-            rows = stmt_result.get('rows', [])
+            
+            results = stmt_result.get('results', {})
+            columns = results.get('columns', [])
+            rows = results.get('rows', [])
             return TursoCursor(rows, columns)
         
         return TursoCursor([], [])
