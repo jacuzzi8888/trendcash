@@ -209,6 +209,9 @@ def create_app():
         if request.method == "POST":
             geo = request.form.get("geo", "NG")
             category = request.form.get("category", "general").strip() or "general"
+            custom_category = request.form.get("custom_category", "").strip()
+            if category == "__custom__" and custom_category:
+                category = custom_category.lower()
             scores = {
                 "velocity": float(request.form.get("velocity", 0.5)),
                 "advertiser_safety": float(request.form.get("advertiser_safety", 0.5)),
@@ -279,6 +282,16 @@ def create_app():
         recent_trends = conn.execute(
             "SELECT * FROM trend_candidates ORDER BY created_at DESC LIMIT 20"
         ).fetchall()
+        
+        predefined_categories = ['general', 'betting', 'crypto', 'finance', 'education', 'politics', 'sports', 'entertainment', 'travel', 'jobs']
+        custom_cats = conn.execute(
+            "SELECT DISTINCT category FROM trend_candidates WHERE category NOT IN ({})".format(
+                ','.join(['?' for _ in predefined_categories])
+            ),
+            predefined_categories
+        ).fetchall()
+        custom_categories = [row["category"] for row in custom_cats if row["category"]]
+        
         conn.close()
 
         return render_template(
@@ -294,6 +307,7 @@ def create_app():
             related_topics=related_topics,
             suggestions=suggestions,
             recent_trends=recent_trends,
+            custom_categories=custom_categories,
         )
 
     @app.route("/sources/<int:candidate_id>", methods=["GET", "POST"])

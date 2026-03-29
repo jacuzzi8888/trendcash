@@ -105,7 +105,19 @@ def fetch_all_trends(geo='NG', category='general'):
     
     category_lower = category.lower().strip() if category else 'general'
     
-    keywords = CATEGORY_KEYWORDS.get(category_lower, CATEGORY_KEYWORDS['general'])
+    if category_lower in CATEGORY_KEYWORDS:
+        keywords = CATEGORY_KEYWORDS[category_lower]
+    else:
+        keywords = [
+            f'{category_lower} nigeria',
+            f'{category_lower} lagos',
+            f'{category_lower} abuja',
+            f'nigeria {category_lower}',
+            f'{category_lower} news nigeria',
+            f'{category_lower} africa',
+            f'best {category_lower} nigeria',
+            f'{category_lower} jobs nigeria',
+        ]
     
     for keyword in keywords:
         topics = get_autocomplete_topics(keyword)

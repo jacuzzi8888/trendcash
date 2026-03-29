@@ -19,7 +19,25 @@
       </div>
       <div>
         <label>Category for new trends</label>
-        <input name="category" placeholder="general" value="{{ category }}" />
+        <div class="category-row">
+          <select name="category" id="category-select" onchange="toggleCustomCategory()">
+            <option value="general" {% if category == 'general' %}selected{% endif %}>General</option>
+            <option value="betting" {% if category == 'betting' %}selected{% endif %}>Betting</option>
+            <option value="crypto" {% if category == 'crypto' %}selected{% endif %}>Crypto</option>
+            <option value="finance" {% if category == 'finance' %}selected{% endif %}>Finance</option>
+            <option value="education" {% if category == 'education' %}selected{% endif %}>Education</option>
+            <option value="politics" {% if category == 'politics' %}selected{% endif %}>Politics</option>
+            <option value="sports" {% if category == 'sports' %}selected{% endif %}>Sports</option>
+            <option value="entertainment" {% if category == 'entertainment' %}selected{% endif %}>Entertainment</option>
+            <option value="travel" {% if category == 'travel' %}selected{% endif %}>Travel</option>
+            <option value="jobs" {% if category == 'jobs' %}selected{% endif %}>Jobs</option>
+            {% for cat in custom_categories %}
+            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat|title }}</option>
+            {% endfor %}
+            <option value="__custom__" {% if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] and category %}selected{% endif %}>+ Add New...</option>
+          </select>
+          <input type="text" name="custom_category" id="custom-category" placeholder="Enter new category" style="display: none;" value="{{ category if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] else '' }}" />
+        </div>
       </div>
       <div>
         <label>Default velocity score</label>
@@ -321,5 +339,32 @@
     .full-width {
       grid-column: 1 / -1;
     }
+    .category-row {
+      display: flex;
+      gap: 0.5rem;
+      align-items: center;
+    }
+    .category-row select {
+      flex: 1;
+    }
+    .category-row input {
+      flex: 1;
+    }
   </style>
+  <script>
+    function toggleCustomCategory() {
+      const select = document.getElementById('category-select');
+      const customInput = document.getElementById('custom-category');
+      if (select.value === '__custom__') {
+        customInput.style.display = 'block';
+        customInput.focus();
+      } else {
+        customInput.style.display = 'none';
+        customInput.value = '';
+      }
+    }
+    document.addEventListener('DOMContentLoaded', function() {
+      toggleCustomCategory();
+    });
+  </script>
 {% endblock %}
