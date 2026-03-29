@@ -501,10 +501,10 @@ def create_app():
                 return redirect(url_for("qc"))
             return redirect(url_for("edit_draft", draft_id=draft_id))
 
-        conn.close()
         candidate = conn.execute(
             "SELECT * FROM trend_candidates WHERE id = ?", (draft["candidate_id"],)
         ).fetchone() if draft else None
+        conn.close()
         return render_template(
             "draft_edit.html",
             title=APP_TITLE,
