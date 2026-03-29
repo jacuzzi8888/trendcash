@@ -239,7 +239,7 @@ def init_turso_db():
     for key, value in defaults.items():
         result = conn.execute("SELECT value FROM settings WHERE key = ?", (key,))
         if result.fetchone() is None:
-            conn.execute("INSERT INTO settings (key, value) VALUES (?, ?)", (key, value))
+            conn.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (key, value))
     
     conn.close()
 
