@@ -463,3 +463,47 @@ textarea {
   margin: 0;
   font-size: 24px;
 }
+
+.dashboard-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 16px;
+  margin-bottom: 20px;
+}
+
+@media (max-width: 800px) {
+  .dashboard-stats {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-stats {
+    grid-template-columns: 1fr;
+  }
+}
+
+.quick-action {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  background: var(--success-soft);
+  border: 1px solid #a7f3d0;
+  border-radius: 12px;
+  margin-bottom: 20px;
+}
+
+.quick-action i {
+  font-size: 24px;
+  color: var(--success);
+}
+
+.quick-action span {
+  flex: 1;
+  font-weight: 500;
+}
+
+.quick-action .button {
+  background: var(--success);
+}

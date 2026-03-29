@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="card">
-    <div class="section-title">Settings</div>
+    <div class="section-title"><i class="fa-solid fa-gear"></i> Settings</div>
     <form method="post" class="grid two">
       <div>
         <label>Publish daily limit</label>
-        <input name="publish_daily_limit" value="{{ settings.publish_daily_limit }}" />
+        <input name="publish_daily_limit" type="number" value="{{ settings.publish_daily_limit }}" min="1" max="100" />
       </div>
       <div>
         <label>Default image policy</label>
@@ -15,65 +15,79 @@
           {% endfor %}
         </select>
       </div>
-      <div class="full-width">
+      <div>
         <label>Gemini API Key</label>
-        <input type="password" name="gemini_api_key" value="{{ settings.gemini_api_key }}" placeholder="Enter your Gemini API key" />
-        <small class="muted">Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></small>
-      </div>
-      <div class="full-width">
-        <button class="button" type="submit">Save Settings</button>
+        <input type="password" name="gemini_api_key" value="{{ settings.gemini_api_key }}" placeholder="AIza..." />
+        <small class="muted">Get your key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></small>
       </div>
     </form>
   </div>
   
   <div class="card">
-    <div class="section-title">Source Fetching</div>
-    <p class="muted">Configure automatic source discovery for trends. Requires SERPER_API_KEY environment variable.</p>
+    <div class="section-title"><i class="fa-solid fa-search"></i> Source Fetching</div>
+    <p class="muted">Auto-discover sources when fetching trends. Requires SERPER_API_KEY env variable.</p>
     <form method="post" class="grid two">
       <div>
         <label>Auto-fetch sources</label>
-        <div class="toggle-row">
-          <input type="checkbox" name="auto_fetch_sources" id="auto_fetch_sources" {% if settings.auto_fetch_sources == 'true' %}checked{% endif %} />
-          <label for="auto_fetch_sources">Enable automatic source fetching when fetching trends</label>
-        </div>
+        <label class="toggle">
+          <input type="checkbox" name="auto_fetch_sources" {% if settings.auto_fetch_sources == 'true' %}checked{% endif %} />
+          <span class="toggle-slider"></span>
+          <span class="toggle-label">Enabled</span>
+        </label>
       </div>
       <div>
         <label>Days to look back</label>
         <input type="number" name="source_days_back" value="{{ settings.source_days_back }}" min="1" max="30" />
-        <small class="muted">Only include articles published within this many days</small>
       </div>
       <div>
         <label>Sources per trend</label>
         <input type="number" name="sources_per_trend" value="{{ settings.sources_per_trend }}" min="1" max="10" />
-        <small class="muted">Number of sources to fetch per trend (1-10)</small>
       </div>
-      <div>
-        <label>&nbsp;</label>
-        <button class="button" type="submit">Save Source Settings</button>
+      <div class="full-width">
+        <button class="button" type="submit"><i class="fa-solid fa-save"></i> Save All Settings</button>
       </div>
     </form>
   </div>
   
   <style>
-    .full-width {
-      grid-column: 1 / -1;
-    }
-    .full-width small {
-      display: block;
-      margin-top: 0.25rem;
-    }
-    .toggle-row {
+    .full-width { grid-column: 1 / -1; }
+    small.muted { display: block; margin-top: 4px; }
+    
+    .toggle {
       display: flex;
       align-items: center;
-      gap: 0.5rem;
+      gap: 10px;
+      cursor: pointer;
     }
-    .toggle-row input[type="checkbox"] {
+    .toggle input { display: none; }
+    .toggle-slider {
+      width: 44px;
+      height: 24px;
+      background: #d1d5db;
+      border-radius: 12px;
+      position: relative;
+      transition: background 0.2s;
+    }
+    .toggle-slider::after {
+      content: '';
+      position: absolute;
       width: 18px;
       height: 18px;
+      background: white;
+      border-radius: 50%;
+      top: 3px;
+      left: 3px;
+      transition: transform 0.2s;
     }
-    .toggle-row label {
-      margin: 0;
-      font-weight: normal;
+    .toggle input:checked + .toggle-slider {
+      background: var(--success);
+    }
+    .toggle input:checked + .toggle-slider::after {
+      transform: translateX(20px);
+    }
+    .toggle-label {
+      font-weight: 500;
+      color: var(--ink);
     }
   </style>
 {% endblock %}

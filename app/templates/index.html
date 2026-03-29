@@ -11,7 +11,7 @@
     </div>
   </div>
 
-  <div class="grid three">
+  <div class="dashboard-stats">
     <div class="stat">
       <i class="fa-solid fa-fire"></i>
       <div class="content">
@@ -33,17 +33,14 @@
         <div class="value">{{ counts.qc }}</div>
       </div>
     </div>
-  </div>
-
-  <div class="grid two">
-    <div class="card">
-      <div class="section-title"><i class="fa-solid fa-check-circle"></i> Approved Drafts</div>
-      <div class="value" style="color: var(--success);">{{ counts.approved }}</div>
-      <p class="muted">Only approved drafts should move to the publish queue.</p>
-      {% if counts.approved > 0 %}
-        <a href="{{ url_for('publish') }}" class="button" style="margin-top: 12px;"><i class="fa-solid fa-paper-plane"></i> Go to Publish</a>
-      {% endif %}
+    <div class="stat">
+      <i class="fa-solid fa-check-circle"></i>
+      <div class="content">
+        <div class="label">Approved</div>
+        <div class="value" style="color: var(--success);">{{ counts.approved }}</div>
+      </div>
     </div>
+  </div>
     <div class="card">
       <div class="section-title"><i class="fa-solid fa-chart-bar"></i> Latest Metrics</div>
       <div class="table-wrapper">
@@ -79,5 +76,12 @@
         {% endif %}
       </div>
     </div>
-  </div>
+    
+    {% if counts.approved > 0 %}
+    <div class="quick-action">
+      <i class="fa-solid fa-rocket"></i>
+      <span>{{ counts.approved }} approved draft{{ 's' if counts.approved != 1 else '' }} ready to publish</span>
+      <a href="{{ url_for('publish') }}" class="button"><i class="fa-solid fa-paper-plane"></i> Publish Now</a>
+    </div>
+    {% endif %}
 {% endblock %}

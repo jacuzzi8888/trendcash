@@ -1,68 +1,181 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="card">
-    <div class="section-title">Search Console Metrics</div>
+    <div class="section-title"><i class="fa-solid fa-plus-circle"></i> Add Metrics</div>
     <form method="post" class="grid two">
       <div>
         <label>Date</label>
-        <input name="metric_date" placeholder="2026-03-25" required />
+        <input name="metric_date" type="date" required />
       </div>
       <div>
         <label>Indexing rate %</label>
-        <input name="indexing_rate" placeholder="42.5" />
+        <input name="indexing_rate" placeholder="42.5" step="0.1" />
       </div>
       <div>
         <label>Queries</label>
-        <input name="queries" placeholder="1200" />
+        <input name="queries" placeholder="1200" type="number" />
       </div>
       <div>
         <label>CTR %</label>
-        <input name="ctr" placeholder="1.8" />
+        <input name="ctr" placeholder="1.8" step="0.01" />
       </div>
       <div>
         <label>Average position</label>
-        <input name="avg_position" placeholder="28.4" />
+        <input name="avg_position" placeholder="28.4" step="0.1" />
       </div>
       <div>
         <label>Notes</label>
-        <input name="notes" placeholder="Indexing slowed after 15 posts/day" />
+        <input name="notes" placeholder="Observations..." />
       </div>
-      <div>
-        <label>&nbsp;</label>
-        <button class="button" type="submit">Add Metrics</button>
+      <div class="full-width">
+        <button class="button" type="submit"><i class="fa-solid fa-save"></i> Save Metrics</button>
       </div>
     </form>
   </div>
 
+  {% if metrics and metrics|length > 0 %}
   <div class="card">
-    <div class="section-title">History</div>
-    {% if metrics %}
-      <table>
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Index %</th>
-            <th>Queries</th>
-            <th>CTR %</th>
-            <th>Avg Pos</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for m in metrics %}
-            <tr>
-              <td>{{ m.metric_date }}</td>
-              <td>{{ m.indexing_rate or "-" }}</td>
-              <td>{{ m.queries or "-" }}</td>
-              <td>{{ m.ctr or "-" }}</td>
-              <td>{{ m.avg_position or "-" }}</td>
-              <td>{{ m.notes or "-" }}</td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p class="muted">No metrics yet.</p>
-    {% endif %}
+    <div class="section-title"><i class="fa-solid fa-chart-line"></i> Performance Trends</div>
+    <div class="chart-grid">
+      <div class="chart-box">
+        <h4>Indexing Rate</h4>
+        <canvas id="indexingChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>Queries</h4>
+        <canvas id="queriesChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>CTR</h4>
+        <canvas id="ctrChart"></canvas>
+      </div>
+      <div class="chart-box">
+        <h4>Avg Position</h4>
+        <canvas id="positionChart"></canvas>
+      </div>
+    </div>
   </div>
+  {% endif %}
+
+  <div class="card">
+    <div class="section-title"><i class="fa-solid fa-history"></i> History</div>
+    <div class="table-wrapper">
+      {% if metrics %}
+        <table>
+          <thead>
+            <tr>
+              <th>Date</th>
+              <th>Index %</th>
+              <th>Queries</th>
+              <th>CTR %</th>
+              <th>Avg Pos</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for m in metrics %}
+              <tr>
+                <td>{{ m.metric_date }}</td>
+                <td>{{ m.indexing_rate or "-" }}</td>
+                <td>{{ m.queries or "-" }}</td>
+                <td>{{ m.ctr or "-" }}</td>
+                <td>{{ m.avg_position or "-" }}</td>
+                <td>{{ m.notes[:30] + "..." if m.notes and m.notes|length > 30 else m.notes or "-" }}</td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <i class="fa-solid fa-chart-bar"></i>
+          <h3>No metrics yet</h3>
+          <p>Add your first metrics above to start tracking performance.</p>
+        </div>
+      {% endif %}
+    </div>
+  </div>
+
+  {% if metrics and metrics|length > 0 %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    const metricsData = {{ metrics | reverse | tojson }};
+    const labels = metricsData.map(m => m.metric_date);
+    
+    const chartOptions = {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { beginAtZero: true },
+        x: { ticks: { maxRotation: 45 } }
+      }
+    };
+    
+    new Chart(document.getElementById('indexingChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: metricsData.map(m => m.indexing_rate || 0),
+          borderColor: '#059669',
+          backgroundColor: 'rgba(5, 150, 105, 0.1)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: chartOptions
+    });
+    
+    new Chart(document.getElementById('queriesChart'), {
+      type: 'bar',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: metricsData.map(m => m.queries || 0),
+          backgroundColor: '#0891b2'
+        }]
+      },
+      options: chartOptions
+    });
+    
+    new Chart(document.getElementById('ctrChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: metricsData.map(m => m.ctr || 0),
+          borderColor: '#d97706',
+          backgroundColor: 'rgba(217, 119, 6, 0.1)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: chartOptions
+    });
+    
+    new Chart(document.getElementById('positionChart'), {
+      type: 'line',
+      data: {
+        labels: labels,
+        datasets: [{
+          data: metricsData.map(m => m.avg_position || 0),
+          borderColor: '#c65d2a',
+          backgroundColor: 'rgba(198, 93, 42, 0.1)',
+          fill: true,
+          tension: 0.3
+        }]
+      },
+      options: { ...chartOptions, scales: { ...chartOptions.scales, y: { reverse: true, beginAtZero: false } } }
+    });
+  </script>
+  <style>
+    .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+    .chart-box { height: 200px; }
+    .chart-box h4 { margin: 0 0 8px 0; font-size: 13px; color: var(--muted); }
+    .full-width { grid-column: 1 / -1; }
+    @media (max-width: 600px) {
+      .chart-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+  {% endif %}
 {% endblock %}

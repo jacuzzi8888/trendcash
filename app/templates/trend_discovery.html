@@ -40,20 +40,32 @@
         </div>
       </div>
       <div>
-        <label>Default velocity score</label>
-        <input name="velocity" type="number" step="0.1" min="0" max="10" value="0.5" />
+        <label>Velocity score <span class="score-hint">How fast is it trending?</span></label>
+        <div class="slider-row">
+          <input name="velocity" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
+          <span class="score-value">0.5</span>
+        </div>
       </div>
       <div>
-        <label>Default advertiser safety</label>
-        <input name="advertiser_safety" type="number" step="0.1" min="0" max="10" value="0.5" />
+        <label>Advertiser safety <span class="score-hint">Brand-safe content?</span></label>
+        <div class="slider-row">
+          <input name="advertiser_safety" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
+          <span class="score-value">0.5</span>
+        </div>
       </div>
       <div>
-        <label>Default commercial intent</label>
-        <input name="commercial_intent" type="number" step="0.1" min="0" max="10" value="0.5" />
+        <label>Commercial intent <span class="score-hint">Monetization potential?</span></label>
+        <div class="slider-row">
+          <input name="commercial_intent" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
+          <span class="score-value">0.5</span>
+        </div>
       </div>
       <div>
-        <label>Default evergreen score</label>
-        <input name="evergreen" type="number" step="0.1" min="0" max="10" value="0.5" />
+        <label>Evergreen score <span class="score-hint">Long-term value?</span></label>
+        <div class="slider-row">
+          <input name="evergreen" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
+          <span class="score-value">0.5</span>
+        </div>
       </div>
       <div class="full-width">
         <button class="button" type="submit">Fetch Trends</button>
@@ -349,6 +361,48 @@
     }
     .category-row input {
       flex: 1;
+    }
+    .score-hint {
+      display: block;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: normal;
+      margin-top: 2px;
+    }
+    .slider-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .slider-row input[type="range"] {
+      flex: 1;
+      height: 6px;
+      background: #e5e7eb;
+      border-radius: 3px;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    .slider-row input[type="range"]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      background: var(--accent);
+      border-radius: 50%;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+    .slider-row input[type="range"]::-webkit-slider-thumb:hover {
+      transform: scale(1.2);
+    }
+    .score-value {
+      min-width: 32px;
+      text-align: center;
+      font-weight: 600;
+      color: var(--accent);
+      background: var(--accent-soft);
+      padding: 4px 8px;
+      border-radius: 6px;
+      font-size: 13px;
     }
   </style>
   <script>
