@@ -34,6 +34,9 @@ class TursoRow:
     def __getitem__(self, key):
         return self._data[key]
     
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+    
     def keys(self):
         return self._data.keys()
 

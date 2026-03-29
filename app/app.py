@@ -283,14 +283,11 @@ def create_app():
             "SELECT * FROM trend_candidates ORDER BY created_at DESC LIMIT 20"
         ).fetchall()
         
-        predefined_categories = ['general', 'betting', 'crypto', 'finance', 'education', 'politics', 'sports', 'entertainment', 'travel', 'jobs']
-        custom_cats = conn.execute(
-            "SELECT DISTINCT category FROM trend_candidates WHERE category NOT IN ({})".format(
-                ','.join(['?' for _ in predefined_categories])
-            ),
-            predefined_categories
-        ).fetchall()
-        custom_categories = [row["category"] for row in custom_cats if row["category"]]
+        custom_categories = []
+        for row in recent_trends:
+            cat = row.get("category", "")
+            if cat and cat not in ['general', 'betting', 'crypto', 'finance', 'education', 'politics', 'sports', 'entertainment', 'travel', 'jobs', 'test', 'trending'] and cat not in custom_categories:
+                custom_categories.append(cat)
         
         conn.close()
 
