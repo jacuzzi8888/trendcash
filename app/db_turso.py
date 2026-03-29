@@ -11,6 +11,13 @@ def _utc_now():
 TURSO_DATABASE_URL = os.environ.get('TURSO_DATABASE_URL', '')
 TURSO_AUTH_TOKEN = os.environ.get('TURSO_AUTH_TOKEN', '')
 
+# Convert libsql:// URL to https:// for HTTP API
+def _get_http_url():
+    url = TURSO_DATABASE_URL
+    if url.startswith('libsql://'):
+        url = 'https://' + url[9:]
+    return url
+
 
 def get_turso_db():
     if not TURSO_DATABASE_URL:
@@ -49,7 +56,7 @@ class TursoCursor:
 
 class TursoConnection:
     def __init__(self):
-        self.url = TURSO_DATABASE_URL
+        self.url = _get_http_url()
         self.token = TURSO_AUTH_TOKEN
         self.headers = {
             'Authorization': f'Bearer {self.token}',
