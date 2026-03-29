@@ -2,7 +2,7 @@
 {% block content %}
   <div class="card">
     <div class="section-title">Source Pack for "{{ candidate.topic }}"</div>
-    <p class="muted">At least 2 sources are required before drafting.</p>
+    <p class="muted">Gather reference articles before drafting. At least 2 sources recommended.</p>
   </div>
 
   <div class="card">
@@ -32,7 +32,7 @@
   </div>
 
   <div class="card">
-    <div class="section-title">Existing Sources</div>
+    <div class="section-title">Existing Sources ({{ sources|length }})</div>
     {% if sources %}
       <table>
         <thead>
@@ -46,16 +46,31 @@
         <tbody>
           {% for s in sources %}
             <tr>
-              <td>{{ s.publisher }}</td>
-              <td><a href="{{ s.url }}" target="_blank">{{ s.url }}</a></td>
+              <td>{{ s.publisher or "-" }}</td>
+              <td><a href="{{ s.url }}" target="_blank">{{ s.url[:50] }}{% if s.url|length > 50 %}...{% endif %}</a></td>
               <td>{{ s.published_at or "-" }}</td>
-              <td>{{ s.notes or "-" }}</td>
+              <td>{{ (s.notes or "")[:50] }}{% if s.notes and s.notes|length > 50 %}...{% endif %}</td>
             </tr>
           {% endfor %}
         </tbody>
       </table>
     {% else %}
-      <p class="muted">No sources yet.</p>
+      <p class="muted">No sources yet. Add sources above or fetch trends with auto-sources enabled.</p>
     {% endif %}
   </div>
+
+  {% if sources|length >= 2 %}
+  <div class="card">
+    <div class="section-title">Create Draft</div>
+    <p class="muted">You have {{ sources|length }} sources. Ready to create a draft with AI assistance.</p>
+    <form method="post" action="{{ url_for('create_draft', candidate_id=candidate.id) }}">
+      <button class="button" type="submit">Create AI Draft</button>
+    </form>
+  </div>
+  {% else %}
+  <div class="card">
+    <div class="section-title">Create Draft</div>
+    <p class="muted">Add at least 2 sources to enable draft creation. Currently: {{ sources|length }} source(s).</p>
+  </div>
+  {% endif %}
 {% endblock %}

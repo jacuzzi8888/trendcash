@@ -107,7 +107,7 @@
     </div>
   </div>
 
-  <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+  <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js"></script>
   <script>
     const candidateId = {{ candidate.id if candidate else 'null' }};
     const topic = "{{ candidate.topic if candidate else '' }}";
@@ -163,6 +163,7 @@
           'link image | removeformat code | help',
         content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 15px; line-height: 1.6; }',
         promotion_enabled: false,
+        branding: false,
         setup: function(editor) {
           editor.on('change', function() {
             editor.save();
