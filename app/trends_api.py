@@ -3,44 +3,92 @@ from datetime import datetime, timezone
 from pytrends.request import TrendReq
 
 
+POPULAR_NIGERIA_KEYWORDS = [
+    "naira", "fuel price", "cbn", "asuu", "jamb", "inec", "nigeria",
+    "bitcoin", "dollar", "exchange rate", "immigration", "recruitment",
+    "bank", "loan", "scholarship", "visa", "passport", "election",
+    "football", "afcon", "super eagles", "premier league", "champions league",
+    "davido", "burna boy", "wizkid", "buhari", "tinubu", "lagos", "abuja"
+]
+
+
 def get_pytrends_client():
     return TrendReq(hl='en-US', tz=360)
 
 
-def get_daily_trends(geo='NG'):
+def get_trending_keywords(geo='NG'):
     pytrends = get_pytrends_client()
+    results = []
+    
     try:
-        trending_searches = pytrends.trending_searches(pn=geo.lower() if geo else 'nigeria')
-        results = []
-        for idx, row in trending_searches.iterrows():
-            results.append({
-                'topic': row[0] if len(row) > 0 else str(row),
-                'source': 'google_trends_daily',
-                'geo': geo,
-                'fetched_at': datetime.now(timezone.utc).isoformat()
-            })
-        return {'success': True, 'trends': results}
-    except Exception as e:
-        return {'success': False, 'error': str(e), 'trends': []}
-
-
-def get_realtime_trends(geo='NG'):
-    pytrends = get_pytrends_client()
-    try:
-        realtime = pytrends.trending_searches_realtime(pn=geo.upper() if geo else 'NG')
-        results = []
-        if realtime is not None and not realtime.empty:
-            for idx, row in realtime.iterrows():
-                topic = row.get('title', str(row))
+        trending = pytrends.trending_searches()
+        if trending is not None and not trending.empty:
+            for idx, row in trending.iterrows():
                 results.append({
-                    'topic': topic,
-                    'source': 'google_trends_realtime',
+                    'topic': row[0] if len(row) > 0 else str(row),
+                    'source': 'google_trends_trending',
                     'geo': geo,
                     'fetched_at': datetime.now(timezone.utc).isoformat()
                 })
-        return {'success': True, 'trends': results}
-    except Exception as e:
-        return {'success': False, 'error': str(e), 'trends': []}
+    except Exception:
+        pass
+    
+    return results
+
+
+def get_suggested_trends(keywords=None, geo='NG'):
+    pytrends = get_pytrends_client()
+    results = []
+    seen = set()
+    
+    search_keywords = keywords or POPULAR_NIGERIA_KEYWORDS
+    
+    for kw in search_keywords[:10]:
+        try:
+            suggestions = pytrends.suggestions(kw)
+            for s in suggestions[:3]:
+                title = s.get('title', '')
+                if title and title.lower() not in seen:
+                    seen.add(title.lower())
+                    results.append({
+                        'topic': title,
+                        'source': 'google_suggestions',
+                        'geo': geo,
+                        'fetched_at': datetime.now(timezone.utc).isoformat()
+                    })
+            time.sleep(0.5)
+        except Exception:
+            continue
+    
+    return results
+
+
+def get_related_trends(keyword, geo='NG'):
+    pytrends = get_pytrends_client()
+    results = []
+    seen = set()
+    
+    try:
+        pytrends.build_payload([keyword], geo=geo.upper() if geo else 'NG', timeframe='now 7-d')
+        queries = pytrends.related_queries()
+        
+        if keyword in queries:
+            if queries[keyword].get('top') is not None:
+                for idx, row in queries[keyword]['top'].iterrows():
+                    query = row.get('query', '')
+                    if query and query.lower() not in seen:
+                        seen.add(query.lower())
+                        results.append({
+                            'topic': query,
+                            'source': 'google_related_queries',
+                            'geo': geo,
+                            'fetched_at': datetime.now(timezone.utc).isoformat()
+                        })
+        time.sleep(0.5)
+    except Exception:
+        pass
+    
+    return results
 
 
 def get_interest_over_time(keywords, geo='NG', timeframe='now 7-d'):
@@ -68,14 +116,14 @@ def get_related_topics(keyword, geo='NG'):
         topics = pytrends.related_topics()
         results = {'rising': [], 'top': []}
         if keyword in topics:
-            if topics[keyword]['rising'] is not None:
+            if topics[keyword].get('rising') is not None:
                 for idx, row in topics[keyword]['rising'].iterrows():
                     results['rising'].append({
                         'topic': row.get('topic_title', ''),
                         'type': row.get('topic_type', ''),
                         'value': row.get('value', 0)
                     })
-            if topics[keyword]['top'] is not None:
+            if topics[keyword].get('top') is not None:
                 for idx, row in topics[keyword]['top'].iterrows():
                     results['top'].append({
                         'topic': row.get('topic_title', ''),
@@ -94,13 +142,13 @@ def get_related_queries(keyword, geo='NG'):
         queries = pytrends.related_queries()
         results = {'rising': [], 'top': []}
         if keyword in queries:
-            if queries[keyword]['rising'] is not None:
+            if queries[keyword].get('rising') is not None:
                 for idx, row in queries[keyword]['rising'].iterrows():
                     results['rising'].append({
                         'query': row.get('query', ''),
                         'value': row.get('value', 0)
                     })
-            if queries[keyword]['top'] is not None:
+            if queries[keyword].get('top') is not None:
                 for idx, row in queries[keyword]['top'].iterrows():
                     results['top'].append({
                         'query': row.get('query', ''),
@@ -127,22 +175,33 @@ def get_suggestions(keyword):
 
 
 def fetch_all_trends(geo='NG'):
-    daily = get_daily_trends(geo)
-    realtime = get_realtime_trends(geo)
     all_trends = []
     seen = set()
-    if daily['success']:
-        for t in daily['trends']:
+    
+    trending = get_trending_keywords(geo)
+    for t in trending:
+        topic_lower = t['topic'].lower()
+        if topic_lower not in seen:
+            seen.add(topic_lower)
+            all_trends.append(t)
+    
+    suggested = get_suggested_trends(geo=geo)
+    for t in suggested:
+        topic_lower = t['topic'].lower()
+        if topic_lower not in seen:
+            seen.add(topic_lower)
+            all_trends.append(t)
+    
+    seed_keywords = ['nigeria', 'naira', 'fuel', 'cbn', 'jamb', 'asuu', 'inec']
+    for kw in seed_keywords:
+        related = get_related_trends(kw, geo)
+        for t in related:
             topic_lower = t['topic'].lower()
             if topic_lower not in seen:
                 seen.add(topic_lower)
                 all_trends.append(t)
-    if realtime['success']:
-        for t in realtime['trends']:
-            topic_lower = t['topic'].lower()
-            if topic_lower not in seen:
-                seen.add(topic_lower)
-                all_trends.append(t)
+        time.sleep(0.5)
+    
     return {
         'success': True,
         'trends': all_trends,
