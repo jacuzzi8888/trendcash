@@ -869,41 +869,6 @@ def create_app():
         result = test_connection()
         return result
 
-    @app.route("/debug/env")
-    def debug_env():
-        serper_key = os.environ.get('SERPER_API_KEY', '')
-        return {
-            'serper_key_exists': bool(serper_key),
-            'serper_key_length': len(serper_key),
-            'serper_key_preview': serper_key[:8] + '...' if len(serper_key) > 8 else 'too short'
-        }
-
-    @app.route("/debug/sources")
-    def debug_sources():
-        result = fetch_sources("bitcoin nigeria", num_results=3, days_back=7)
-        return result
-
-    @app.route("/debug/settings")
-    def debug_settings():
-        conn = get_db()
-        auto_fetch = get_setting(conn, "auto_fetch_sources", "true")
-        days_back = get_setting(conn, "source_days_back", "7")
-        sources_per_trend = get_setting(conn, "sources_per_trend", "3")
-        conn.close()
-        return {
-            "auto_fetch_raw": auto_fetch,
-            "auto_fetch_bool": auto_fetch == "true",
-            "days_back": days_back,
-            "sources_per_trend": sources_per_trend
-        }
-
-    @app.route("/debug/fetch-sources/<path:topic>")
-    def debug_fetch_topic(topic):
-        from urllib.parse import unquote
-        decoded_topic = unquote(topic)
-        result = fetch_sources(decoded_topic, num_results=3, days_back=7)
-        return result
-
     return app
 
 
