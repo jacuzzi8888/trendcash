@@ -42,11 +42,12 @@ class TursoRow:
 
 
 class TursoCursor:
-    def __init__(self, rows, columns):
+    def __init__(self, rows, columns, lastrowid=None):
         self._rows = rows or []
         self._columns = columns or []
         self.rowcount = len(self._rows)
         self.description = [(col,) for col in self._columns]
+        self.lastrowid = lastrowid
     
     def fetchone(self):
         if self._rows:
@@ -97,7 +98,27 @@ class TursoConnection:
             results = stmt_result.get('results', {})
             columns = results.get('columns', [])
             rows = results.get('rows', [])
-            return TursoCursor(rows, columns)
+            
+            lastrowid = None
+            sql_upper = sql.strip().upper()
+            if sql_upper.startswith('INSERT'):
+                try:
+                    id_result = requests.post(
+                        self.url,
+                        headers=self.headers,
+                        json={'statements': [{'q': 'SELECT last_insert_rowid() as id'}]},
+                        timeout=10
+                    )
+                    if id_result.status_code == 200:
+                        id_data = id_result.json()
+                        if id_data and len(id_data) > 0:
+                            id_rows = id_data[0].get('results', {}).get('rows', [])
+                            if id_rows:
+                                lastrowid = id_rows[0][0]
+                except:
+                    pass
+            
+            return TursoCursor(rows, columns, lastrowid)
         
         return TursoCursor([], [])
     
