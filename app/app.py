@@ -878,6 +878,11 @@ def create_app():
             'serper_key_preview': serper_key[:8] + '...' if len(serper_key) > 8 else 'too short'
         }
 
+    @app.route("/debug/sources")
+    def debug_sources():
+        result = fetch_sources("bitcoin nigeria", num_results=3, days_back=7)
+        return result
+
     return app
 
 
