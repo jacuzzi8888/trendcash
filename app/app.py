@@ -284,9 +284,13 @@ def create_app():
         ).fetchall()
         
         custom_categories = []
+        predefined = {'general', 'betting', 'crypto', 'finance', 'education', 'politics', 'sports', 'entertainment', 'travel', 'jobs', 'test', 'trending'}
         for row in recent_trends:
-            cat = row.get("category", "")
-            if cat and cat not in ['general', 'betting', 'crypto', 'finance', 'education', 'politics', 'sports', 'entertainment', 'travel', 'jobs', 'test', 'trending'] and cat not in custom_categories:
+            try:
+                cat = row.get("category", "") if hasattr(row, 'get') else (row["category"] if "category" in row.keys() else "")
+            except (KeyError, TypeError):
+                cat = ""
+            if cat and cat not in predefined and cat not in custom_categories:
                 custom_categories.append(cat)
         
         conn.close()
