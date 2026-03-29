@@ -62,7 +62,7 @@
     {% if fetch_result %}
       <div class="fetch-result {% if fetch_result.success %}success{% else %}error{% endif %}">
         {% if fetch_result.success %}
-          Fetched: {{ fetch_result.fetched }} | Added: {{ fetch_result.added }} | Skipped: {{ fetch_result.skipped }}
+          Fetched: {{ fetch_result.fetched }} | Added: {{ fetch_result.added }} | Skipped: {{ fetch_result.skipped }}{% if fetch_result.sources_added %} | Sources: {{ fetch_result.sources_added }}{% endif %}
         {% else %}
           Error: {{ fetch_result.error }}
         {% endif %}

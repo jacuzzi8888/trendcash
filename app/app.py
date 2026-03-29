@@ -20,6 +20,7 @@ from .ai_writer import (
     generate_article, improve_content, generate_headline,
     generate_excerpt, generate_faqs, test_connection
 )
+from .source_fetcher import fetch_sources
 
 
 APP_TITLE = "Naija Trend-to-Cash"
@@ -218,22 +219,28 @@ def create_app():
                 "commercial_intent": float(request.form.get("commercial_intent", 0.5)),
                 "evergreen": float(request.form.get("evergreen", 0.5)),
             }
+            
+            auto_fetch = get_setting(conn, "auto_fetch_sources", "true") == "true"
+            days_back = int(get_setting(conn, "source_days_back", "7"))
+            sources_per_trend = int(get_setting(conn, "sources_per_trend", "3"))
 
             result = fetch_all_trends(geo if geo else None, category)
             if result["success"]:
                 added = 0
                 skipped = 0
+                sources_added = 0
                 for trend in result["trends"]:
                     topic = trend["topic"]
                     source = trend["source"]
                     existing = conn.execute(
                         "SELECT id FROM trend_candidates WHERE topic = ? AND source LIKE ?",
-                        (topic, "google_trends%"),
+                        (topic, "google_autocomplete%"),
                     ).fetchone()
                     if existing:
                         skipped += 1
                         continue
-                    conn.execute(
+                    
+                    cursor = conn.execute(
                         """
                         INSERT INTO trend_candidates
                         (topic, category, source, velocity_score, advertiser_safety_score,
@@ -251,13 +258,42 @@ def create_app():
                             utc_now(),
                         ),
                     )
+                    candidate_id = cursor.lastrowid
                     added += 1
+                    
+                    if auto_fetch and candidate_id:
+                        src_result = fetch_sources(
+                            topic=topic,
+                            num_results=sources_per_trend,
+                            days_back=days_back,
+                            region=geo
+                        )
+                        if src_result["success"]:
+                            for src in src_result["sources"]:
+                                conn.execute(
+                                    """
+                                    INSERT INTO source_packs
+                                    (candidate_id, url, publisher, published_at, notes, created_at)
+                                    VALUES (?, ?, ?, ?, ?, ?)
+                                    """,
+                                    (
+                                        candidate_id,
+                                        src["url"],
+                                        src["publisher"],
+                                        src.get("published_at"),
+                                        src.get("notes", "")[:500],
+                                        utc_now(),
+                                    ),
+                                )
+                                sources_added += 1
+                
                 conn.commit()
                 fetch_result = {
                     "success": True,
                     "fetched": result["count"],
                     "added": added,
                     "skipped": skipped,
+                    "sources_added": sources_added,
                 }
             else:
                 fetch_result = {"success": False, "error": result.get("error", "Unknown error")}
@@ -693,6 +729,9 @@ def create_app():
             gemini_key = request.form.get("gemini_api_key", "").strip()
             if gemini_key:
                 set_setting(conn, "gemini_api_key", gemini_key)
+            set_setting(conn, "source_days_back", request.form.get("source_days_back", "7"))
+            set_setting(conn, "sources_per_trend", request.form.get("sources_per_trend", "3"))
+            set_setting(conn, "auto_fetch_sources", "true" if request.form.get("auto_fetch_sources") else "false")
             conn.commit()
             conn.close()
             flash("Settings updated.", "success")
@@ -702,6 +741,9 @@ def create_app():
             "publish_daily_limit": get_setting(conn, "publish_daily_limit", "10"),
             "image_policy_default": get_setting(conn, "image_policy_default", "none"),
             "gemini_api_key": get_setting(conn, "gemini_api_key", ""),
+            "source_days_back": get_setting(conn, "source_days_back", "7"),
+            "sources_per_trend": get_setting(conn, "sources_per_trend", "3"),
+            "auto_fetch_sources": get_setting(conn, "auto_fetch_sources", "true"),
         }
         conn.close()
         return render_template("settings.html", title=APP_TITLE, settings=settings_map)

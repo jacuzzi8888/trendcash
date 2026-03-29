@@ -20,9 +20,36 @@
         <input type="password" name="gemini_api_key" value="{{ settings.gemini_api_key }}" placeholder="Enter your Gemini API key" />
         <small class="muted">Get your API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></small>
       </div>
+      <div class="full-width">
+        <button class="button" type="submit">Save Settings</button>
+      </div>
+    </form>
+  </div>
+  
+  <div class="card">
+    <div class="section-title">Source Fetching</div>
+    <p class="muted">Configure automatic source discovery for trends. Requires SERPER_API_KEY environment variable.</p>
+    <form method="post" class="grid two">
+      <div>
+        <label>Auto-fetch sources</label>
+        <div class="toggle-row">
+          <input type="checkbox" name="auto_fetch_sources" id="auto_fetch_sources" {% if settings.auto_fetch_sources == 'true' %}checked{% endif %} />
+          <label for="auto_fetch_sources">Enable automatic source fetching when fetching trends</label>
+        </div>
+      </div>
+      <div>
+        <label>Days to look back</label>
+        <input type="number" name="source_days_back" value="{{ settings.source_days_back }}" min="1" max="30" />
+        <small class="muted">Only include articles published within this many days</small>
+      </div>
+      <div>
+        <label>Sources per trend</label>
+        <input type="number" name="sources_per_trend" value="{{ settings.sources_per_trend }}" min="1" max="10" />
+        <small class="muted">Number of sources to fetch per trend (1-10)</small>
+      </div>
       <div>
         <label>&nbsp;</label>
-        <button class="button" type="submit">Save Settings</button>
+        <button class="button" type="submit">Save Source Settings</button>
       </div>
     </form>
   </div>
@@ -34,6 +61,19 @@
     .full-width small {
       display: block;
       margin-top: 0.25rem;
+    }
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .toggle-row input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+    }
+    .toggle-row label {
+      margin: 0;
+      font-weight: normal;
     }
   </style>
 {% endblock %}

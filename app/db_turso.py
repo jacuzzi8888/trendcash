@@ -240,6 +240,9 @@ def init_turso_db():
         "category_locked": "",
         "publish_daily_limit": "10",
         "image_policy_default": "none",
+        "source_days_back": "7",
+        "sources_per_trend": "3",
+        "auto_fetch_sources": "true",
     }
     for key, value in defaults.items():
         result = conn.execute("SELECT value FROM settings WHERE key = ?", (key,))
