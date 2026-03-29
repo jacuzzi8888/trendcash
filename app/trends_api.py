@@ -3,6 +3,34 @@ from datetime import datetime, timezone
 from pytrends.request import TrendReq
 
 
+FALLBACK_TRENDS = [
+    {"topic": "Naira to Dollar exchange rate today", "category": "Finance"},
+    {"topic": "Fuel price increase Nigeria 2026", "category": "Economy"},
+    {"topic": "CBN new policy on forex", "category": "Finance"},
+    {"topic": "ASUU strike latest news", "category": "Education"},
+    {"topic": "JAMB result 2026 checking portal", "category": "Education"},
+    {"topic": "Nigeria vs Ghana match", "category": "Sports"},
+    {"topic": "Super Eagles World Cup qualifiers", "category": "Sports"},
+    {"topic": "INEC voter registration deadline", "category": "Politics"},
+    {"topic": "Nigerian passport application process", "category": "Travel"},
+    {"topic": "Bitcoin price in Naira", "category": "Finance"},
+    {"topic": "Lagos traffic situation today", "category": "Transport"},
+    {"topic": "Burna Boy new album 2026", "category": "Entertainment"},
+    {"topic": "Davido latest song release", "category": "Entertainment"},
+    {"topic": "Wizkid concert in Lagos", "category": "Entertainment"},
+    {"topic": "Nigeria inflation rate 2026", "category": "Economy"},
+    {"topic": "Bank loan interest rates Nigeria", "category": "Finance"},
+    {"topic": "Scholarship opportunities for Nigerians", "category": "Education"},
+    {"topic": "Nigeria immigration recruitment", "category": "Jobs"},
+    {"topic": "Premier League fixtures this weekend", "category": "Sports"},
+    {"topic": "Champions League final 2026", "category": "Sports"},
+    {"topic": "Abuja real estate prices", "category": "Real Estate"},
+    {"topic": "Nigeria visa free countries 2026", "category": "Travel"},
+    {"topic": "Tinubu government latest news", "category": "Politics"},
+    {"topic": "NNPC fuel scarcity update", "category": "Economy"},
+    {"topic": "Nigeria electricity tariff increase", "category": "Utilities"},
+]
+
 POPULAR_NIGERIA_KEYWORDS = [
     "naira", "fuel price", "cbn", "asuu", "jamb", "inec", "nigeria",
     "bitcoin", "dollar", "exchange rate", "immigration", "recruitment",
@@ -41,12 +69,12 @@ def get_suggested_trends(keywords=None, geo='NG'):
     results = []
     seen = set()
     
-    search_keywords = keywords or POPULAR_NIGERIA_KEYWORDS
+    search_keywords = keywords or POPULAR_NIGERIA_KEYWORDS[:3]
     
-    for kw in search_keywords[:10]:
+    for kw in search_keywords[:3]:
         try:
             suggestions = pytrends.suggestions(kw)
-            for s in suggestions[:3]:
+            for s in suggestions[:5]:
                 title = s.get('title', '')
                 if title and title.lower() not in seen:
                     seen.add(title.lower())
@@ -56,7 +84,6 @@ def get_suggested_trends(keywords=None, geo='NG'):
                         'geo': geo,
                         'fetched_at': datetime.now(timezone.utc).isoformat()
                     })
-            time.sleep(0.5)
         except Exception:
             continue
     
@@ -84,7 +111,6 @@ def get_related_trends(keyword, geo='NG'):
                             'geo': geo,
                             'fetched_at': datetime.now(timezone.utc).isoformat()
                         })
-        time.sleep(0.5)
     except Exception:
         pass
     
@@ -178,29 +204,48 @@ def fetch_all_trends(geo='NG'):
     all_trends = []
     seen = set()
     
-    trending = get_trending_keywords(geo)
-    for t in trending:
-        topic_lower = t['topic'].lower()
-        if topic_lower not in seen:
-            seen.add(topic_lower)
-            all_trends.append(t)
-    
-    suggested = get_suggested_trends(geo=geo)
-    for t in suggested:
-        topic_lower = t['topic'].lower()
-        if topic_lower not in seen:
-            seen.add(topic_lower)
-            all_trends.append(t)
-    
-    seed_keywords = ['nigeria', 'naira', 'fuel', 'cbn', 'jamb', 'asuu', 'inec']
-    for kw in seed_keywords:
-        related = get_related_trends(kw, geo)
-        for t in related:
+    try:
+        trending = get_trending_keywords(geo)
+        for t in trending:
             topic_lower = t['topic'].lower()
             if topic_lower not in seen:
                 seen.add(topic_lower)
                 all_trends.append(t)
-        time.sleep(0.5)
+    except Exception:
+        pass
+    
+    try:
+        suggested = get_suggested_trends(keywords=['nigeria', 'naira', 'fuel'], geo=geo)
+        for t in suggested:
+            topic_lower = t['topic'].lower()
+            if topic_lower not in seen:
+                seen.add(topic_lower)
+                all_trends.append(t)
+    except Exception:
+        pass
+    
+    try:
+        for kw in ['nigeria', 'naira']:
+            related = get_related_trends(kw, geo)
+            for t in related:
+                topic_lower = t['topic'].lower()
+                if topic_lower not in seen:
+                    seen.add(topic_lower)
+                    all_trends.append(t)
+    except Exception:
+        pass
+    
+    if len(all_trends) < 10:
+        for trend in FALLBACK_TRENDS:
+            topic_lower = trend['topic'].lower()
+            if topic_lower not in seen:
+                seen.add(topic_lower)
+                all_trends.append({
+                    'topic': trend['topic'],
+                    'source': 'curated_fallback',
+                    'geo': geo,
+                    'fetched_at': datetime.now(timezone.utc).isoformat()
+                })
     
     return {
         'success': True,
