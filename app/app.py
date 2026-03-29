@@ -277,8 +277,7 @@ def create_app():
                 suggestions = suggestions_result["suggestions"]
 
         recent_trends = conn.execute(
-            "SELECT * FROM trend_candidates WHERE source LIKE 'google_trends%' "
-            "ORDER BY created_at DESC LIMIT 20"
+            "SELECT * FROM trend_candidates ORDER BY created_at DESC LIMIT 20"
         ).fetchall()
         conn.close()
 
