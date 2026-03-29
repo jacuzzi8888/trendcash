@@ -10,53 +10,84 @@ TURSO_DATABASE_URL = os.environ.get('TURSO_DATABASE_URL', '')
 TURSO_AUTH_TOKEN = os.environ.get('TURSO_AUTH_TOKEN', '')
 
 
-def get_turso_connection():
+def get_turso_db():
+    if not TURSO_DATABASE_URL:
+        raise RuntimeError("TURSO_DATABASE_URL not set")
+    
     try:
         import libsql_experimental as libsql
-        raw_conn = libsql.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
-        
-        class TursoResult:
-            def __init__(self, cursor):
-                self.columns = [description[0] for description in cursor.description] if cursor.description else []
-                self.rows = cursor.fetchall()
-        
-        class ConnectionWrapper:
-            def __init__(self, conn):
-                self._conn = conn
-                
-            def execute(self, sql, params=None):
-                if params is None:
-                    params = ()
-                elif isinstance(params, list):
-                    params = tuple(params)
-                return self._conn.execute(sql, params)
-                
-            def query(self, sql, params=None):
-                if params is None:
-                    params = ()
-                elif isinstance(params, list):
-                    params = tuple(params)
-                cursor = self._conn.execute(sql, params)
-                return TursoResult(cursor)
-                
-        return ConnectionWrapper(raw_conn)
+        conn = libsql.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
+        return TursoConnection(conn)
     except ImportError:
-        raise RuntimeError("No libsql client available. Install libsql-experimental.")
+        raise RuntimeError("libsql-experimental not installed")
 
 
-def turso_execute(sql, params=None):
-    conn = get_turso_connection()
-    return conn.query(sql, params or [])
+class TursoRow:
+    def __init__(self, data):
+        self._data = data
+    
+    def __getitem__(self, key):
+        return self._data[key]
+    
+    def keys(self):
+        return self._data.keys()
 
 
-def turso_executescript(sql):
-    statements = [s.strip() for s in sql.split(';') if s.strip()]
-    for stmt in statements:
-        turso_execute(stmt)
+class TursoCursor:
+    def __init__(self, rows, columns):
+        self._rows = rows or []
+        self._columns = columns or []
+        self.rowcount = len(self._rows)
+    
+    def fetchone(self):
+        if self._rows:
+            return TursoRow(dict(zip(self._columns, self._rows[0])))
+        return None
+    
+    def fetchall(self):
+        return [TursoRow(dict(zip(self._columns, row))) for row in self._rows]
+
+
+class TursoConnection:
+    def __init__(self, conn):
+        self._conn = conn
+    
+    def execute(self, sql, params=None):
+        params = self._normalize_params(params)
+        cursor = self._conn.execute(sql, params)
+        
+        columns = []
+        rows = []
+        if cursor.description:
+            columns = [desc[0] for desc in cursor.description]
+            rows = cursor.fetchall()
+        
+        return TursoCursor(rows, columns)
+    
+    def executescript(self, sql):
+        statements = [s.strip() for s in sql.split(';') if s.strip()]
+        for stmt in statements:
+            self.execute(stmt)
+    
+    def commit(self):
+        pass
+    
+    def close(self):
+        pass
+    
+    def _normalize_params(self, params):
+        if params is None:
+            return ()
+        if isinstance(params, list):
+            return tuple(params)
+        if isinstance(params, tuple):
+            return params
+        return params
 
 
 def init_turso_db():
-    turso_executescript("""
+    conn = get_turso_db()
+    conn.executescript("""
         CREATE TABLE IF NOT EXISTS trend_candidates (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             topic TEXT NOT NULL,
@@ -176,74 +207,18 @@ def init_turso_db():
             FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
         );
     """)
-    _seed_defaults_turso()
-
-
-def _seed_defaults_turso():
+    
     defaults = {
         "category_locked": "",
         "publish_daily_limit": "10",
         "image_policy_default": "none",
     }
     for key, value in defaults.items():
-        result = turso_execute("SELECT value FROM settings WHERE key = ?", [key])
-        if not result or not result.rows or len(result.rows) == 0:
-            turso_execute(
-                "INSERT INTO settings (key, value) VALUES (?, ?)", [key, value]
-            )
-
-
-class TursoRow:
-    def __init__(self, data):
-        self._data = data
+        result = conn.execute("SELECT value FROM settings WHERE key = ?", (key,))
+        if result.fetchone() is None:
+            conn.execute("INSERT INTO settings (key, value) VALUES (?, ?)", (key, value))
     
-    def __getitem__(self, key):
-        return self._data[key]
-    
-    def __iter__(self):
-        return iter(self._data.keys())
-
-
-class TursoCursor:
-    def __init__(self, result):
-        self._result = result
-        self._rows = None
-    
-    @property
-    def rowcount(self):
-        return len(self._result.rows) if self._result and hasattr(self._result, 'rows') else 0
-    
-    def fetchone(self):
-        if self._result and hasattr(self._result, 'rows') and self._result.rows:
-            return TursoRow(dict(zip(self._result.columns, self._result.rows[0])))
-        return None
-    
-    def fetchall(self):
-        if self._result and hasattr(self._result, 'rows') and self._result.rows:
-            return [TursoRow(dict(zip(self._result.columns, row))) for row in self._result.rows]
-        return []
-
-
-class TursoConnection:
-    def __init__(self):
-        self._client = get_turso_connection()
-    
-    def execute(self, sql, params=None):
-        result = self._client.query(sql, params or [])
-        return TursoCursor(result)
-    
-    def executescript(self, sql):
-        turso_executescript(sql)
-    
-    def commit(self):
-        pass
-    
-    def close(self):
-        pass
-
-
-def get_turso_db():
-    return TursoConnection()
+    conn.close()
 
 
 def utc_now():
