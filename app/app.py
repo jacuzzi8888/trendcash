@@ -33,7 +33,8 @@ RUBRIC_WEIGHTS = {
 
 
 def create_app():
-    app = Flask(__name__)
+    static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
+    app = Flask(__name__, static_folder=static_folder)
     app.config["SECRET_KEY"] = os.environ.get("NTC_SECRET_KEY", "dev-secret-key")
 
     init_db()
