@@ -34,7 +34,7 @@ def configure_gemini(api_key=None):
     return {'success': True}
 
 
-def get_model(model_name='gemini-1.5-flash'):
+def get_model(model_name='gemini-2.5-flash'):
     if not GEMINI_AVAILABLE:
         return None
     return genai.GenerativeModel(model_name)
