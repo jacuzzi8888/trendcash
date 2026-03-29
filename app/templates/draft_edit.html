@@ -31,9 +31,12 @@
             <label>Content</label>
             <textarea name="content" id="content" rows="20">{{ draft.content }}</textarea>
           </div>
-          <div style="margin-top: 12px;">
+          <div class="editor-toolbar">
             <button class="button" type="submit" name="status_action" value="save">Save</button>
             <button class="button secondary" type="submit" name="status_action" value="send_qc">Send to QC</button>
+            <button class="button ghost" type="button" onclick="toggleEditorMode()">
+              <span id="editorModeText">Switch to Markdown</span>
+            </button>
           </div>
         </form>
       </div>
@@ -104,9 +107,79 @@
     </div>
   </div>
 
+  <script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
   <script>
     const candidateId = {{ candidate.id if candidate else 'null' }};
     const topic = "{{ candidate.topic if candidate else '' }}";
+    let isRichMode = true;
+    
+    function getContent() {
+      if (isRichMode && tinymce.get('content')) {
+        return tinymce.get('content').getContent();
+      }
+      return document.getElementById('content').value;
+    }
+    
+    function setContent(html) {
+      if (isRichMode && tinymce.get('content')) {
+        tinymce.get('content').setContent(html);
+      } else {
+        document.getElementById('content').value = html;
+      }
+    }
+    
+    function toggleEditorMode() {
+      const textarea = document.getElementById('content');
+      const btn = document.getElementById('editorModeText');
+      
+      if (isRichMode) {
+        const content = tinymce.get('content').getContent();
+        tinymce.get('content').destroy();
+        textarea.value = content;
+        textarea.style.display = 'block';
+        btn.textContent = 'Switch to Rich Editor';
+        isRichMode = false;
+      } else {
+        textarea.style.display = 'none';
+        initTinyMCE();
+        btn.textContent = 'Switch to Markdown';
+        isRichMode = true;
+      }
+    }
+    
+    function initTinyMCE() {
+      tinymce.init({
+        selector: '#content',
+        height: 500,
+        menubar: true,
+        plugins: [
+          'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+          'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+          'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount'
+        ],
+        toolbar: 'undo redo | formatselect | ' +
+          'bold italic underline strikethrough | alignleft aligncenter ' +
+          'alignright alignjustify | bullist numlist outdent indent | ' +
+          'link image | removeformat code | help',
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 15px; line-height: 1.6; }',
+        promotion_enabled: false,
+        setup: function(editor) {
+          editor.on('change', function() {
+            editor.save();
+          });
+        }
+      });
+    }
+    
+    document.addEventListener('DOMContentLoaded', function() {
+      initTinyMCE();
+      
+      document.getElementById('draftForm').addEventListener('submit', function(e) {
+        if (isRichMode && tinymce.get('content')) {
+          tinymce.get('content').save();
+        }
+      });
+    });
     
     function setLoading(btnId, loading) {
       const btn = document.getElementById(btnId);
@@ -157,7 +230,7 @@
     
     async function generateExcerpt() {
       setLoading('btnExcerpt', true);
-      const content = document.getElementById('content').value;
+      const content = getContent();
       const maxLength = document.getElementById('excerptLength').value;
       
       try {
@@ -181,7 +254,7 @@
     
     async function improveContent() {
       setLoading('btnImprove', true);
-      const content = document.getElementById('content').value;
+      const content = getContent();
       const instructions = document.getElementById('improveType').value;
       
       if (!content.trim()) {
@@ -200,8 +273,7 @@
         
         if (result.success) {
           showResult('improveResult', 
-            `<button class="button ghost small" onclick="applyImproved()">Apply Changes</button>
-             <div class="improved-content" id="improvedContent" style="display:none;">${result.content.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>`);
+            `<button class="button ghost small" onclick="applyImproved()">Apply Changes</button>`);
           window.improvedContent = result.content;
         } else {
           showResult('improveResult', `<span class="error">${result.error}</span>`);
@@ -214,7 +286,7 @@
     
     function applyImproved() {
       if (window.improvedContent) {
-        document.getElementById('content').value = window.improvedContent;
+        setContent(window.improvedContent);
         showResult('improveResult', '<span class="success">Content updated!</span>');
       }
     }
@@ -264,7 +336,7 @@
         const result = await response.json();
         
         if (result.success) {
-          document.getElementById('content').value = result.content;
+          setContent(result.content);
           showResult('regenerateResult', '<span class="success">Article generated!</span>');
         } else {
           showResult('regenerateResult', `<span class="error">${result.error}</span>`);
@@ -369,6 +441,18 @@
     .button.small {
       padding: 0.25rem 0.5rem;
       font-size: 0.75rem;
+    }
+    .editor-toolbar {
+      margin-top: 12px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    #content {
+      display: none;
+    }
+    .tox-tinymce {
+      border-radius: 10px !important;
     }
     @media (max-width: 900px) {
       .draft-edit-container {
