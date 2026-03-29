@@ -104,13 +104,10 @@ def fetch_sources(
 
 
 def _get_date_filter(days_back: int) -> str:
-    """Generate Google date filter string."""
+    """Generate Google date filter string for Serper API."""
     if days_back <= 0:
         return ''
-    
-    start_date = (datetime.now(timezone.utc) - timedelta(days=days_back)).strftime('%Y-%m-%d')
-    end_date = datetime.now(timezone.utc).strftime('%Y-%m-%d')
-    return f'qdr:d,cd_min:{start_date},cd_max:{end_date}'
+    return f'qdr:d{days_back}'
 
 
 def _parse_serper_results(data: Dict, days_back: int) -> List[Dict]:

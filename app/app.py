@@ -899,7 +899,9 @@ def create_app():
 
     @app.route("/debug/fetch-sources/<path:topic>")
     def debug_fetch_topic(topic):
-        result = fetch_sources(topic, num_results=3, days_back=7)
+        from urllib.parse import unquote
+        decoded_topic = unquote(topic)
+        result = fetch_sources(decoded_topic, num_results=3, days_back=7)
         return result
 
     return app
