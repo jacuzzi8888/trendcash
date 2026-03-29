@@ -216,7 +216,7 @@ def create_app():
                 "evergreen": float(request.form.get("evergreen", 0.5)),
             }
 
-            result = fetch_all_trends(geo if geo else None)
+            result = fetch_all_trends(geo if geo else None, category)
             if result["success"]:
                 added = 0
                 skipped = 0
