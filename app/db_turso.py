@@ -69,10 +69,8 @@ class TursoConnection:
             params = tuple(params)
         
         payload = {
-            'statements': [{
-                'sql': sql,
-                'args': list(params)
-            }]
+            'q': sql,
+            'params': list(params)
         }
         
         response = requests.post(
@@ -86,16 +84,12 @@ class TursoConnection:
             raise RuntimeError(f"Turso error: {response.status_code} - {response.text}")
         
         result = response.json()
-        if isinstance(result, list) and len(result) > 0:
-            stmt_result = result[0]
-            if 'error' in stmt_result:
-                raise RuntimeError(f"SQL error: {stmt_result['error']}")
-            
-            columns = stmt_result.get('cols', [])
-            rows = stmt_result.get('rows', [])
-            return TursoCursor(rows, columns)
+        if 'error' in result:
+            raise RuntimeError(f"SQL error: {result['error']}")
         
-        return TursoCursor([], [])
+        columns = result.get('cols', [])
+        rows = result.get('rows', [])
+        return TursoCursor(rows, columns)
     
     def executescript(self, sql):
         statements = [s.strip() for s in sql.split(';') if s.strip()]
