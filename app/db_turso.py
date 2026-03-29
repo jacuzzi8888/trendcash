@@ -1,4 +1,6 @@
 import os
+import json
+import requests
 from datetime import datetime, timezone
 
 
@@ -13,18 +15,14 @@ TURSO_AUTH_TOKEN = os.environ.get('TURSO_AUTH_TOKEN', '')
 def get_turso_db():
     if not TURSO_DATABASE_URL:
         raise RuntimeError("TURSO_DATABASE_URL not set")
-    
-    try:
-        import libsql_experimental as libsql
-        conn = libsql.connect(TURSO_DATABASE_URL, auth_token=TURSO_AUTH_TOKEN)
-        return TursoConnection(conn)
-    except ImportError:
-        raise RuntimeError("libsql-experimental not installed")
+    if not TURSO_AUTH_TOKEN:
+        raise RuntimeError("TURSO_AUTH_TOKEN not set")
+    return TursoConnection()
 
 
 class TursoRow:
-    def __init__(self, data):
-        self._data = data
+    def __init__(self, data, columns):
+        self._data = dict(zip(columns, data))
     
     def __getitem__(self, key):
         return self._data[key]
@@ -38,31 +36,59 @@ class TursoCursor:
         self._rows = rows or []
         self._columns = columns or []
         self.rowcount = len(self._rows)
+        self.description = [(col,) for col in self._columns]
     
     def fetchone(self):
         if self._rows:
-            return TursoRow(dict(zip(self._columns, self._rows[0])))
+            return TursoRow(self._rows[0], self._columns)
         return None
     
     def fetchall(self):
-        return [TursoRow(dict(zip(self._columns, row))) for row in self._rows]
+        return [TursoRow(row, self._columns) for row in self._rows]
 
 
 class TursoConnection:
-    def __init__(self, conn):
-        self._conn = conn
+    def __init__(self):
+        self.url = TURSO_DATABASE_URL
+        self.token = TURSO_AUTH_TOKEN
+        self.headers = {
+            'Authorization': f'Bearer {self.token}',
+            'Content-Type': 'application/json'
+        }
     
     def execute(self, sql, params=None):
-        params = self._normalize_params(params)
-        cursor = self._conn.execute(sql, params)
+        params = params or ()
+        if isinstance(params, list):
+            params = tuple(params)
         
-        columns = []
-        rows = []
-        if cursor.description:
-            columns = [desc[0] for desc in cursor.description]
-            rows = cursor.fetchall()
+        payload = {
+            'statements': [{
+                'sql': sql,
+                'args': list(params)
+            }]
+        }
         
-        return TursoCursor(rows, columns)
+        response = requests.post(
+            self.url,
+            headers=self.headers,
+            json=payload,
+            timeout=30
+        )
+        
+        if response.status_code != 200:
+            raise RuntimeError(f"Turso error: {response.status_code} - {response.text}")
+        
+        result = response.json()
+        if isinstance(result, list) and len(result) > 0:
+            stmt_result = result[0]
+            if 'error' in stmt_result:
+                raise RuntimeError(f"SQL error: {stmt_result['error']}")
+            
+            columns = stmt_result.get('cols', [])
+            rows = stmt_result.get('rows', [])
+            return TursoCursor(rows, columns)
+        
+        return TursoCursor([], [])
     
     def executescript(self, sql):
         statements = [s.strip() for s in sql.split(';') if s.strip()]
@@ -74,15 +100,6 @@ class TursoConnection:
     
     def close(self):
         pass
-    
-    def _normalize_params(self, params):
-        if params is None:
-            return ()
-        if isinstance(params, list):
-            return tuple(params)
-        if isinstance(params, tuple):
-            return params
-        return params
 
 
 def init_turso_db():
