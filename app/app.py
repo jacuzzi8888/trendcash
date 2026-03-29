@@ -268,7 +268,7 @@ def create_app():
                             days_back=days_back,
                             region=geo
                         )
-                        if src_result["success"]:
+                        if src_result["success"] and src_result.get("sources"):
                             for src in src_result["sources"]:
                                 conn.execute(
                                     """
@@ -279,9 +279,9 @@ def create_app():
                                     (
                                         candidate_id,
                                         src["url"],
-                                        src["publisher"],
+                                        src.get("publisher", ""),
                                         src.get("published_at"),
-                                        src.get("notes", "")[:500],
+                                        src.get("notes", "")[:500] if src.get("notes") else "",
                                         utc_now(),
                                     ),
                                 )
@@ -896,6 +896,11 @@ def create_app():
             "days_back": days_back,
             "sources_per_trend": sources_per_trend
         }
+
+    @app.route("/debug/fetch-sources/<path:topic>")
+    def debug_fetch_topic(topic):
+        result = fetch_sources(topic, num_results=3, days_back=7)
+        return result
 
     return app
 
