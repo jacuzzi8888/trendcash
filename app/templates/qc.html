@@ -2,13 +2,13 @@
 {% block content %}
   <div class="card">
     <div class="section-title">QC Dashboard</div>
-    <p class="muted">All checks must pass before approval.</p>
+    <p class="muted"><i class="fa-solid fa-info-circle"></i> All checks must pass before approval.</p>
   </div>
 
   {% if drafts %}
     {% for d in drafts %}
       <div class="card">
-        <div class="section-title">{{ d.title }}</div>
+        <div class="section-title">{{ d.title[:60] }}{% if d.title|length > 60 %}...{% endif %}</div>
         <p class="muted">{{ d.topic }}</p>
         <form method="post" class="grid two">
           <input type="hidden" name="draft_id" value="{{ d.id }}" />
@@ -18,23 +18,44 @@
           </div>
           <div>
             <label>&nbsp;</label>
-            <div>
-              <label><input type="checkbox" name="source_valid" /> Source validity</label>
-              <label><input type="checkbox" name="unique_value" /> Unique value</label>
-              <label><input type="checkbox" name="advertiser_safety" /> Advertiser safety</label>
-              <label><input type="checkbox" name="actionability" /> User actionability</label>
+            <div class="qc-checks">
+              <label><input type="checkbox" name="source_valid" /> <i class="fa-solid fa-link"></i> Source validity</label>
+              <label><input type="checkbox" name="unique_value" /> <i class="fa-solid fa-star"></i> Unique value</label>
+              <label><input type="checkbox" name="advertiser_safety" /> <i class="fa-solid fa-shield"></i> Advertiser safety</label>
+              <label><input type="checkbox" name="actionability" /> <i class="fa-solid fa-bolt"></i> User actionability</label>
             </div>
           </div>
           <div>
-            <button class="button" type="submit">Approve Draft</button>
-            <a class="button ghost" href="{{ url_for('edit_draft', draft_id=d.id) }}">Edit Draft</a>
+            <button class="button success" type="submit"><i class="fa-solid fa-check"></i> Approve Draft</button>
+            <a class="button ghost" href="{{ url_for('edit_draft', draft_id=d.id) }}"><i class="fa-solid fa-pen"></i> Edit Draft</a>
           </div>
         </form>
       </div>
     {% endfor %}
   {% else %}
     <div class="card">
-      <p class="muted">No drafts waiting for QC.</p>
+      <div class="empty-state">
+        <i class="fa-solid fa-clipboard-check"></i>
+        <h3>No drafts in QC</h3>
+        <p>Drafts will appear here once moved to review.</p>
+        <a href="{{ url_for('drafts') }}" class="button"><i class="fa-solid fa-file-lines"></i> Go to Drafts</a>
+      </div>
     </div>
   {% endif %}
+{% endblock %}
+
+{% block extra_style %}
+<style>
+.qc-checks label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+  font-weight: normal;
+  cursor: pointer;
+}
+.qc-checks input[type="checkbox"] {
+  width: auto;
+}
+</style>
 {% endblock %}

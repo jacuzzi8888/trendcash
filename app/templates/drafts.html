@@ -2,42 +2,48 @@
 {% block content %}
   <div class="card">
     <div class="section-title">Drafts</div>
-    <div class="muted">
-      Filter:
-      <a href="{{ url_for('drafts') }}">All</a> |
-      <a href="{{ url_for('drafts', status='draft') }}">Draft</a> |
-      <a href="{{ url_for('drafts', status='qc') }}">QC</a> |
-      <a href="{{ url_for('drafts', status='approved') }}">Approved</a> |
-      <a href="{{ url_for('drafts', status='published') }}">Published</a>
+    <div class="filter-links">
+      <a href="{{ url_for('drafts') }}" class="{% if not status_filter %}active{% endif %}">All</a>
+      <a href="{{ url_for('drafts', status='draft') }}" class="{% if status_filter == 'draft' %}active{% endif %}">Draft</a>
+      <a href="{{ url_for('drafts', status='qc') }}" class="{% if status_filter == 'qc' %}active{% endif %}">QC</a>
+      <a href="{{ url_for('drafts', status='approved') }}" class="{% if status_filter == 'approved' %}active{% endif %}">Approved</a>
+      <a href="{{ url_for('drafts', status='published') }}" class="{% if status_filter == 'published' %}active{% endif %}">Published</a>
     </div>
   </div>
 
   <div class="card">
-    {% if drafts %}
-      <table>
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Topic</th>
-            <th>Status</th>
-            <th>Updated</th>
-            <th>Edit</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for d in drafts %}
+    <div class="table-wrapper">
+      {% if drafts %}
+        <table>
+          <thead>
             <tr>
-              <td>{{ d.title }}</td>
-              <td>{{ d.topic }}</td>
-              <td><span class="pill">{{ d.status }}</span></td>
-              <td>{{ d.updated_at }}</td>
-              <td><a href="{{ url_for('edit_draft', draft_id=d.id) }}">Edit</a></td>
+              <th>Title</th>
+              <th>Topic</th>
+              <th>Status</th>
+              <th>Updated</th>
+              <th>Edit</th>
             </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p class="muted">No drafts yet.</p>
-    {% endif %}
+          </thead>
+          <tbody>
+            {% for d in drafts %}
+              <tr>
+                <td>{{ d.title[:50] }}{% if d.title|length > 50 %}...{% endif %}</td>
+                <td>{{ d.topic[:30] }}{% if d.topic|length > 30 %}...{% endif %}</td>
+                <td><span class="pill {{ d.status }}">{{ d.status }}</span></td>
+                <td>{{ d.updated_at|datetime }}</td>
+                <td><a href="{{ url_for('edit_draft', draft_id=d.id) }}"><i class="fa-solid fa-pen"></i> Edit</a></td>
+              </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <div class="empty-state">
+          <i class="fa-solid fa-file-lines"></i>
+          <h3>No drafts yet</h3>
+          <p>Create drafts from trends with sources.</p>
+          <a href="{{ url_for('trend_discovery') }}" class="button">Discover Trends</a>
+        </div>
+      {% endif %}
+    </div>
   </div>
 {% endblock %}

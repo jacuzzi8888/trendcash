@@ -8,8 +8,14 @@
   --accent-soft: #f7d7c9;
   --card: #ffffff;
   --border: #ded6cb;
-  --success: #0e7c59;
-  --error: #b00020;
+  --success: #059669;
+  --success-soft: #d1fae5;
+  --info: #0891b2;
+  --info-soft: #cffafe;
+  --warning: #d97706;
+  --warning-soft: #fef3c7;
+  --error: #dc2626;
+  --error-soft: #fee2e2;
 }
 
 * {
@@ -71,8 +77,15 @@ body {
 
 .nav {
   display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
+  flex-wrap: nowrap;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+
+.nav::-webkit-scrollbar {
+  display: none;
 }
 
 .nav a {
@@ -82,11 +95,40 @@ body {
   padding: 6px 10px;
   border-radius: 999px;
   border: 1px solid transparent;
+  white-space: nowrap;
+  font-size: 13px;
+  transition: all 0.2s ease;
 }
 
 .nav a:hover {
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+
+.nav a.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
+
+.nav a i {
+  margin-right: 6px;
+}
+
+@media (max-width: 768px) {
+  .topbar {
+    padding: 12px 16px;
+  }
+  .nav {
+    gap: 4px;
+  }
+  .nav a {
+    font-size: 12px;
+    padding: 5px 8px;
+  }
+  .nav a i {
+    display: none;
+  }
 }
 
 .container {
@@ -119,10 +161,24 @@ body {
 }
 
 .stat {
-  padding: 12px;
+  padding: 16px;
   border-radius: 12px;
   background: #fdf8f4;
   border: 1px dashed var(--border);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat i {
+  font-size: 24px;
+  color: var(--accent);
+  width: 40px;
+  text-align: center;
+}
+
+.stat .content {
+  flex: 1;
 }
 
 .stat .label {
@@ -131,8 +187,13 @@ body {
 }
 
 .stat .value {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
+}
+
+.table-wrapper {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 table {
@@ -155,14 +216,105 @@ th {
   color: var(--muted);
 }
 
+tbody tr {
+  transition: background 0.15s ease;
+}
+
+tbody tr:hover {
+  background: #fdf8f4;
+}
+
+@media (max-width: 768px) {
+  table {
+    font-size: 12px;
+  }
+  th, td {
+    padding: 8px 6px;
+  }
+}
+
 .pill {
   display: inline-block;
   padding: 3px 10px;
   border-radius: 999px;
-  background: var(--accent-soft);
-  color: var(--accent);
   font-size: 12px;
   font-weight: 600;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.pill.draft {
+  background: var(--info-soft);
+  color: var(--info);
+}
+
+.pill.qc {
+  background: var(--warning-soft);
+  color: var(--warning);
+}
+
+.pill.approved {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.pill.published {
+  background: #e0e7ff;
+  color: #4f46e5;
+}
+
+.pill.failed {
+  background: var(--error-soft);
+  color: var(--error);
+}
+
+.filter-links {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+}
+
+.filter-links a {
+  padding: 6px 14px;
+  border-radius: 20px;
+  background: #f3f4f6;
+  color: var(--muted);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s ease;
+}
+
+.filter-links a:hover {
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.filter-links a.active {
+  background: var(--accent);
+  color: white;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+}
+
+.empty-state i {
+  font-size: 48px;
+  color: var(--muted);
+  margin-bottom: 16px;
+  display: block;
+}
+
+.empty-state h3 {
+  margin: 0 0 8px 0;
+  color: var(--ink);
+}
+
+.empty-state p {
+  color: var(--muted);
+  margin: 0 0 16px 0;
 }
 
 .flash-stack {
@@ -177,15 +329,15 @@ th {
 }
 
 .flash.success {
-  background: #e8f6f1;
+  background: var(--success-soft);
   color: var(--success);
-  border: 1px solid #c6eadc;
+  border: 1px solid #a7f3d0;
 }
 
 .flash.error {
-  background: #fde8ee;
+  background: var(--error-soft);
   color: var(--error);
-  border: 1px solid #f4c1cd;
+  border: 1px solid #fca5a5;
 }
 
 form.inline {
@@ -224,6 +376,12 @@ textarea {
   color: #fff;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(198, 93, 42, 0.3);
 }
 
 .button.secondary {
@@ -234,6 +392,10 @@ textarea {
   background: transparent;
   color: var(--accent);
   border: 1px solid var(--accent);
+}
+
+.button.success {
+  background: var(--success);
 }
 
 .muted {

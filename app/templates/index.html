@@ -1,65 +1,83 @@
 {% extends "base.html" %}
 {% block content %}
   <div class="card">
-    <div class="section-title">Launch Status</div>
+    <div class="section-title"><i class="fa-solid fa-rocket"></i> Launch Status</div>
     <div class="muted">Category lock: 
       {% if category_locked %}
         <span class="pill">{{ category_locked }}</span>
       {% else %}
-        <span class="pill">Not locked</span>
+        <span class="pill"><i class="fa-solid fa-unlock"></i> Not locked</span>
       {% endif %}
     </div>
   </div>
 
   <div class="grid three">
     <div class="stat">
-      <div class="label">Trend Candidates</div>
-      <div class="value">{{ counts.candidates }}</div>
+      <i class="fa-solid fa-fire"></i>
+      <div class="content">
+        <div class="label">Trend Candidates</div>
+        <div class="value">{{ counts.candidates }}</div>
+      </div>
     </div>
     <div class="stat">
-      <div class="label">Drafts</div>
-      <div class="value">{{ counts.drafts }}</div>
+      <i class="fa-solid fa-file-lines"></i>
+      <div class="content">
+        <div class="label">Drafts</div>
+        <div class="value">{{ counts.drafts }}</div>
+      </div>
     </div>
     <div class="stat">
-      <div class="label">QC Pending</div>
-      <div class="value">{{ counts.qc }}</div>
+      <i class="fa-solid fa-clock"></i>
+      <div class="content">
+        <div class="label">QC Pending</div>
+        <div class="value">{{ counts.qc }}</div>
+      </div>
     </div>
   </div>
 
   <div class="grid two">
     <div class="card">
-      <div class="section-title">Approved Drafts</div>
-      <div class="value">{{ counts.approved }}</div>
+      <div class="section-title"><i class="fa-solid fa-check-circle"></i> Approved Drafts</div>
+      <div class="value" style="color: var(--success);">{{ counts.approved }}</div>
       <p class="muted">Only approved drafts should move to the publish queue.</p>
+      {% if counts.approved > 0 %}
+        <a href="{{ url_for('publish') }}" class="button" style="margin-top: 12px;"><i class="fa-solid fa-paper-plane"></i> Go to Publish</a>
+      {% endif %}
     </div>
     <div class="card">
-      <div class="section-title">Latest Search Console Metrics</div>
-      {% if latest_metrics %}
-        <table>
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Indexing %</th>
-              <th>Queries</th>
-              <th>CTR %</th>
-              <th>Avg Pos</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for m in latest_metrics %}
+      <div class="section-title"><i class="fa-solid fa-chart-bar"></i> Latest Metrics</div>
+      <div class="table-wrapper">
+        {% if latest_metrics %}
+          <table>
+            <thead>
               <tr>
-                <td>{{ m.metric_date }}</td>
-                <td>{{ m.indexing_rate or "-" }}</td>
-                <td>{{ m.queries or "-" }}</td>
-                <td>{{ m.ctr or "-" }}</td>
-                <td>{{ m.avg_position or "-" }}</td>
+                <th>Date</th>
+                <th>Indexing</th>
+                <th>Queries</th>
+                <th>CTR</th>
+                <th>Pos</th>
               </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      {% else %}
-        <p class="muted">No metrics yet. Add Search Console data in Metrics.</p>
-      {% endif %}
+            </thead>
+            <tbody>
+              {% for m in latest_metrics %}
+                <tr>
+                  <td>{{ m.metric_date }}</td>
+                  <td>{{ m.indexing_rate or "-" }}</td>
+                  <td>{{ m.queries or "-" }}</td>
+                  <td>{{ m.ctr or "-" }}</td>
+                  <td>{{ m.avg_position or "-" }}</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        {% else %}
+          <div class="empty-state" style="padding: 20px;">
+            <i class="fa-solid fa-chart-line" style="font-size: 32px;"></i>
+            <p>No metrics yet.</p>
+            <a href="{{ url_for('metrics') }}" class="button">Add Metrics</a>
+          </div>
+        {% endif %}
+      </div>
     </div>
   </div>
 {% endblock %}

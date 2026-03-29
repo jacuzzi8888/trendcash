@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ title }}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
   </head>
   <body>
     <header class="topbar">
@@ -16,16 +17,36 @@
         </div>
       </div>
       <nav class="nav">
-        <a href="{{ url_for('index') }}">Dashboard</a>
-        <a href="{{ url_for('trend_discovery') }}">Discover</a>
-        <a href="{{ url_for('selection') }}">Selection Gate</a>
-        <a href="{{ url_for('trends') }}">Trend Monitor</a>
-        <a href="{{ url_for('drafts') }}">Drafts</a>
-        <a href="{{ url_for('qc') }}">QC</a>
-        <a href="{{ url_for('publish') }}">Publish</a>
-        <a href="{{ url_for('sites.list_sites') }}">Sites</a>
-        <a href="{{ url_for('metrics') }}">Metrics</a>
-        <a href="{{ url_for('settings') }}">Settings</a>
+        <a href="{{ url_for('index') }}" class="{% if request.endpoint == 'index' %}active{% endif %}">
+          <i class="fa-solid fa-chart-line"></i>Dashboard
+        </a>
+        <a href="{{ url_for('trend_discovery') }}" class="{% if request.endpoint == 'trend_discovery' %}active{% endif %}">
+          <i class="fa-solid fa-compass"></i>Discover
+        </a>
+        <a href="{{ url_for('selection') }}" class="{% if request.endpoint == 'selection' %}active{% endif %}">
+          <i class="fa-solid fa-filter"></i>Selection
+        </a>
+        <a href="{{ url_for('trends') }}" class="{% if request.endpoint == 'trends' %}active{% endif %}">
+          <i class="fa-solid fa-list"></i>Trends
+        </a>
+        <a href="{{ url_for('drafts') }}" class="{% if request.endpoint in ['drafts', 'edit_draft'] %}active{% endif %}">
+          <i class="fa-solid fa-file-lines"></i>Drafts
+        </a>
+        <a href="{{ url_for('qc') }}" class="{% if request.endpoint == 'qc' %}active{% endif %}">
+          <i class="fa-solid fa-check-double"></i>QC
+        </a>
+        <a href="{{ url_for('publish') }}" class="{% if request.endpoint == 'publish' %}active{% endif %}">
+          <i class="fa-solid fa-paper-plane"></i>Publish
+        </a>
+        <a href="{{ url_for('sites.list_sites') }}" class="{% if 'sites' in (request.endpoint or '') %}active{% endif %}">
+          <i class="fa-solid fa-globe"></i>Sites
+        </a>
+        <a href="{{ url_for('metrics') }}" class="{% if request.endpoint == 'metrics' %}active{% endif %}">
+          <i class="fa-solid fa-chart-bar"></i>Metrics
+        </a>
+        <a href="{{ url_for('settings') }}" class="{% if request.endpoint == 'settings' %}active{% endif %}">
+          <i class="fa-solid fa-gear"></i>Settings
+        </a>
       </nav>
     </header>
     <main class="container">

@@ -38,6 +38,31 @@ def create_app():
 
     init_db()
     
+    @app.template_filter('datetime')
+    def format_datetime(value):
+        if not value:
+            return "-"
+        try:
+            dt = datetime.fromisoformat(value.replace('Z', '+00:00'))
+            now = datetime.now(timezone.utc)
+            diff = now - dt
+            
+            if diff.days == 0:
+                if diff.seconds < 60:
+                    return "Just now"
+                elif diff.seconds < 3600:
+                    return f"{diff.seconds // 60} min ago"
+                elif diff.seconds < 86400:
+                    return f"{diff.seconds // 3600} hours ago"
+            elif diff.days == 1:
+                return "Yesterday"
+            elif diff.days < 7:
+                return f"{diff.days} days ago"
+            else:
+                return dt.strftime('%b %d, %Y')
+        except:
+            return value
+    
     app.register_blueprint(sites_bp)
 
     @app.route("/")
