@@ -869,6 +869,15 @@ def create_app():
         result = test_connection()
         return result
 
+    @app.route("/debug/env")
+    def debug_env():
+        serper_key = os.environ.get('SERPER_API_KEY', '')
+        return {
+            'serper_key_exists': bool(serper_key),
+            'serper_key_length': len(serper_key),
+            'serper_key_preview': serper_key[:8] + '...' if len(serper_key) > 8 else 'too short'
+        }
+
     return app
 
 
