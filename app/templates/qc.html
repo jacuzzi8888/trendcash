@@ -1,61 +1,86 @@
 {% extends "base.html" %}
+{% block page_title %}QC Queue{% endblock %}
 {% block content %}
-  <div class="card">
-    <div class="section-title">QC Dashboard</div>
+<div class="page-header">
+  <div class="page-header-content">
+    <h1>QC Dashboard</h1>
     <p class="muted"><i class="fa-solid fa-info-circle"></i> All checks must pass before approval.</p>
   </div>
+</div>
 
-  {% if drafts %}
-    {% for d in drafts %}
-      <div class="card">
-        <div class="section-title">{{ d.title[:60] }}{% if d.title|length > 60 %}...{% endif %}</div>
-        <p class="muted">{{ d.topic }}</p>
-        <form method="post" class="grid two">
-          <input type="hidden" name="draft_id" value="{{ d.id }}" />
-          <div>
-            <label>Reviewer</label>
-            <input name="reviewer" placeholder="Your name" />
-          </div>
-          <div>
-            <label>&nbsp;</label>
-            <div class="qc-checks">
-              <label><input type="checkbox" name="source_valid" /> <i class="fa-solid fa-link"></i> Source validity</label>
-              <label><input type="checkbox" name="unique_value" /> <i class="fa-solid fa-star"></i> Unique value</label>
-              <label><input type="checkbox" name="advertiser_safety" /> <i class="fa-solid fa-shield"></i> Advertiser safety</label>
-              <label><input type="checkbox" name="actionability" /> <i class="fa-solid fa-bolt"></i> User actionability</label>
-            </div>
-          </div>
-          <div>
-            <button class="button success" type="submit"><i class="fa-solid fa-check"></i> Approve Draft</button>
-            <a class="button ghost" href="{{ url_for('edit_draft', draft_id=d.id) }}"><i class="fa-solid fa-pen"></i> Edit Draft</a>
-          </div>
-        </form>
+{% if drafts %}
+{% for d in drafts %}
+<div class="card qc-card">
+  <div class="card-header">
+    <h2 class="card-title">{{ d.title[:60] }}{% if d.title|length > 60 %}...{% endif %}</h2>
+    <p class="muted">{{ d.topic }}</p>
+  </div>
+  <div class="card-body">
+    <form method="post" class="form-grid">
+      <input type="hidden" name="draft_id" value="{{ d.id }}" />
+      <div class="form-group">
+        <label>Reviewer</label>
+        <input name="reviewer" placeholder="Your name" />
       </div>
-    {% endfor %}
-  {% else %}
-    <div class="card">
-      <div class="empty-state">
-        <i class="fa-solid fa-clipboard-check"></i>
-        <h3>No drafts in QC</h3>
-        <p>Drafts will appear here once moved to review.</p>
-        <a href="{{ url_for('drafts') }}" class="button"><i class="fa-solid fa-file-lines"></i> Go to Drafts</a>
+      <div class="form-group">
+        <label>Quality Checks</label>
+        <div class="qc-checks">
+          <label class="check-item"><input type="checkbox" name="source_valid" /> <i class="fa-solid fa-link"></i> Source validity</label>
+          <label class="check-item"><input type="checkbox" name="unique_value" /> <i class="fa-solid fa-star"></i> Unique value</label>
+          <label class="check-item"><input type="checkbox" name="advertiser_safety" /> <i class="fa-solid fa-shield"></i> Advertiser safety</label>
+          <label class="check-item"><input type="checkbox" name="actionability" /> <i class="fa-solid fa-bolt"></i> User actionability</label>
+        </div>
       </div>
+      <div class="form-actions">
+        <button class="btn btn-success" type="submit"><i class="fa-solid fa-check"></i> Approve Draft</button>
+        <a class="btn btn-ghost" href="{{ url_for('edit_draft', draft_id=d.id) }}"><i class="fa-solid fa-pen"></i> Edit Draft</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endfor %}
+{% else %}
+<div class="card">
+  <div class="card-body">
+    <div class="empty-state">
+      <i class="fa-solid fa-clipboard-check"></i>
+      <h3>No drafts in QC</h3>
+      <p>Drafts will appear here once moved to review.</p>
+      <a href="{{ url_for('drafts') }}" class="btn btn-primary"><i class="fa-solid fa-file-lines"></i> Go to Drafts</a>
     </div>
-  {% endif %}
+  </div>
+</div>
+{% endif %}
 {% endblock %}
 
-{% block extra_style %}
+{% block scripts %}
 <style>
-.qc-checks label {
+.qc-checks {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+}
+.check-item {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 6px 0;
+  padding: 8px 12px;
+  background: var(--surface-container);
+  border-radius: var(--radius-md);
   font-weight: normal;
   cursor: pointer;
+  border: 1px solid var(--border);
+  transition: all var(--duration-fast) var(--ease-out);
 }
-.qc-checks input[type="checkbox"] {
+.check-item:hover {
+  background: var(--surface-container-high);
+}
+.check-item input[type="checkbox"] {
   width: auto;
+  accent-color: var(--primary);
+}
+.qc-card {
+  border-left: 3px solid var(--warning);
 }
 </style>
 {% endblock %}

@@ -1,424 +1,311 @@
 {% extends "base.html" %}
+{% block page_title %}Discover{% endblock %}
 {% block content %}
-  <div class="page-header">
+<div class="page-header">
+  <div class="page-header-content">
     <h1>Trend Discovery</h1>
-    <p class="muted">Fetch and explore trending topics from Google Trends</p>
+    <p class="muted">Real-time market velocity analysis</p>
   </div>
+  <div class="page-header-actions">
+    <span class="badge badge-success">{{ recent_trends|length }} Active Trends</span>
+  </div>
+</div>
 
-  <div class="card">
-    <div class="section-title">Fetch from Google Trends</div>
-    <form method="post" action="{{ url_for('trend_discovery') }}" class="grid two">
-      <div>
-        <label>Region</label>
-        <select name="geo">
-          <option value="NG" {% if geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
-          <option value="US" {% if geo == 'US' %}selected{% endif %}>United States (US)</option>
-          <option value="GB" {% if geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
-          <option value="" {% if geo == '' %}selected{% endif %}>Global</option>
-        </select>
+<div class="grid grid-3 gap-6">
+  <div class="grid-span-2">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-bolt"></i> Fetch from Google Trends</h2>
       </div>
-      <div>
-        <label>Category for new trends</label>
-        <div class="category-row">
-          <select name="category" id="category-select" onchange="toggleCustomCategory()">
-            <option value="general" {% if category == 'general' %}selected{% endif %}>General</option>
-            <option value="betting" {% if category == 'betting' %}selected{% endif %}>Betting</option>
-            <option value="crypto" {% if category == 'crypto' %}selected{% endif %}>Crypto</option>
-            <option value="finance" {% if category == 'finance' %}selected{% endif %}>Finance</option>
-            <option value="education" {% if category == 'education' %}selected{% endif %}>Education</option>
-            <option value="politics" {% if category == 'politics' %}selected{% endif %}>Politics</option>
-            <option value="sports" {% if category == 'sports' %}selected{% endif %}>Sports</option>
-            <option value="entertainment" {% if category == 'entertainment' %}selected{% endif %}>Entertainment</option>
-            <option value="travel" {% if category == 'travel' %}selected{% endif %}>Travel</option>
-            <option value="jobs" {% if category == 'jobs' %}selected{% endif %}>Jobs</option>
-            {% for cat in custom_categories %}
-            <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat|title }}</option>
-            {% endfor %}
-            <option value="__custom__" {% if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] and category %}selected{% endif %}>+ Add New...</option>
-          </select>
-          <input type="text" name="custom_category" id="custom-category" placeholder="Enter new category" style="display: none;" value="{{ category if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] else '' }}" />
+      <div class="card-body">
+        <form method="post" action="{{ url_for('trend_discovery') }}">
+          <div class="form-row">
+            <div class="form-group">
+              <label>Region</label>
+              <select name="geo">
+                <option value="NG" {% if geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
+                <option value="US" {% if geo == 'US' %}selected{% endif %}>United States (US)</option>
+                <option value="GB" {% if geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
+                <option value="" {% if geo == '' %}selected{% endif %}>Global</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label>Category</label>
+              <div class="category-row">
+                <select name="category" id="category-select" onchange="toggleCustomCategory()">
+                  <option value="general" {% if category == 'general' %}selected{% endif %}>General</option>
+                  <option value="betting" {% if category == 'betting' %}selected{% endif %}>Betting</option>
+                  <option value="crypto" {% if category == 'crypto' %}selected{% endif %}>Crypto</option>
+                  <option value="finance" {% if category == 'finance' %}selected{% endif %}>Finance</option>
+                  <option value="education" {% if category == 'education' %}selected{% endif %}>Education</option>
+                  <option value="politics" {% if category == 'politics' %}selected{% endif %}>Politics</option>
+                  <option value="sports" {% if category == 'sports' %}selected{% endif %}>Sports</option>
+                  <option value="entertainment" {% if category == 'entertainment' %}selected{% endif %}>Entertainment</option>
+                  <option value="travel" {% if category == 'travel' %}selected{% endif %}>Travel</option>
+                  <option value="jobs" {% if category == 'jobs' %}selected{% endif %}>Jobs</option>
+                  {% for cat in custom_categories %}
+                  <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat|title }}</option>
+                  {% endfor %}
+                  <option value="__custom__" {% if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] and category %}selected{% endif %}>+ Add New...</option>
+                </select>
+                <input type="text" name="custom_category" id="custom-category" placeholder="Enter new category" style="display: none;" value="{{ category if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] else '' }}" />
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Velocity Score <span class="hint">How fast is it trending?</span></label>
+              <div class="slider-row">
+                <input name="velocity" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
+                <span class="score-value">0.5</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Advertiser Safety <span class="hint">Brand-safe content?</span></label>
+              <div class="slider-row">
+                <input name="advertiser_safety" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
+                <span class="score-value">0.5</span>
+              </div>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>Commercial Intent <span class="hint">Monetization potential?</span></label>
+              <div class="slider-row">
+                <input name="commercial_intent" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
+                <span class="score-value">0.5</span>
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Evergreen Score <span class="hint">Long-term value?</span></label>
+              <div class="slider-row">
+                <input name="evergreen" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
+                <span class="score-value">0.5</span>
+              </div>
+            </div>
+          </div>
+          <button class="btn btn-primary" type="submit" style="width:100%"><i class="fa-solid fa-download"></i> Fetch Trends</button>
+        </form>
+        {% if fetch_result %}
+        <div class="fetch-result {% if fetch_result.success %}success{% else %}error{% endif %}">
+          {% if fetch_result.success %}
+          <i class="fa-solid fa-check-circle"></i> Category: <strong>{{ fetch_result.category }}</strong> | Fetched: {{ fetch_result.fetched }} | Added: {{ fetch_result.added }} | Skipped: {{ fetch_result.skipped }}{% if fetch_result.sources_added %} | Sources: {{ fetch_result.sources_added }}{% endif %}
+          {% else %}
+          <i class="fa-solid fa-xmark-circle"></i> Error: {{ fetch_result.error }}
+          {% endif %}
         </div>
-      </div>
-      <div>
-        <label>Velocity score <span class="score-hint">How fast is it trending?</span></label>
-        <div class="slider-row">
-          <input name="velocity" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
-          <span class="score-value">0.5</span>
-        </div>
-      </div>
-      <div>
-        <label>Advertiser safety <span class="score-hint">Brand-safe content?</span></label>
-        <div class="slider-row">
-          <input name="advertiser_safety" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
-          <span class="score-value">0.5</span>
-        </div>
-      </div>
-      <div>
-        <label>Commercial intent <span class="score-hint">Monetization potential?</span></label>
-        <div class="slider-row">
-          <input name="commercial_intent" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
-          <span class="score-value">0.5</span>
-        </div>
-      </div>
-      <div>
-        <label>Evergreen score <span class="score-hint">Long-term value?</span></label>
-        <div class="slider-row">
-          <input name="evergreen" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
-          <span class="score-value">0.5</span>
-        </div>
-      </div>
-      <div class="full-width">
-        <button class="button" type="submit">Fetch Trends</button>
-      </div>
-    </form>
-    {% if fetch_result %}
-      <div class="fetch-result {% if fetch_result.success %}success{% else %}error{% endif %}">
-        {% if fetch_result.success %}
-          Category: <strong>{{ fetch_result.category }}</strong> | Fetched: {{ fetch_result.fetched }} | Added: {{ fetch_result.added }} | Skipped: {{ fetch_result.skipped }}{% if fetch_result.sources_added %} | Sources: {{ fetch_result.sources_added }}{% endif %}
-        {% else %}
-          Error: {{ fetch_result.error }}
         {% endif %}
       </div>
-    {% endif %}
-  </div>
+    </div>
 
-  <div class="card">
-    <div class="section-title">Explore a Keyword</div>
-    <form method="get" class="grid two">
-      <div>
-        <label>Keyword</label>
-        <input name="keyword" placeholder="Enter keyword to explore" value="{{ keyword or '' }}" />
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-search"></i> Explore a Keyword</h2>
       </div>
-      <div>
-        <label>Region</label>
-        <select name="explore_geo">
-          <option value="NG" {% if explore_geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
-          <option value="US" {% if explore_geo == 'US' %}selected{% endif %}>United States (US)</option>
-          <option value="GB" {% if explore_geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
-        </select>
+      <div class="card-body">
+        <form method="get" class="form-row">
+          <div class="form-group">
+            <label>Keyword</label>
+            <input name="keyword" placeholder="Enter keyword to explore" value="{{ keyword or '' }}" />
+          </div>
+          <div class="form-group">
+            <label>Region</label>
+            <select name="explore_geo">
+              <option value="NG" {% if explore_geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
+              <option value="US" {% if explore_geo == 'US' %}selected{% endif %}>United States (US)</option>
+              <option value="GB" {% if explore_geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
+            </select>
+          </div>
+          <div class="form-group" style="align-self: end;">
+            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-search"></i> Explore</button>
+          </div>
+        </form>
       </div>
-      <div class="full-width">
-        <button class="button" type="submit">Explore</button>
-      </div>
-    </form>
-  </div>
+    </div>
 
-  {% if keyword %}
+    {% if keyword %}
     {% if interest_data %}
-      <div class="card">
-        <div class="section-title">Interest Over Time: "{{ keyword }}"</div>
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-chart-line"></i> Interest Over Time: "{{ keyword }}"</h2>
+      </div>
+      <div class="card-body">
         <div class="chart-container">
           <canvas id="interestChart"></canvas>
         </div>
       </div>
+    </div>
     {% endif %}
 
     {% if related_queries and (related_queries.rising or related_queries.top) %}
-      <div class="card">
-        <div class="section-title">Related Queries</div>
-        <div class="grid two">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-question-circle"></i> Related Queries</h2>
+      </div>
+      <div class="card-body">
+        <div class="grid grid-2 gap-4">
           <div>
-            <h3>Rising Queries</h3>
+            <h4 style="color: var(--on-surface-variant); margin-bottom: var(--space-3);">Rising Queries</h4>
             {% if related_queries.rising %}
-              <ul class="trend-list">
-                {% for q in related_queries.rising[:10] %}
-                  <li>
-                    <span class="query-text">{{ q.query }}</span>
-                    {% if q.value %}
-                      <span class="query-value">+{{ q.value }}%</span>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
+            <div class="query-list">
+              {% for q in related_queries.rising[:10] %}
+              <div class="query-item">
+                <span class="query-text">{{ q.query }}</span>
+                {% if q.value %}
+                <span class="query-value">+{{ q.value }}%</span>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
             {% else %}
-              <p class="muted">No rising queries found.</p>
+            <p class="muted">No rising queries found.</p>
             {% endif %}
           </div>
           <div>
-            <h3>Top Queries</h3>
+            <h4 style="color: var(--on-surface-variant); margin-bottom: var(--space-3);">Top Queries</h4>
             {% if related_queries.top %}
-              <ul class="trend-list">
-                {% for q in related_queries.top[:10] %}
-                  <li>
-                    <span class="query-text">{{ q.query }}</span>
-                    {% if q.value %}
-                      <span class="query-value">{{ q.value }}%</span>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
+            <div class="query-list">
+              {% for q in related_queries.top[:10] %}
+              <div class="query-item">
+                <span class="query-text">{{ q.query }}</span>
+                {% if q.value %}
+                <span class="query-value">{{ q.value }}%</span>
+                {% endif %}
+              </div>
+              {% endfor %}
+            </div>
             {% else %}
-              <p class="muted">No top queries found.</p>
+            <p class="muted">No top queries found.</p>
             {% endif %}
           </div>
         </div>
       </div>
-    {% endif %}
-
-    {% if related_topics and (related_topics.rising or related_topics.top) %}
-      <div class="card">
-        <div class="section-title">Related Topics</div>
-        <div class="grid two">
-          <div>
-            <h3>Rising Topics</h3>
-            {% if related_topics.rising %}
-              <ul class="trend-list">
-                {% for t in related_topics.rising[:10] %}
-                  <li>
-                    <span class="query-text">{{ t.topic }}</span>
-                    <span class="query-type">({{ t.type }})</span>
-                    {% if t.value %}
-                      <span class="query-value">+{{ t.value }}%</span>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="muted">No rising topics found.</p>
-            {% endif %}
-          </div>
-          <div>
-            <h3>Top Topics</h3>
-            {% if related_topics.top %}
-              <ul class="trend-list">
-                {% for t in related_topics.top[:10] %}
-                  <li>
-                    <span class="query-text">{{ t.topic }}</span>
-                    <span class="query-type">({{ t.type }})</span>
-                    {% if t.value %}
-                      <span class="query-value">{{ t.value }}%</span>
-                    {% endif %}
-                  </li>
-                {% endfor %}
-              </ul>
-            {% else %}
-              <p class="muted">No top topics found.</p>
-            {% endif %}
-          </div>
-        </div>
-      </div>
+    </div>
     {% endif %}
 
     {% if suggestions %}
-      <div class="card">
-        <div class="section-title">Suggestions</div>
-        <div class="suggestions-grid">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-lightbulb"></i> Suggestions</h2>
+      </div>
+      <div class="card-body">
+        <div class="cluster-chips">
           {% for s in suggestions %}
-            <a href="{{ url_for('trend_discovery', keyword=s.title, explore_geo=explore_geo) }}" class="suggestion-chip">
-              {{ s.title }}
-              <span class="suggestion-type">{{ s.type }}</span>
-            </a>
+          <a href="{{ url_for('trend_discovery', keyword=s.title, explore_geo=explore_geo) }}" class="cluster-chip">
+            {{ s.title }}
+            <span class="chip-type">{{ s.type }}</span>
+          </a>
           {% endfor %}
         </div>
       </div>
+    </div>
     {% endif %}
-  {% endif %}
-
-  <div class="card">
-    <div class="section-title">Recently Fetched Trends</div>
-    {% if recent_trends %}
-      <table>
-        <thead>
-          <tr>
-            <th>Topic</th>
-            <th>Category</th>
-            <th>Source</th>
-            <th>Created</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for t in recent_trends %}
-            <tr>
-              <td>{{ t.topic }}</td>
-              <td>{{ t.category }}</td>
-              <td>{{ t.source }}</td>
-              <td>{{ t.created_at[:10] }}</td>
-              <td>
-                <a href="{{ url_for('sources', candidate_id=t.id) }}">Add sources</a>
-              </td>
-            </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    {% else %}
-      <p class="muted">No trends fetched yet. Click "Fetch Trends" above to get started.</p>
     {% endif %}
   </div>
 
-  {% if interest_data %}
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-      const ctx = document.getElementById('interestChart').getContext('2d');
-      const data = {{ interest_data | tojson }};
-      const labels = data.map(d => d.date.split('T')[0]);
-      const values = data.map(d => d['{{ keyword }}'] || 0);
-      
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: labels,
-          datasets: [{
-            label: '{{ keyword }}',
-            data: values,
-            borderColor: '#2563eb',
-            backgroundColor: 'rgba(37, 99, 235, 0.1)',
-            fill: true,
-            tension: 0.3
-          }]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            y: {
-              beginAtZero: true,
-              max: 100
-            }
-          }
-        }
-      });
-    </script>
-  {% endif %}
+  <div>
+    <div class="trend-sidebar-card">
+      <div class="trend-sidebar-title"><i class="fa-solid fa-bolt"></i> Recently Fetched</div>
+      {% if recent_trends %}
+      {% for t in recent_trends[:5] %}
+      <div class="trending-item">
+        <div class="trending-rank">{{ loop.index }}</div>
+        <div style="flex:1">
+          <div class="trending-name">{{ t.topic[:30] }}{% if t.topic|length > 30 %}...{% endif %}</div>
+          <div style="font-size: 12px; color: var(--on-surface-variant);">{{ t.category }}</div>
+        </div>
+        <a href="{{ url_for('sources', candidate_id=t.id) }}" class="trend-action-btn"><i class="fa-solid fa-plus"></i></a>
+      </div>
+      {% endfor %}
+      {% else %}
+      <p class="muted">No trends fetched yet.</p>
+      {% endif %}
+    </div>
 
-  <style>
-    .chart-container {
-      height: 300px;
-      margin: 1rem 0;
-    }
-    .fetch-result {
-      padding: 0.75rem 1rem;
-      border-radius: 4px;
-      margin-top: 1rem;
-    }
-    .fetch-result.success {
-      background: #d1fae5;
-      color: #065f46;
-    }
-    .fetch-result.error {
-      background: #fee2e2;
-      color: #991b1b;
-    }
-    .trend-list {
-      list-style: none;
-      padding: 0;
-    }
-    .trend-list li {
-      padding: 0.5rem 0;
-      border-bottom: 1px solid #e5e7eb;
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    .trend-list li:last-child {
-      border-bottom: none;
-    }
-    .query-text {
-      flex: 1;
-    }
-    .query-type {
-      color: #6b7280;
-      font-size: 0.875rem;
-    }
-    .query-value {
-      background: #dbeafe;
-      color: #1d4ed8;
-      padding: 0.125rem 0.5rem;
-      border-radius: 4px;
-      font-size: 0.75rem;
-    }
-    .suggestions-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 0.5rem;
-    }
-    .suggestion-chip {
-      background: #f3f4f6;
-      padding: 0.5rem 1rem;
-      border-radius: 20px;
-      text-decoration: none;
-      color: #374151;
-      font-size: 0.875rem;
-    }
-    .suggestion-chip:hover {
-      background: #e5e7eb;
-    }
-    .suggestion-type {
-      color: #6b7280;
-      font-size: 0.75rem;
-      margin-left: 0.25rem;
-    }
-    .full-width {
-      grid-column: 1 / -1;
-    }
-    .category-row {
-      display: flex;
-      gap: 0.5rem;
-      align-items: center;
-    }
-    .category-row select {
-      flex: 1;
-    }
-    .category-row input {
-      flex: 1;
-    }
-    .score-hint {
-      display: block;
-      font-size: 11px;
-      color: var(--muted);
-      font-weight: normal;
-      margin-top: 2px;
-    }
-    .slider-row {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-    .slider-row input[type="range"] {
-      flex: 1;
-      height: 6px;
-      background: #e5e7eb;
-      border-radius: 3px;
-      outline: none;
-      -webkit-appearance: none;
-    }
-    .slider-row input[type="range"]::-webkit-slider-thumb {
-      -webkit-appearance: none;
-      width: 18px;
-      height: 18px;
-      background: var(--accent);
-      border-radius: 50%;
-      cursor: pointer;
-      transition: transform 0.15s;
-    }
-    .slider-row input[type="range"]::-webkit-slider-thumb:hover {
-      transform: scale(1.2);
-    }
-    .score-value {
-      min-width: 32px;
-      text-align: center;
-      font-weight: 600;
-      color: var(--accent);
-      background: var(--accent-soft);
-      padding: 4px 8px;
-      border-radius: 6px;
-      font-size: 13px;
-    }
-  </style>
-  <script>
-    function toggleCustomCategory() {
-      const select = document.getElementById('category-select');
-      const customInput = document.getElementById('custom-category');
-      if (select.value === '__custom__') {
-        customInput.style.display = 'block';
-        customInput.focus();
-      } else {
-        customInput.style.display = 'none';
-        customInput.value = '';
+    <div class="trend-sidebar-card">
+      <div class="trend-sidebar-title"><i class="fa-solid fa-tags"></i> Top Categories</div>
+      <div class="cluster-chips">
+        {% for t in recent_trends %}
+        {% if t.category %}
+        <a href="{{ url_for('trend_discovery') }}" class="cluster-chip">{{ t.category }}</a>
+        {% endif %}
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if interest_data %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+  Chart.defaults.color = '#dfe2ec';
+  Chart.defaults.borderColor = 'rgba(255, 255, 255, 0.1)';
+
+  const ctx = document.getElementById('interestChart').getContext('2d');
+  const data = {{ interest_data | tojson }};
+  const labels = data.map(d => d.date.split('T')[0]);
+  const values = data.map(d => d['{{ keyword }}'] || 0);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: labels,
+      datasets: [{
+        label: '{{ keyword }}',
+        data: values,
+        borderColor: '#c65d2a',
+        backgroundColor: 'rgba(198, 93, 42, 0.1)',
+        fill: true,
+        tension: 0.3
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: { beginAtZero: true, max: 100, grid: { color: 'rgba(255, 255, 255, 0.05)' } },
+        x: { grid: { color: 'rgba(255, 255, 255, 0.05)' } }
       }
     }
-    document.addEventListener('DOMContentLoaded', function() {
-      toggleCustomCategory();
-    });
-  </script>
+  });
+</script>
+{% endif %}
+
+<style>
+  .chart-container { height: 300px; margin: var(--space-4) 0; }
+  .fetch-result { padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); margin-top: var(--space-4); display: flex; align-items: center; gap: var(--space-2); }
+  .fetch-result.success { background: var(--success-container); color: var(--success); }
+  .fetch-result.error { background: var(--error-container); color: var(--error); }
+  .query-list { display: flex; flex-direction: column; gap: var(--space-2); }
+  .query-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-2) var(--space-3); background: var(--surface-container-high); border-radius: var(--radius-md); }
+  .query-text { flex: 1; font-size: 13px; }
+  .query-value { background: var(--info-container); color: var(--info); padding: 2px 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; }
+  .category-row { display: flex; gap: var(--space-2); align-items: center; }
+  .category-row select { flex: 1; }
+  .category-row input { flex: 1; }
+  .hint { display: block; font-size: 11px; color: var(--on-surface-variant); font-weight: normal; margin-top: 2px; }
+  .slider-row { display: flex; align-items: center; gap: 12px; }
+  .slider-row input[type="range"] { flex: 1; height: 6px; background: var(--surface-container-high); border-radius: 3px; outline: none; -webkit-appearance: none; }
+  .slider-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--primary); border-radius: 50%; cursor: pointer; }
+  .score-value { min-width: 32px; text-align: center; font-weight: 600; color: var(--primary); background: var(--accent-soft); padding: 4px 8px; border-radius: var(--radius-md); font-size: 13px; }
+  .grid-span-2 { grid-column: span 2; }
+  .chip-type { color: var(--on-surface-variant); font-size: 11px; margin-left: var(--space-2); }
+  @media (max-width: 1024px) {
+    .grid-span-2 { grid-column: span 1; }
+  }
+</style>
+<script>
+  function toggleCustomCategory() {
+    const select = document.getElementById('category-select');
+    const customInput = document.getElementById('custom-category');
+    if (select.value === '__custom__') {
+      customInput.style.display = 'block';
+      customInput.focus();
+    } else {
+      customInput.style.display = 'none';
+      customInput.value = '';
+    }
+  }
+  document.addEventListener('DOMContentLoaded', function() { toggleCustomCategory(); });
+</script>
 {% endblock %}

@@ -1,49 +1,235 @@
 {% extends "base.html" %}
+{% block page_title %}Selection{% endblock %}
 {% block content %}
-  <div class="card">
-    <div class="section-title">Category Selection Gate</div>
-    <p class="muted">Rubric weights: Velocity {{ weights.velocity }}, Advertiser Safety {{ weights.advertiser_safety }}, Commercial Intent {{ weights.commercial_intent }}, Evergreen {{ weights.evergreen }}.</p>
-    {% if category_locked %}
-      <p>Locked category: <span class="pill">{{ category_locked }}</span></p>
-      <form method="post" class="inline">
-        <input type="hidden" name="category" value="__unlock__" />
-        <button class="button ghost" type="submit">Unlock</button>
-      </form>
-    {% else %}
-      <p class="muted">No category locked yet.</p>
-    {% endif %}
+<div class="page-header">
+  <div class="page-header-content">
+    <h1>Category Selection</h1>
+    <p class="muted">Rank and select categories based on scoring rubric</p>
   </div>
+  {% if category_locked %}
+  <div class="page-header-actions">
+    <span class="status-badge status-locked"><i class="fa-solid fa-lock"></i> {{ category_locked }}</span>
+    <form method="post" class="inline">
+      <input type="hidden" name="category" value="__unlock__" />
+      <button class="btn btn-ghost btn-sm" type="submit"><i class="fa-solid fa-unlock"></i> Unlock</button>
+    </form>
+  </div>
+  {% endif %}
+</div>
 
-  <div class="card">
-    <div class="section-title">Ranked Categories (Last 14 Days)</div>
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-chart-bar"></i> Scoring Weights</h2>
+  </div>
+  <div class="card-body">
+    <div class="weights-grid">
+      <div class="weight-item">
+        <div class="weight-label">Velocity</div>
+        <div class="weight-bar">
+          <div class="weight-fill" style="width: {{ weights.velocity * 100 }}%"></div>
+        </div>
+        <div class="weight-value">{{ (weights.velocity * 100)|int }}%</div>
+      </div>
+      <div class="weight-item">
+        <div class="weight-label">Advertiser Safety</div>
+        <div class="weight-bar">
+          <div class="weight-fill" style="width: {{ weights.advertiser_safety * 100 }}%"></div>
+        </div>
+        <div class="weight-value">{{ (weights.advertiser_safety * 100)|int }}%</div>
+      </div>
+      <div class="weight-item">
+        <div class="weight-label">Commercial Intent</div>
+        <div class="weight-bar">
+          <div class="weight-fill" style="width: {{ weights.commercial_intent * 100 }}%"></div>
+        </div>
+        <div class="weight-value">{{ (weights.commercial_intent * 100)|int }}%</div>
+      </div>
+      <div class="weight-item">
+        <div class="weight-label">Evergreen</div>
+        <div class="weight-bar">
+          <div class="weight-fill" style="width: {{ weights.evergreen * 100 }}%"></div>
+        </div>
+        <div class="weight-value">{{ (weights.evergreen * 100)|int }}%</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-ranking-star"></i> Ranked Categories</h2>
+    <span class="muted">Last 14 days</span>
+  </div>
+  <div class="card-body">
     {% if scores %}
-      <table>
+    <div class="table-wrapper">
+      <table class="data-table">
         <thead>
           <tr>
+            <th>Rank</th>
             <th>Category</th>
             <th>Avg Score</th>
             <th>Samples</th>
-            <th>Lock</th>
+            <th>Action</th>
           </tr>
         </thead>
         <tbody>
           {% for row in scores %}
-            <tr>
-              <td>{{ row.category }}</td>
-              <td>{{ row.avg }}</td>
-              <td>{{ row.count }}</td>
-              <td>
-                <form class="inline" method="post">
-                  <input type="hidden" name="category" value="{{ row.category }}" />
-                  <button class="button" type="submit">Lock Category</button>
-                </form>
-              </td>
-            </tr>
+          <tr class="{% if category_locked == row.category %}highlighted{% endif %}">
+            <td>
+              <div class="rank-badge rank-{{ loop.index }}">
+                {% if loop.index <= 3 %}<i class="fa-solid fa-trophy"></i>{% endif %}
+                {{ loop.index }}
+              </div>
+            </td>
+            <td>
+              <div class="category-name">{{ row.category }}</div>
+            </td>
+            <td>
+              <div class="score-display">
+                <div class="score-bar">
+                  <div class="score-fill" style="width: {{ row.avg * 10 }}%"></div>
+                </div>
+                <span class="score-text">{{ row.avg }}</span>
+              </div>
+            </td>
+            <td>{{ row.count }}</td>
+            <td>
+              {% if category_locked == row.category %}
+              <span class="badge badge-success"><i class="fa-solid fa-lock"></i> Locked</span>
+              {% else %}
+              <form method="post" class="inline">
+                <input type="hidden" name="category" value="{{ row.category }}" />
+                <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-lock"></i> Lock</button>
+              </form>
+              {% endif %}
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
+    </div>
     {% else %}
-      <p class="muted">No trend candidates available yet.</p>
+    <div class="empty-state">
+      <i class="fa-solid fa-chart-pie"></i>
+      <h3>No trend candidates yet</h3>
+      <p>Fetch trends to see category rankings</p>
+      <a href="{{ url_for('trend_discovery') }}" class="btn btn-primary"><i class="fa-solid fa-compass"></i> Discover Trends</a>
+    </div>
     {% endif %}
   </div>
+</div>
+
+<style>
+.weights-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-4);
+}
+
+.weight-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.weight-label {
+  min-width: 140px;
+  font-size: 14px;
+  color: var(--on-surface);
+}
+
+.weight-bar {
+  flex: 1;
+  height: 8px;
+  background: var(--surface-container-high);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.weight-fill {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 4px;
+}
+
+.weight-value {
+  min-width: 40px;
+  text-align: right;
+  font-weight: 600;
+  color: var(--primary);
+}
+
+.rank-badge {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--surface-container-high);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 14px;
+}
+
+.rank-badge.rank-1 {
+  background: linear-gradient(135deg, #FFD700, #FFA500);
+  color: #000;
+}
+
+.rank-badge.rank-2 {
+  background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
+  color: #000;
+}
+
+.rank-badge.rank-3 {
+  background: linear-gradient(135deg, #CD7F32, #8B4513);
+  color: white;
+}
+
+.rank-badge i {
+  font-size: 12px;
+}
+
+.category-name {
+  font-weight: 600;
+  color: var(--on-surface);
+}
+
+.score-display {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.score-bar {
+  width: 80px;
+  height: 6px;
+  background: var(--surface-container-highest);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.score-fill {
+  height: 100%;
+  background: var(--primary-gradient);
+  border-radius: 3px;
+}
+
+.score-text {
+  font-weight: 600;
+  color: var(--on-surface);
+  min-width: 40px;
+}
+
+tr.highlighted {
+  background: var(--accent-soft);
+}
+
+@media (max-width: 768px) {
+  .weights-grid {
+    grid-template-columns: 1fr;
+  }
+}
+</style>
 {% endblock %}

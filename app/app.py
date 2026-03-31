@@ -201,12 +201,18 @@ def create_app():
         category_filter = request.args.get("category")
         if category_filter:
             rows = conn.execute(
-                "SELECT * FROM trend_candidates WHERE category = ? ORDER BY created_at DESC",
+                """SELECT tc.*, 
+                    (SELECT COUNT(*) FROM source_packs sp WHERE sp.candidate_id = tc.id) as source_count
+                    FROM trend_candidates tc 
+                    WHERE tc.category = ? ORDER BY tc.created_at DESC""",
                 (category_filter,),
             ).fetchall()
         else:
             rows = conn.execute(
-                "SELECT * FROM trend_candidates ORDER BY created_at DESC LIMIT 200"
+                """SELECT tc.*, 
+                    (SELECT COUNT(*) FROM source_packs sp WHERE sp.candidate_id = tc.id) as source_count
+                    FROM trend_candidates tc 
+                    ORDER BY tc.created_at DESC LIMIT 200"""
             ).fetchall()
         categories = conn.execute(
             "SELECT DISTINCT category FROM trend_candidates ORDER BY category"

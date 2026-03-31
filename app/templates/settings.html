@@ -1,93 +1,360 @@
 {% extends "base.html" %}
+{% block page_title %}Settings{% endblock %}
 {% block content %}
-  <div class="card">
-    <div class="section-title"><i class="fa-solid fa-gear"></i> Settings</div>
-    <form method="post" class="grid two">
-      <div>
-        <label>Publish daily limit</label>
-        <input name="publish_daily_limit" type="number" value="{{ settings.publish_daily_limit }}" min="1" max="100" />
-      </div>
-      <div>
-        <label>Default image policy</label>
-        <select name="image_policy_default">
-          {% for option in ["none", "priority", "branded"] %}
-            <option value="{{ option }}" {% if settings.image_policy_default == option %}selected{% endif %}>{{ option }}</option>
-          {% endfor %}
-        </select>
-      </div>
-      <div>
-        <label>Gemini API Key</label>
-        <input type="password" name="gemini_api_key" value="{{ settings.gemini_api_key }}" placeholder="AIza..." />
-        <small class="muted">Get your key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a></small>
-      </div>
-    </form>
+<div class="page-header">
+  <div class="page-header-content">
+    <h1>Settings</h1>
+    <p class="muted">Configure your growth optimization platform</p>
   </div>
-  
-  <div class="card">
-    <div class="section-title"><i class="fa-solid fa-search"></i> Source Fetching</div>
-    <p class="muted">Auto-discover sources when fetching trends. Requires SERPER_API_KEY env variable.</p>
-    <form method="post" class="grid two">
-      <div>
-        <label>Auto-fetch sources</label>
-        <label class="toggle">
-          <input type="checkbox" name="auto_fetch_sources" {% if settings.auto_fetch_sources == 'true' %}checked{% endif %} />
-          <span class="toggle-slider"></span>
-          <span class="toggle-label">Enabled</span>
-        </label>
-      </div>
-      <div>
-        <label>Days to look back</label>
-        <input type="number" name="source_days_back" value="{{ settings.source_days_back }}" min="1" max="30" />
-      </div>
-      <div>
-        <label>Sources per trend</label>
-        <input type="number" name="sources_per_trend" value="{{ settings.sources_per_trend }}" min="1" max="10" />
-      </div>
-      <div class="full-width">
-        <button class="button" type="submit"><i class="fa-solid fa-save"></i> Save All Settings</button>
-      </div>
-    </form>
+</div>
+
+<div class="settings-layout">
+  <div class="settings-nav">
+    <div class="settings-nav-item active" data-tab="profile">
+      <i class="fa-solid fa-user"></i>
+      <span>Profile</span>
+    </div>
+    <div class="settings-nav-item" data-tab="api">
+      <i class="fa-solid fa-key"></i>
+      <span>API Keys</span>
+    </div>
+    <div class="settings-nav-item" data-tab="content">
+      <i class="fa-solid fa-file-lines"></i>
+      <span>Content</span>
+    </div>
+    <div class="settings-nav-item" data-tab="sources">
+      <i class="fa-solid fa-search"></i>
+      <span>Source Fetching</span>
+    </div>
   </div>
+
+  <div class="settings-content">
+    <div class="settings-tab active" id="tab-profile">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fa-solid fa-user"></i> Profile Settings</h2>
+        </div>
+        <div class="card-body">
+          <form method="post" class="form-grid">
+            <div class="form-group">
+              <label>Publish Daily Limit</label>
+              <input name="publish_daily_limit" type="number" value="{{ settings.publish_daily_limit }}" min="1" max="100" />
+              <span class="hint">Maximum articles to publish per day</span>
+            </div>
+            <div class="form-group">
+              <label>Default Image Policy</label>
+              <select name="image_policy_default">
+                {% for option in ["none", "priority", "branded"] %}
+                <option value="{{ option }}" {% if settings.image_policy_default == option %}selected{% endif %}>{{ option|title }}</option>
+                {% endfor %}
+              </select>
+              <span class="hint">Default image handling for new drafts</span>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit"><i class="fa-solid fa-save"></i> Save Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-tab" id="tab-api">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fa-solid fa-key"></i> API Keys</h2>
+        </div>
+        <div class="card-body">
+          <div class="api-key-list">
+            <div class="api-key-item">
+              <div class="api-key-icon">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+              </div>
+              <div class="api-key-info">
+                <div class="api-key-name">Gemini API Key</div>
+                <div class="api-key-status {% if settings.gemini_api_key %}connected{% else %}disconnected{% endif %}">
+                  {% if settings.gemini_api_key %}
+                  <i class="fa-solid fa-check-circle"></i> Connected
+                  {% else %}
+                  <i class="fa-solid fa-xmark-circle"></i> Not Set
+                  {% endif %}
+                </div>
+              </div>
+              <form method="post" class="api-key-form">
+                <input type="password" name="gemini_api_key" value="{{ settings.gemini_api_key }}" placeholder="AIza..." />
+                <button class="btn btn-ghost btn-sm" type="submit"><i class="fa-solid fa-save"></i></button>
+              </form>
+            </div>
+          </div>
+          <div class="api-key-hint">
+            <i class="fa-solid fa-info-circle"></i>
+            Get your Gemini API key from <a href="https://aistudio.google.com/apikey" target="_blank">Google AI Studio</a>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-tab" id="tab-content">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fa-solid fa-file-lines"></i> Content Settings</h2>
+        </div>
+        <div class="card-body">
+          <p class="muted">Content generation and quality settings will be configured here.</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="settings-tab" id="tab-sources">
+      <div class="card">
+        <div class="card-header">
+          <h2 class="card-title"><i class="fa-solid fa-search"></i> Source Fetching</h2>
+        </div>
+        <div class="card-body">
+          <p class="muted">Auto-discover sources when fetching trends. Requires SERPER_API_KEY env variable.</p>
+          <form method="post" class="form-grid">
+            <div class="form-group">
+              <label>Auto-fetch Sources</label>
+              <label class="toggle">
+                <input type="checkbox" name="auto_fetch_sources" {% if settings.auto_fetch_sources == 'true' %}checked{% endif %} />
+                <span class="toggle-slider"></span>
+                <span class="toggle-label">{% if settings.auto_fetch_sources == 'true' %}Enabled{% else %}Disabled{% endif %}</span>
+              </label>
+            </div>
+            <div class="form-group">
+              <label>Days to Look Back</label>
+              <input type="number" name="source_days_back" value="{{ settings.source_days_back }}" min="1" max="30" />
+              <span class="hint">How many days back to search for sources</span>
+            </div>
+            <div class="form-group">
+              <label>Sources per Trend</label>
+              <input type="number" name="sources_per_trend" value="{{ settings.sources_per_trend }}" min="1" max="10" />
+              <span class="hint">Maximum sources to fetch per trend</span>
+            </div>
+            <div class="form-actions">
+              <button class="btn btn-primary" type="submit"><i class="fa-solid fa-save"></i> Save All Settings</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.settings-layout {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: var(--space-6);
+}
+
+.settings-nav {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-radius: var(--radius-md);
+  color: var(--on-surface-variant);
+  cursor: pointer;
+  transition: all var(--duration-fast) ease;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.settings-nav-item:hover {
+  background: var(--surface-container);
+  color: var(--on-surface);
+}
+
+.settings-nav-item.active {
+  background: var(--accent-soft);
+  color: var(--primary);
+}
+
+.settings-nav-item i {
+  width: 20px;
+  text-align: center;
+}
+
+.settings-tab {
+  display: none;
+}
+
+.settings-tab.active {
+  display: block;
+}
+
+.api-key-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.api-key-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-4);
+  background: var(--surface-container-high);
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border);
+}
+
+.api-key-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-md);
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--primary);
+}
+
+.api-key-info {
+  flex: 1;
+}
+
+.api-key-name {
+  font-weight: 600;
+  color: var(--on-surface);
+  margin-bottom: 4px;
+}
+
+.api-key-status {
+  font-size: 13px;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.api-key-status.connected {
+  color: var(--success);
+}
+
+.api-key-status.disconnected {
+  color: var(--error);
+}
+
+.api-key-form {
+  display: flex;
+  gap: var(--space-2);
+}
+
+.api-key-form input {
+  width: 200px;
+}
+
+.api-key-hint {
+  margin-top: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--info-container);
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  color: var(--info);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.api-key-hint a {
+  color: var(--info);
+  text-decoration: underline;
+}
+
+.toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+}
+
+.toggle input { display: none; }
+
+.toggle-slider {
+  width: 44px;
+  height: 24px;
+  background: var(--surface-container-highest);
+  border-radius: 12px;
+  position: relative;
+  transition: background 0.2s;
+  border: 1px solid var(--border);
+}
+
+.toggle-slider::after {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  background: var(--on-surface);
+  border-radius: 50%;
+  top: 2px;
+  left: 2px;
+  transition: transform 0.2s;
+}
+
+.toggle input:checked + .toggle-slider {
+  background: var(--success);
+  border-color: var(--success);
+}
+
+.toggle input:checked + .toggle-slider::after {
+  transform: translateX(20px);
+  background: white;
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: var(--on-surface);
+}
+
+.hint {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--on-surface-variant);
+}
+
+@media (max-width: 768px) {
+  .settings-layout {
+    grid-template-columns: 1fr;
+  }
   
-  <style>
-    .full-width { grid-column: 1 / -1; }
-    small.muted { display: block; margin-top: 4px; }
+  .settings-nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  
+  .api-key-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .api-key-form {
+    width: 100%;
+  }
+  
+  .api-key-form input {
+    width: 100%;
+  }
+}
+</style>
+
+<script>
+document.querySelectorAll('.settings-nav-item').forEach(item => {
+  item.addEventListener('click', () => {
+    document.querySelectorAll('.settings-nav-item').forEach(i => i.classList.remove('active'));
+    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
     
-    .toggle {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-    }
-    .toggle input { display: none; }
-    .toggle-slider {
-      width: 44px;
-      height: 24px;
-      background: #d1d5db;
-      border-radius: 12px;
-      position: relative;
-      transition: background 0.2s;
-    }
-    .toggle-slider::after {
-      content: '';
-      position: absolute;
-      width: 18px;
-      height: 18px;
-      background: white;
-      border-radius: 50%;
-      top: 3px;
-      left: 3px;
-      transition: transform 0.2s;
-    }
-    .toggle input:checked + .toggle-slider {
-      background: var(--success);
-    }
-    .toggle input:checked + .toggle-slider::after {
-      transform: translateX(20px);
-    }
-    .toggle-label {
-      font-weight: 500;
-      color: var(--ink);
-    }
-  </style>
+    item.classList.add('active');
+    document.getElementById('tab-' + item.dataset.tab).classList.add('active');
+  });
+});
+</script>
 {% endblock %}

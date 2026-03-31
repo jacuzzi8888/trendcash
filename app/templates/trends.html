@@ -1,54 +1,70 @@
 {% extends "base.html" %}
+{% block page_title %}Trends{% endblock %}
 {% block content %}
-  <div class="card">
-    <div class="section-title">Add Trend Candidate</div>
-    <form method="post" class="grid two">
-      <div>
+<div class="page-header">
+  <div class="page-header-content">
+    <h1>Trend Candidates</h1>
+    <p class="muted">Manage and score trending topics</p>
+  </div>
+</div>
+
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-plus"></i> Add Trend Candidate</h2>
+  </div>
+  <div class="card-body">
+    <form method="post" class="form-grid">
+      <div class="form-group">
         <label>Topic</label>
         <input name="topic" placeholder="Fuel price increase March 2026" required />
       </div>
-      <div>
+      <div class="form-group">
         <label>Category</label>
         <input name="category" placeholder="Fuel & Transport" required />
       </div>
-      <div>
+      <div class="form-group">
         <label>Source (monitor)</label>
         <input name="source" placeholder="Google Trends, Nairaland, TikTok" required />
       </div>
-      <div>
+      <div class="form-group">
         <label>Velocity score (0-10)</label>
         <input name="velocity_score" type="number" step="0.1" value="0" />
       </div>
-      <div>
+      <div class="form-group">
         <label>Advertiser safety score (0-10)</label>
         <input name="advertiser_safety_score" type="number" step="0.1" value="0" />
       </div>
-      <div>
+      <div class="form-group">
         <label>Commercial intent score (0-10)</label>
         <input name="commercial_intent_score" type="number" step="0.1" value="0" />
       </div>
-      <div>
+      <div class="form-group">
         <label>Evergreen score (0-10)</label>
         <input name="evergreen_score" type="number" step="0.1" value="0" />
       </div>
-      <div>
-        <label>&nbsp;</label>
-        <button class="button" type="submit">Add Candidate</button>
+      <div class="form-actions">
+        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-plus"></i> Add Candidate</button>
       </div>
     </form>
   </div>
+</div>
 
-  <div class="card">
-    <div class="section-title">Trend Candidates</div>
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-list"></i> Trend Candidates</h2>
     {% if categories %}
-      <div class="muted">Filter:
-        {% for c in categories %}
-          <a href="{{ url_for('trends', category=c) }}">{{ c }}</a>
-        {% endfor %}
-      </div>
+    <div class="filter-bar">
+      <a href="{{ url_for('trends') }}" class="filter-btn {% if not category_filter %}active{% endif %}">All</a>
+      {% for cat in categories %}
+      <a href="{{ url_for('trends', category=cat) }}" class="filter-btn {% if category_filter == cat %}active{% endif %}">{{ cat }}</a>
+      {% endfor %}
+    </div>
     {% endif %}
+  </div>
+  <div class="card-body">
     {% if candidates %}
-      <table>
+    <div class="table-wrapper">
+      <table class="data-table">
         <thead>
           <tr>
             <th>Topic</th>
@@ -58,32 +74,44 @@
             <th>Intent</th>
             <th>Evergreen</th>
             <th>Sources</th>
-            <th>Draft</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
           {% for c in candidates %}
-            <tr>
-              <td>{{ c.topic }}</td>
-              <td>{{ c.category }}</td>
-              <td>{{ c.velocity_score }}</td>
-              <td>{{ c.advertiser_safety_score }}</td>
-              <td>{{ c.commercial_intent_score }}</td>
-              <td>{{ c.evergreen_score }}</td>
-              <td>
-                <a href="{{ url_for('sources', candidate_id=c.id) }}">Add sources</a>
-              </td>
-              <td>
-                <form method="post" action="{{ url_for('create_draft', candidate_id=c.id) }}">
-                  <button class="button ghost" type="submit">Create Draft</button>
+          <tr>
+            <td>{{ c.topic }}</td>
+            <td><span class="badge">{{ c.category }}</span></td>
+            <td><span class="score-badge">{{ c.velocity_score }}</span></td>
+            <td><span class="score-badge">{{ c.advertiser_safety_score }}</span></td>
+            <td><span class="score-badge">{{ c.commercial_intent_score }}</span></td>
+            <td><span class="score-badge">{{ c.evergreen_score }}</span></td>
+            <td>
+              <span class="badge {% if c.source_count >= 2 %}badge-success{% else %}badge-warning{% endif %}">
+                {{ c.source_count or 0 }}
+              </span>
+            </td>
+            <td>
+              <div style="display: flex; gap: var(--space-2);">
+                <a href="{{ url_for('sources', candidate_id=c.id) }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-link"></i></a>
+                <form method="post" action="{{ url_for('create_draft', candidate_id=c.id) }}" style="display:inline">
+                  <button class="btn btn-secondary btn-sm" type="submit" {% if (c.source_count or 0) < 2 %}disabled title="Need 2+ sources"{% endif %}><i class="fa-solid fa-pen"></i></button>
                 </form>
-              </td>
-            </tr>
+              </div>
+            </td>
+          </tr>
           {% endfor %}
         </tbody>
       </table>
+    </div>
     {% else %}
-      <p class="muted">No candidates yet.</p>
+    <div class="empty-state">
+      <i class="fa-solid fa-fire"></i>
+      <h3>No candidates yet</h3>
+      <p>Add trend candidates manually or fetch from Google Trends.</p>
+      <a href="{{ url_for('trend_discovery') }}" class="btn btn-primary">Discover Trends</a>
+    </div>
     {% endif %}
   </div>
+</div>
 {% endblock %}

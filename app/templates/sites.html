@@ -1,62 +1,236 @@
 {% extends "base.html" %}
-
+{% block page_title %}Sites{% endblock %}
 {% block content %}
 <div class="page-header">
-  <h2>Connected Sites</h2>
-  <a href="{{ url_for('sites.new_site') }}" class="button">Add New Site</a>
+  <div class="page-header-content">
+    <h1>Sites Manager</h1>
+    <p class="muted">Manage connected publishing destinations</p>
+  </div>
+  <div class="page-header-actions">
+    <a href="{{ url_for('sites.new_site') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Site</a>
+  </div>
 </div>
 
 {% if sites %}
-<table>
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Niche</th>
-      <th>API URL</th>
-      <th>Status</th>
-      <th>Actions</th>
-    </tr>
-  </thead>
-  <tbody>
-    {% for site in sites %}
-    <tr>
-      <td>
-        <strong>{{ site.name }}</strong>
-        <br><span class="muted">{{ site.slug }}</span>
-      </td>
-      <td><span class="pill">{{ site.niche }}</span></td>
-      <td class="muted">{{ site.api_url[:40] }}{% if site.api_url|length > 40 %}...{% endif %}</td>
-      <td>
+<div class="sites-grid">
+  {% for site in sites %}
+  <div class="site-card">
+    <div class="site-card-header">
+      <div class="site-icon">
+        <i class="fa-solid fa-globe"></i>
+      </div>
+      <div class="site-info">
+        <div class="site-name">{{ site.name }}</div>
+        <div class="site-slug">{{ site.slug }}</div>
+      </div>
+      <div class="site-status">
         {% if site.is_active %}
-        <span class="pill" style="background: #e8f6f1; color: var(--success);">Active</span>
+        <span class="badge badge-success"><i class="fa-solid fa-check"></i> Active</span>
         {% else %}
-        <span class="pill" style="background: #fde8ee; color: var(--error);">Inactive</span>
+        <span class="badge badge-error"><i class="fa-solid fa-xmark"></i> Inactive</span>
         {% endif %}
-      </td>
-      <td>
-        <a href="{{ url_for('sites.edit_site', site_id=site.id) }}" class="button ghost" style="padding: 6px 12px;">Edit</a>
-        <form action="{{ url_for('sites.delete_site', site_id=site.id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this site?');">
-          <button type="submit" class="button ghost" style="padding: 6px 12px; color: var(--error); border-color: var(--error);">Delete</button>
-        </form>
-      </td>
-    </tr>
-    {% endfor %}
-  </tbody>
-</table>
+      </div>
+    </div>
+    <div class="site-card-body">
+      <div class="site-meta">
+        <div class="site-meta-item">
+          <i class="fa-solid fa-tag"></i>
+          <span>{{ site.niche }}</span>
+        </div>
+        <div class="site-meta-item">
+          <i class="fa-solid fa-link"></i>
+          <span>{{ site.api_url[:35] }}{% if site.api_url|length > 35 %}...{% endif %}</span>
+        </div>
+      </div>
+    </div>
+    <div class="site-card-footer">
+      <a href="{{ url_for('sites.edit_site', site_id=site.id) }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
+      <form action="{{ url_for('sites.delete_site', site_id=site.id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this site?');">
+        <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--error);"><i class="fa-solid fa-trash"></i> Delete</button>
+      </form>
+    </div>
+  </div>
+  {% endfor %}
+</div>
 {% else %}
 <div class="card">
-  <p class="muted">No sites connected yet. <a href="{{ url_for('sites.new_site') }}">Add your first site</a> to start publishing.</p>
+  <div class="card-body">
+    <div class="empty-state">
+      <i class="fa-solid fa-globe"></i>
+      <h3>No sites connected</h3>
+      <p>Add your first site to start publishing content.</p>
+      <a href="{{ url_for('sites.new_site') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Site</a>
+    </div>
+  </div>
 </div>
 {% endif %}
 
-<div class="card" style="margin-top: 24px;">
-  <h3>How to Connect a Site</h3>
-  <ol style="color: var(--muted); line-height: 1.8;">
-    <li>Build your external website with an API endpoint at <code>/api/content</code></li>
-    <li>The endpoint should accept POST requests with JSON payload containing: <code>title, content, category, slug, meta</code></li>
-    <li>Secure the endpoint with a Bearer token (API key)</li>
-    <li>Add the site here with its API URL and key</li>
-    <li>Publish content from the dashboard to your site</li>
-  </ol>
+<div class="card">
+  <div class="card-header">
+    <h2 class="card-title"><i class="fa-solid fa-question-circle"></i> How to Connect a Site</h2>
+  </div>
+  <div class="card-body">
+    <div class="steps-list">
+      <div class="step-item">
+        <div class="step-number">1</div>
+        <div class="step-content">
+          <strong>Build your API endpoint</strong>
+          <p>Create an endpoint at <code>/api/content</code> that accepts POST requests</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">2</div>
+        <div class="step-content">
+          <strong>Accept JSON payload</strong>
+          <p>Handle: <code>title, content, category, slug, meta</code></p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">3</div>
+        <div class="step-content">
+          <strong>Secure with Bearer token</strong>
+          <p>Add API key authentication to your endpoint</p>
+        </div>
+      </div>
+      <div class="step-item">
+        <div class="step-number">4</div>
+        <div class="step-content">
+          <strong>Add site to NTC</strong>
+          <p>Enter the API URL and key to connect</p>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
+
+<style>
+.sites-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: var(--space-6);
+  margin-bottom: var(--space-6);
+}
+
+.site-card {
+  background: var(--surface-container);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
+  transition: all var(--duration-fast) ease;
+}
+
+.site-card:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow-lg);
+}
+
+.site-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+.site-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: var(--radius-lg);
+  background: var(--accent-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 20px;
+  color: var(--primary);
+}
+
+.site-info {
+  flex: 1;
+}
+
+.site-name {
+  font-weight: 600;
+  color: var(--on-surface);
+  font-size: 16px;
+}
+
+.site-slug {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.site-card-body {
+  padding: var(--space-4) var(--space-5);
+}
+
+.site-meta {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.site-meta-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: 13px;
+  color: var(--on-surface-variant);
+}
+
+.site-meta-item i {
+  width: 16px;
+  color: var(--primary);
+}
+
+.site-card-footer {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  background: var(--surface-container-low);
+}
+
+.steps-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.step-item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-4);
+}
+
+.step-number {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+  background: var(--primary-gradient);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.step-content strong {
+  display: block;
+  color: var(--on-surface);
+  margin-bottom: 2px;
+}
+
+.step-content p {
+  font-size: 13px;
+  color: var(--on-surface-variant);
+  margin: 0;
+}
+
+.step-content code {
+  background: var(--surface-container-high);
+  padding: 2px 6px;
+  border-radius: var(--radius-sm);
+  font-size: 12px;
+}
+</style>
 {% endblock %}

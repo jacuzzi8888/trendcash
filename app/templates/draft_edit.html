@@ -1,467 +1,464 @@
 {% extends "base.html" %}
+{% block page_title %}Content Creator{% endblock %}
+{% block head %}
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js?api_key=no-api-key"></script>
+{% endblock %}
 {% block content %}
-  <div class="draft-edit-container">
-    <div class="draft-main">
-      <div class="card">
-        <div class="section-title">Edit Draft</div>
+<div class="page-header">
+  <div class="page-header-content">
+    <h1>Content Creator</h1>
+    <p class="muted">AI-powered content generation studio</p>
+  </div>
+</div>
+
+<div class="creator-layout">
+  <div class="creator-main">
+    <div class="card">
+      <div class="card-header">
+        <h2 class="card-title"><i class="fa-solid fa-edit"></i> Edit Draft</h2>
+        <div class="card-actions">
+          <span class="badge badge-{{ 'success' if draft.status == 'approved' else 'warning' if draft.status == 'qc' else 'info' }}">{{ draft.status }}</span>
+        </div>
+      </div>
+      <div class="card-body">
         <form method="post" id="draftForm">
-          <div class="grid two">
-            <div>
+          <div class="form-row">
+            <div class="form-group">
               <label>Title</label>
               <input name="title" id="title" value="{{ draft.title }}" required />
             </div>
-            <div>
+            <div class="form-group">
               <label>Last Updated</label>
               <input name="last_updated" value="{{ draft.last_updated }}" required />
             </div>
-            <div>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
               <label>Image Policy</label>
               <select name="image_policy">
                 {% for option in ["none", "priority", "branded"] %}
-                  <option value="{{ option }}" {% if draft.image_policy == option %}selected{% endif %}>{{ option }}</option>
+                <option value="{{ option }}" {% if draft.image_policy == option %}selected{% endif %}>{{ option }}</option>
                 {% endfor %}
               </select>
             </div>
-            <div>
+            <div class="form-group">
               <label>Image Prompt (optional)</label>
               <input name="image_prompt" value="{{ draft.image_prompt or '' }}" />
             </div>
           </div>
-          <div>
+          <div class="form-group">
             <label>Content</label>
             <textarea name="content" id="content" rows="20">{{ draft.content }}</textarea>
           </div>
           <div class="editor-toolbar">
-            <button class="button" type="submit" name="status_action" value="save">Save</button>
-            <button class="button secondary" type="submit" name="status_action" value="send_qc">Send to QC</button>
-            <button class="button ghost" type="button" onclick="toggleEditorMode()">
-              <span id="editorModeText">Switch to Markdown</span>
+            <button class="btn btn-primary" type="submit" name="status_action" value="save"><i class="fa-solid fa-save"></i> Save Draft</button>
+            <button class="btn btn-secondary" type="submit" name="status_action" value="send_qc"><i class="fa-solid fa-paper-plane"></i> Send to QC</button>
+            <button class="btn btn-ghost" type="button" onclick="toggleEditorMode()">
+              <span id="editorModeText"><i class="fa-solid fa-code"></i> Markdown</span>
             </button>
           </div>
         </form>
       </div>
     </div>
-    
-    <div class="draft-sidebar">
-      <div class="card ai-assistant">
-        <div class="section-title">AI Assistant</div>
-        
-        <div class="ai-section">
-          <h4>Generate Headlines</h4>
+  </div>
+
+  <div class="creator-sidebar">
+    <div class="generator-card">
+      <div class="generator-header">
+        <div class="generator-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+        <div class="generator-title">AI Assistant</div>
+      </div>
+
+      <div class="form-row single">
+        <div class="form-group">
+          <label>Generate Headlines</label>
           <select id="headlineAngle">
             <option value="news">News style</option>
             <option value="how-to">How-to style</option>
             <option value="listicle">Listicle style</option>
             <option value="opinion">Opinion style</option>
           </select>
-          <button class="button ghost" onclick="generateHeadlines()" id="btnHeadlines">Generate</button>
-          <div id="headlinesResult" class="ai-result"></div>
         </div>
-        
-        <div class="ai-section">
-          <h4>Generate Excerpt</h4>
-          <input type="number" id="excerptLength" value="160" max="300" placeholder="Max length" />
-          <button class="button ghost" onclick="generateExcerpt()" id="btnExcerpt">Generate</button>
-          <div id="excerptResult" class="ai-result"></div>
+      </div>
+      <button class="btn btn-ghost" onclick="generateHeadlines()" id="btnHeadlines" style="width:100%"><i class="fa-solid fa-lightbulb"></i> Generate Headlines</button>
+      <div id="headlinesResult" class="ai-result"></div>
+    </div>
+
+    <div class="generator-card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Excerpt Length</label>
+          <input type="number" id="excerptLength" value="160" max="300" />
         </div>
-        
-        <div class="ai-section">
-          <h4>Improve Content</h4>
-          <select id="improveType">
-            <option value="Improve clarity and flow">Clarity & flow</option>
-            <option value="Make more engaging and conversational">More engaging</option>
-            <option value="Simplify language for general audience">Simplify</option>
-            <option value="Add more detail and depth">Add detail</option>
-          </select>
-          <button class="button ghost" onclick="improveContent()" id="btnImprove">Improve</button>
-          <div id="improveResult" class="ai-result"></div>
-        </div>
-        
-        <div class="ai-section">
-          <h4>Generate FAQs</h4>
-          <input type="text" id="faqContext" placeholder="Additional context (optional)" />
-          <button class="button ghost" onclick="generateFaqs()" id="btnFaqs">Generate</button>
-          <div id="faqsResult" class="ai-result"></div>
-        </div>
-        
-        {% if candidate %}
-        <div class="ai-section">
-          <h4>Regenerate Article</h4>
+      </div>
+      <button class="btn btn-ghost" onclick="generateExcerpt()" id="btnExcerpt" style="width:100%"><i class="fa-solid fa-paragraph"></i> Generate Excerpt</button>
+      <div id="excerptResult" class="ai-result"></div>
+    </div>
+
+    <div class="generator-card">
+      <div class="form-group">
+        <label>Improve Content</label>
+        <select id="improveType">
+          <option value="Improve clarity and flow">Clarity & flow</option>
+          <option value="Make more engaging and conversational">More engaging</option>
+          <option value="Simplify language for general audience">Simplify</option>
+          <option value="Add more detail and depth">Add detail</option>
+        </select>
+      </div>
+      <button class="btn btn-ghost" onclick="improveContent()" id="btnImprove" style="width:100%"><i class="fa-solid fa-magic"></i> Improve</button>
+      <div id="improveResult" class="ai-result"></div>
+    </div>
+
+    <div class="generator-card">
+      <div class="form-group">
+        <label>Generate FAQs</label>
+        <input type="text" id="faqContext" placeholder="Additional context (optional)" />
+      </div>
+      <button class="btn btn-ghost" onclick="generateFaqs()" id="btnFaqs" style="width:100%"><i class="fa-solid fa-question-circle"></i> Generate FAQs</button>
+      <div id="faqsResult" class="ai-result"></div>
+    </div>
+
+    {% if candidate %}
+    <div class="generator-card">
+      <div class="form-row">
+        <div class="form-group">
+          <label>Article Style</label>
           <select id="articleStyle">
             <option value="informative">Informative</option>
             <option value="news">News report</option>
             <option value="guide">How-to guide</option>
             <option value="analysis">Analysis</option>
           </select>
-          <input type="number" id="wordCount" value="800" min="300" max="2000" step="100" />
-          <button class="button ghost" onclick="regenerateArticle()" id="btnRegenerate">Regenerate</button>
-          <div id="regenerateResult" class="ai-result"></div>
         </div>
-        {% endif %}
-        
-        <div class="ai-section">
-          <button class="button secondary" onclick="testAIConnection()">Test AI Connection</button>
-          <div id="testResult" class="ai-result"></div>
+        <div class="form-group">
+          <label>Word Count</label>
+          <input type="number" id="wordCount" value="800" min="300" max="2000" step="100" />
         </div>
       </div>
+      <button class="btn btn-ghost" onclick="regenerateArticle()" id="btnRegenerate" style="width:100%"><i class="fa-solid fa-rotate"></i> Regenerate Article</button>
+      <div id="regenerateResult" class="ai-result"></div>
+    </div>
+    {% endif %}
+
+    <div class="generator-card">
+      <button class="btn btn-secondary" onclick="testAIConnection()" style="width:100%"><i class="fa-solid fa-plug"></i> Test AI Connection</button>
+      <div id="testResult" class="ai-result"></div>
     </div>
   </div>
+</div>
+{% endblock %}
 
-  <script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js"></script>
-  <script>
-    const candidateId = {{ candidate.id if candidate else 'null' }};
-    const topic = "{{ candidate.topic if candidate else '' }}";
-    let isRichMode = true;
-    
-    function getContent() {
-      if (isRichMode && tinymce.get('content')) {
-        return tinymce.get('content').getContent();
-      }
-      return document.getElementById('content').value;
+{% block scripts %}
+<script>
+  const candidateId = {{ candidate.id if candidate else 'null' }};
+  const topic = "{{ candidate.topic if candidate else '' }}";
+  let isRichMode = true;
+
+  function getContent() {
+    if (isRichMode && tinymce.get('content')) {
+      return tinymce.get('content').getContent();
     }
-    
-    function setContent(html) {
-      if (isRichMode && tinymce.get('content')) {
-        tinymce.get('content').setContent(html);
-      } else {
-        document.getElementById('content').value = html;
-      }
+    return document.getElementById('content').value;
+  }
+
+  function setContent(html) {
+    if (isRichMode && tinymce.get('content')) {
+      tinymce.get('content').setContent(html);
+    } else {
+      document.getElementById('content').value = html;
     }
-    
-    function toggleEditorMode() {
-      const textarea = document.getElementById('content');
-      const btn = document.getElementById('editorModeText');
-      
-      if (isRichMode) {
-        const content = tinymce.get('content').getContent();
-        tinymce.get('content').destroy();
-        textarea.value = content;
-        textarea.style.display = 'block';
-        btn.textContent = 'Switch to Rich Editor';
-        isRichMode = false;
-      } else {
-        textarea.style.display = 'none';
-        initTinyMCE();
-        btn.textContent = 'Switch to Markdown';
-        isRichMode = true;
-      }
-    }
-    
-    function initTinyMCE() {
-      tinymce.init({
-        selector: '#content',
-        height: 500,
-        menubar: true,
-        plugins: [
-          'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
-          'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
-          'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount'
-        ],
-        toolbar: 'undo redo | formatselect | ' +
-          'bold italic underline strikethrough | alignleft aligncenter ' +
-          'alignright alignjustify | bullist numlist outdent indent | ' +
-          'link image | removeformat code | help',
-        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 15px; line-height: 1.6; }',
-        promotion_enabled: false,
-        branding: false,
-        setup: function(editor) {
-          editor.on('change', function() {
-            editor.save();
-          });
-        }
-      });
-    }
-    
-    document.addEventListener('DOMContentLoaded', function() {
+  }
+
+  function toggleEditorMode() {
+    const textarea = document.getElementById('content');
+    const btn = document.getElementById('editorModeText');
+
+    if (isRichMode) {
+      const content = tinymce.get('content').getContent();
+      tinymce.get('content').destroy();
+      textarea.value = content;
+      textarea.style.display = 'block';
+      btn.innerHTML = '<i class="fa-solid fa-eye"></i> Rich Editor';
+      isRichMode = false;
+    } else {
+      textarea.style.display = 'none';
       initTinyMCE();
-      
-      document.getElementById('draftForm').addEventListener('submit', function(e) {
-        if (isRichMode && tinymce.get('content')) {
-          tinymce.get('content').save();
-        }
-      });
-    });
-    
-    function setLoading(btnId, loading) {
-      const btn = document.getElementById(btnId);
-      if (loading) {
-        btn.disabled = true;
-        btn.dataset.originalText = btn.textContent;
-        btn.textContent = 'Loading...';
-      } else {
-        btn.disabled = false;
-        btn.textContent = btn.dataset.originalText;
-      }
+      btn.innerHTML = '<i class="fa-solid fa-code"></i> Markdown';
+      isRichMode = true;
     }
-    
-    function showResult(containerId, html) {
-      document.getElementById(containerId).innerHTML = html;
-    }
-    
-    async function generateHeadlines() {
-      setLoading('btnHeadlines', true);
-      const angle = document.getElementById('headlineAngle').value;
-      const topicText = topic || document.getElementById('title').value;
-      
-      try {
-        const formData = new FormData();
-        formData.append('topic', topicText);
-        formData.append('angle', angle);
-        
-        const response = await fetch('/ai/headlines', { method: 'POST', body: formData });
-        const result = await response.json();
-        
-        if (result.success) {
-          const headlinesHtml = result.headlines.map((h, i) => 
-            `<div class="headline-option" onclick="useHeadline('${h.replace(/'/g, "\\'")}')">${i + 1}. ${h}</div>`
-          ).join('');
-          showResult('headlinesResult', headlinesHtml);
-        } else {
-          showResult('headlinesResult', `<span class="error">${result.error}</span>`);
-        }
-      } catch (e) {
-        showResult('headlinesResult', `<span class="error">Request failed: ${e.message}</span>`);
-      }
-      setLoading('btnHeadlines', false);
-    }
-    
-    function useHeadline(headline) {
-      document.getElementById('title').value = headline;
-    }
-    
-    async function generateExcerpt() {
-      setLoading('btnExcerpt', true);
-      const content = getContent();
-      const maxLength = document.getElementById('excerptLength').value;
-      
-      try {
-        const formData = new FormData();
-        formData.append('content', content);
-        formData.append('max_length', maxLength);
-        
-        const response = await fetch('/ai/excerpt', { method: 'POST', body: formData });
-        const result = await response.json();
-        
-        if (result.success) {
-          showResult('excerptResult', `<div class="excerpt-text">${result.excerpt}</div>`);
-        } else {
-          showResult('excerptResult', `<span class="error">${result.error}</span>`);
-        }
-      } catch (e) {
-        showResult('excerptResult', `<span class="error">Request failed: ${e.message}</span>`);
-      }
-      setLoading('btnExcerpt', false);
-    }
-    
-    async function improveContent() {
-      setLoading('btnImprove', true);
-      const content = getContent();
-      const instructions = document.getElementById('improveType').value;
-      
-      if (!content.trim()) {
-        showResult('improveResult', '<span class="error">No content to improve</span>');
-        setLoading('btnImprove', false);
-        return;
-      }
-      
-      try {
-        const formData = new FormData();
-        formData.append('content', content);
-        formData.append('instructions', instructions);
-        
-        const response = await fetch('/ai/improve', { method: 'POST', body: formData });
-        const result = await response.json();
-        
-        if (result.success) {
-          showResult('improveResult', 
-            `<button class="button ghost small" onclick="applyImproved()">Apply Changes</button>`);
-          window.improvedContent = result.content;
-        } else {
-          showResult('improveResult', `<span class="error">${result.error}</span>`);
-        }
-      } catch (e) {
-        showResult('improveResult', `<span class="error">Request failed: ${e.message}</span>`);
-      }
-      setLoading('btnImprove', false);
-    }
-    
-    function applyImproved() {
-      if (window.improvedContent) {
-        setContent(window.improvedContent);
-        showResult('improveResult', '<span class="success">Content updated!</span>');
-      }
-    }
-    
-    async function generateFaqs() {
-      setLoading('btnFaqs', true);
-      const topicText = topic || document.getElementById('title').value;
-      const context = document.getElementById('faqContext').value;
-      
-      try {
-        const formData = new FormData();
-        formData.append('topic', topicText);
-        formData.append('context', context);
-        
-        const response = await fetch('/ai/faqs', { method: 'POST', body: formData });
-        const result = await response.json();
-        
-        if (result.success) {
-          showResult('faqsResult', `<pre class="faqs-preview">${result.faqs}</pre>`);
-        } else {
-          showResult('faqsResult', `<span class="error">${result.error}</span>`);
-        }
-      } catch (e) {
-        showResult('faqsResult', `<span class="error">Request failed: ${e.message}</span>`);
-      }
-      setLoading('btnFaqs', false);
-    }
-    
-    async function regenerateArticle() {
-      if (!candidateId) {
-        showResult('regenerateResult', '<span class="error">No candidate linked</span>');
-        return;
-      }
-      
-      if (!confirm('This will replace your current content. Continue?')) return;
-      
-      setLoading('btnRegenerate', true);
-      const style = document.getElementById('articleStyle').value;
-      const wordCount = document.getElementById('wordCount').value;
-      
-      try {
-        const formData = new FormData();
-        formData.append('style', style);
-        formData.append('word_count', wordCount);
-        
-        const response = await fetch(`/ai/generate/${candidateId}`, { method: 'POST', body: formData });
-        const result = await response.json();
-        
-        if (result.success) {
-          setContent(result.content);
-          showResult('regenerateResult', '<span class="success">Article generated!</span>');
-        } else {
-          showResult('regenerateResult', `<span class="error">${result.error}</span>`);
-        }
-      } catch (e) {
-        showResult('regenerateResult', `<span class="error">Request failed: ${e.message}</span>`);
-      }
-      setLoading('btnRegenerate', false);
-    }
-    
-    async function testAIConnection() {
-      try {
-        const response = await fetch('/ai/test', { method: 'POST' });
-        const result = await response.json();
-        
-        if (result.success) {
-          showResult('testResult', `<span class="success">AI connected: ${result.response}</span>`);
-        } else {
-          showResult('testResult', `<span class="error">Connection failed: ${result.error}</span>`);
-        }
-      } catch (e) {
-        showResult('testResult', `<span class="error">Request failed: ${e.message}</span>`);
-      }
-    }
-  </script>
+  }
 
-  <style>
-    .draft-edit-container {
-      display: grid;
-      grid-template-columns: 1fr 320px;
-      gap: 1.5rem;
-    }
-    .draft-main {
-      min-width: 0;
-    }
-    .draft-sidebar {
-      position: sticky;
-      top: 1rem;
-      height: fit-content;
-    }
-    .ai-assistant {
-      max-height: calc(100vh - 4rem);
-      overflow-y: auto;
-    }
-    .ai-section {
-      padding: 0.75rem 0;
-      border-bottom: 1px solid #e5e7eb;
-    }
-    .ai-section:last-child {
-      border-bottom: none;
-    }
-    .ai-section h4 {
-      margin: 0 0 0.5rem 0;
-      font-size: 0.875rem;
-      color: #374151;
-    }
-    .ai-section select,
-    .ai-section input[type="number"],
-    .ai-section input[type="text"] {
-      width: 100%;
-      margin-bottom: 0.5rem;
-    }
-    .ai-section button {
-      width: 100%;
-    }
-    .ai-result {
-      margin-top: 0.5rem;
-      font-size: 0.875rem;
-    }
-    .headline-option {
-      padding: 0.5rem;
-      margin: 0.25rem 0;
-      background: #f9fafb;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 0.8rem;
-    }
-    .headline-option:hover {
-      background: #e5e7eb;
-    }
-    .excerpt-text {
-      padding: 0.5rem;
-      background: #f9fafb;
-      border-radius: 4px;
-      font-size: 0.85rem;
-    }
-    .faqs-preview {
-      white-space: pre-wrap;
-      font-size: 0.8rem;
-      background: #f9fafb;
-      padding: 0.5rem;
-      border-radius: 4px;
-      max-height: 200px;
-      overflow-y: auto;
-    }
-    .success {
-      color: #059669;
-    }
-    .error {
-      color: #dc2626;
-    }
-    .button.small {
-      padding: 0.25rem 0.5rem;
-      font-size: 0.75rem;
-    }
-    .editor-toolbar {
-      margin-top: 12px;
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    #content {
-      display: none;
-    }
-    .tox-tinymce {
-      border-radius: 10px !important;
-    }
-    @media (max-width: 900px) {
-      .draft-edit-container {
-        grid-template-columns: 1fr;
+  function initTinyMCE() {
+    tinymce.init({
+      selector: '#content',
+      height: 500,
+      menubar: true,
+      plugins: [
+        'advlist', 'autolink', 'lists', 'link', 'image', 'charmap',
+        'anchor', 'searchreplace', 'visualblocks', 'code', 'fullscreen',
+        'insertdatetime', 'media', 'table', 'preview', 'help', 'wordcount'
+      ],
+      toolbar: 'undo redo | formatselect | ' +
+        'bold italic underline strikethrough | alignleft aligncenter ' +
+        'alignright alignjustify | bullist numlist outdent indent | ' +
+        'link image | removeformat code | help',
+      content_style: 'body { font-family: Inter, system-ui, sans-serif; font-size: 15px; line-height: 1.6; background: #1c2027; color: #dfe2ec; }',
+      promotion_enabled: false,
+      branding: false,
+      skin: 'oxide-dark',
+      setup: function(editor) {
+        editor.on('change', function() {
+          editor.save();
+        });
       }
-      .draft-sidebar {
-        position: static;
+    });
+  }
+
+  document.addEventListener('DOMContentLoaded', function() {
+    initTinyMCE();
+
+    document.getElementById('draftForm').addEventListener('submit', function(e) {
+      if (isRichMode && tinymce.get('content')) {
+        tinymce.get('content').save();
       }
+    });
+  });
+
+  function setLoading(btnId, loading) {
+    const btn = document.getElementById(btnId);
+    if (loading) {
+      btn.disabled = true;
+      btn.dataset.originalText = btn.innerHTML;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+    } else {
+      btn.disabled = false;
+      btn.innerHTML = btn.dataset.originalText;
     }
-  </style>
+  }
+
+  function showResult(containerId, html) {
+    document.getElementById(containerId).innerHTML = html;
+  }
+
+  async function generateHeadlines() {
+    setLoading('btnHeadlines', true);
+    const angle = document.getElementById('headlineAngle').value;
+    const topicText = topic || document.getElementById('title').value;
+
+    try {
+      const formData = new FormData();
+      formData.append('topic', topicText);
+      formData.append('angle', angle);
+
+      const response = await fetch('/ai/headlines', { method: 'POST', body: formData });
+      const result = await response.json();
+
+      if (result.success) {
+        const headlinesHtml = result.headlines.map((h, i) =>
+          `<div class="headline-option" onclick="useHeadline('${h.replace(/'/g, "\\'")}')">${i + 1}. ${h}</div>`
+        ).join('');
+        showResult('headlinesResult', headlinesHtml);
+      } else {
+        showResult('headlinesResult', `<span class="error">${result.error}</span>`);
+      }
+    } catch (e) {
+      showResult('headlinesResult', `<span class="error">Request failed: ${e.message}</span>`);
+    }
+    setLoading('btnHeadlines', false);
+  }
+
+  function useHeadline(headline) {
+    document.getElementById('title').value = headline;
+  }
+
+  async function generateExcerpt() {
+    setLoading('btnExcerpt', true);
+    const content = getContent();
+    const maxLength = document.getElementById('excerptLength').value;
+
+    try {
+      const formData = new FormData();
+      formData.append('content', content);
+      formData.append('max_length', maxLength);
+
+      const response = await fetch('/ai/excerpt', { method: 'POST', body: formData });
+      const result = await response.json();
+
+      if (result.success) {
+        showResult('excerptResult', `<div class="excerpt-text">${result.excerpt}</div>`);
+      } else {
+        showResult('excerptResult', `<span class="error">${result.error}</span>`);
+      }
+    } catch (e) {
+      showResult('excerptResult', `<span class="error">Request failed: ${e.message}</span>`);
+    }
+    setLoading('btnExcerpt', false);
+  }
+
+  async function improveContent() {
+    setLoading('btnImprove', true);
+    const content = getContent();
+    const instructions = document.getElementById('improveType').value;
+
+    if (!content.trim()) {
+      showResult('improveResult', '<span class="error">No content to improve</span>');
+      setLoading('btnImprove', false);
+      return;
+    }
+
+    try {
+      const formData = new FormData();
+      formData.append('content', content);
+      formData.append('instructions', instructions);
+
+      const response = await fetch('/ai/improve', { method: 'POST', body: formData });
+      const result = await response.json();
+
+      if (result.success) {
+        showResult('improveResult',
+          `<button class="btn btn-primary btn-sm" onclick="applyImproved()">Apply Changes</button>`);
+        window.improvedContent = result.content;
+      } else {
+        showResult('improveResult', `<span class="error">${result.error}</span>`);
+      }
+    } catch (e) {
+      showResult('improveResult', `<span class="error">Request failed: ${e.message}</span>`);
+    }
+    setLoading('btnImprove', false);
+  }
+
+  function applyImproved() {
+    if (window.improvedContent) {
+      setContent(window.improvedContent);
+      showResult('improveResult', '<span class="success"><i class="fa-solid fa-check"></i> Content updated!</span>');
+    }
+  }
+
+  async function generateFaqs() {
+    setLoading('btnFaqs', true);
+    const topicText = topic || document.getElementById('title').value;
+    const context = document.getElementById('faqContext').value;
+
+    try {
+      const formData = new FormData();
+      formData.append('topic', topicText);
+      formData.append('context', context);
+
+      const response = await fetch('/ai/faqs', { method: 'POST', body: formData });
+      const result = await response.json();
+
+      if (result.success) {
+        showResult('faqsResult', `<pre class="faqs-preview">${result.faqs}</pre>`);
+      } else {
+        showResult('faqsResult', `<span class="error">${result.error}</span>`);
+      }
+    } catch (e) {
+      showResult('faqsResult', `<span class="error">Request failed: ${e.message}</span>`);
+    }
+    setLoading('btnFaqs', false);
+  }
+
+  async function regenerateArticle() {
+    if (!candidateId) {
+      showResult('regenerateResult', '<span class="error">No candidate linked</span>');
+      return;
+    }
+
+    if (!confirm('This will replace your current content. Continue?')) return;
+
+    setLoading('btnRegenerate', true);
+    const style = document.getElementById('articleStyle').value;
+    const wordCount = document.getElementById('wordCount').value;
+
+    try {
+      const formData = new FormData();
+      formData.append('style', style);
+      formData.append('word_count', wordCount);
+
+      const response = await fetch(`/ai/generate/${candidateId}`, { method: 'POST', body: formData });
+      const result = await response.json();
+
+      if (result.success) {
+        setContent(result.content);
+        showResult('regenerateResult', '<span class="success"><i class="fa-solid fa-check"></i> Article generated!</span>');
+      } else {
+        showResult('regenerateResult', `<span class="error">${result.error}</span>`);
+      }
+    } catch (e) {
+      showResult('regenerateResult', `<span class="error">Request failed: ${e.message}</span>`);
+    }
+    setLoading('btnRegenerate', false);
+  }
+
+  async function testAIConnection() {
+    try {
+      const response = await fetch('/ai/test', { method: 'POST' });
+      const result = await response.json();
+
+      if (result.success) {
+        showResult('testResult', `<span class="success"><i class="fa-solid fa-check"></i> AI connected: ${result.response}</span>`);
+      } else {
+        showResult('testResult', `<span class="error"><i class="fa-solid fa-xmark"></i> Connection failed: ${result.error}</span>`);
+      }
+    } catch (e) {
+      showResult('testResult', `<span class="error">Request failed: ${e.message}</span>`);
+    }
+  }
+</script>
+
+<style>
+  #content {
+    display: none;
+  }
+  .tox-tinymce {
+    border-radius: var(--radius-lg) !important;
+    border: 1px solid var(--border) !important;
+  }
+  .ai-result {
+    margin-top: var(--space-3);
+    font-size: 14px;
+  }
+  .headline-option {
+    padding: var(--space-3);
+    margin: var(--space-1) 0;
+    background: var(--surface-container-high);
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    font-size: 13px;
+    border: 1px solid var(--border);
+    transition: all var(--duration-fast) ease;
+  }
+  .headline-option:hover {
+    background: var(--accent-soft);
+    border-color: var(--primary);
+  }
+  .excerpt-text {
+    padding: var(--space-3);
+    background: var(--surface-container-high);
+    border-radius: var(--radius-md);
+    font-size: 13px;
+    line-height: 1.6;
+  }
+  .faqs-preview {
+    white-space: pre-wrap;
+    font-size: 12px;
+    background: var(--surface-container-high);
+    padding: var(--space-3);
+    border-radius: var(--radius-md);
+    max-height: 200px;
+    overflow-y: auto;
+    font-family: inherit;
+  }
+  .success {
+    color: var(--success);
+  }
+  .error {
+    color: var(--error);
+  }
+  .card-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+</style>
 {% endblock %}
