@@ -99,7 +99,7 @@
         <p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60 font-bold mt-1">Growth Editorial</p>
       </div>
       
-      <nav class="flex-1 space-y-1">
+      <nav class="flex-1 space-y-1 overflow-y-auto">
         <a href="{{ url_for('index') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'index' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
           <span class="material-symbols-outlined" {% if request.endpoint == 'index' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>dashboard</span>
           <span class="text-sm">Dashboard</span>
