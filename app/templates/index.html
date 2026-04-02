@@ -1,132 +1,183 @@
 {% extends "base.html" %}
 {% block page_title %}Dashboard{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Dashboard</h1>
-    <p class="muted">Growth optimization overview</p>
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-2">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Dashboard</h1>
+    <p class="text-on-surface-variant text-sm">Growth optimization overview</p>
   </div>
-  <div class="page-header-actions">
-    {% if category_locked %}
-    <span class="status-badge status-locked"><i class="fa-solid fa-lock"></i> {{ category_locked }}</span>
+  {% if category_locked %}
+  <span class="text-[10px] font-bold bg-primary/10 text-primary px-2 py-1 rounded">
+    <span class="material-symbols-outlined text-sm align-middle">lock</span>
+    {{ category_locked }}
+  </span>
+  {% endif %}
+</div>
+
+<!-- KPI Cards Row -->
+<section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+  <!-- KPI 1: Trend Candidates -->
+  <div class="glass-card inner-stroke p-6 rounded-2xl relative overflow-hidden">
+    <div class="flex justify-between items-start mb-4">
+      <div class="p-2 bg-tertiary/10 rounded-lg">
+        <span class="material-symbols-outlined text-tertiary">whatshot</span>
+      </div>
+      <span class="text-[10px] font-bold bg-tertiary/20 text-tertiary px-2 py-0.5 rounded-full">Active</span>
+    </div>
+    <h3 class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">Trend Candidates</h3>
+    <p class="text-3xl font-black mt-1">{{ counts.candidates }}</p>
+    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-tertiary/5 blur-3xl rounded-full"></div>
+  </div>
+  
+  <!-- KPI 2: Content Drafts -->
+  <div class="glass-card inner-stroke p-6 rounded-2xl relative overflow-hidden">
+    <div class="flex justify-between items-start mb-4">
+      <div class="p-2 bg-primary/10 rounded-lg">
+        <span class="material-symbols-outlined text-primary">edit_note</span>
+      </div>
+      <span class="text-[10px] font-bold bg-primary/20 text-primary px-2 py-0.5 rounded-full">{{ counts.drafts }} Active</span>
+    </div>
+    <h3 class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">Content Drafts</h3>
+    <p class="text-3xl font-black mt-1">{{ counts.drafts }}</p>
+    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-primary/5 blur-3xl rounded-full"></div>
+  </div>
+  
+  <!-- KPI 3: QC Pending -->
+  <div class="glass-card inner-stroke p-6 rounded-2xl relative overflow-hidden">
+    <div class="flex justify-between items-start mb-4">
+      <div class="p-2 bg-yellow-500/10 rounded-lg">
+        <span class="material-symbols-outlined text-yellow-400">pending_actions</span>
+      </div>
+      <span class="text-[10px] font-bold bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded-full">{{ counts.qc }} Review{{ 's' if counts.qc != 1 else '' }}</span>
+    </div>
+    <h3 class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">QC Pending</h3>
+    <p class="text-3xl font-black mt-1">{{ counts.qc }}</p>
+    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-yellow-500/5 blur-3xl rounded-full"></div>
+  </div>
+  
+  <!-- KPI 4: Approved -->
+  <div class="glass-card inner-stroke p-6 rounded-2xl relative overflow-hidden">
+    <div class="flex justify-between items-start mb-4">
+      <div class="p-2 bg-green-500/10 rounded-lg">
+        <span class="material-symbols-outlined text-green-400">task_alt</span>
+      </div>
+      <span class="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-0.5 rounded-full">Ready</span>
+    </div>
+    <h3 class="text-on-surface-variant text-xs font-bold uppercase tracking-widest">Approved</h3>
+    <p class="text-3xl font-black mt-1">{{ counts.approved }}</p>
+    <div class="absolute -right-4 -bottom-4 w-24 h-24 bg-green-500/5 blur-3xl rounded-full"></div>
+  </div>
+</section>
+
+<!-- Main Layout Grid -->
+<section class="grid grid-cols-1 lg:grid-cols-10 gap-8">
+  <!-- Left Column: Latest Metrics (60%) -->
+  <div class="lg:col-span-6 space-y-6">
+    <div class="flex items-end justify-between">
+      <div>
+        <h3 class="text-2xl font-bold tracking-tight">Latest Metrics</h3>
+        <p class="text-on-surface-variant text-sm">Performance tracking data</p>
+      </div>
+      <a href="{{ url_for('metrics') }}" class="text-xs font-bold text-primary hover:text-primary-fixed transition-colors">View All →</a>
+    </div>
+    
+    {% if latest_metrics %}
+    <div class="tonal-stack-1 rounded-2xl overflow-hidden border border-outline-variant/10">
+      <table class="w-full text-left border-collapse">
+        <thead>
+          <tr class="border-b border-outline-variant/10">
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Date</th>
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">Indexing</th>
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">Queries</th>
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">CTR</th>
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">Position</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-outline-variant/5">
+          {% for m in latest_metrics %}
+          <tr class="hover:bg-surface-container-high/30 transition-colors">
+            <td class="px-6 py-4 font-medium">{{ m.metric_date }}</td>
+            <td class="px-6 py-4 text-right font-mono text-sm">{{ m.indexing_rate or "-" }}</td>
+            <td class="px-6 py-4 text-right font-mono text-sm">{{ m.queries or "-" }}</td>
+            <td class="px-6 py-4 text-right font-mono text-sm">{{ m.ctr or "-" }}</td>
+            <td class="px-6 py-4 text-right font-mono text-sm">{{ m.avg_position or "-" }}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}
+    <div class="glass-card inner-stroke rounded-2xl p-12 text-center">
+      <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">analytics</span>
+      <h3 class="text-lg font-bold text-on-surface-variant">No metrics yet</h3>
+      <p class="text-on-surface-variant/60 text-sm mb-4">Start tracking your performance</p>
+      <a href="{{ url_for('metrics') }}" class="inline-flex items-center gap-2 bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95">
+        <span class="material-symbols-outlined text-sm">add</span>
+        Add Metrics
+      </a>
+    </div>
     {% endif %}
   </div>
-</div>
-
-<div class="kpi-grid">
-  <div class="kpi-card">
-    <div class="kpi-icon kpi-icon-primary"><i class="fa-solid fa-fire"></i></div>
-    <div class="kpi-content">
-      <div class="kpi-value">{{ counts.candidates }}</div>
-      <div class="kpi-label">Trend Candidates</div>
+  
+  <!-- Right Column: Quick Actions (40%) -->
+  <div class="lg:col-span-4 space-y-6">
+    <div>
+      <h3 class="text-2xl font-bold tracking-tight">Quick Actions</h3>
+      <p class="text-on-surface-variant text-sm">Jump into your workflow</p>
     </div>
-    <div class="kpi-trend positive">
-      <i class="fa-solid fa-arrow-up"></i>
+    
+    <div class="grid grid-cols-2 gap-4">
+      <a href="{{ url_for('trend_discovery') }}" class="glass-card inner-stroke p-6 rounded-2xl hover:bg-surface-container-high/30 transition-all group">
+        <div class="p-3 bg-tertiary/10 rounded-lg w-fit mb-4 group-hover:bg-tertiary/20 transition-colors">
+          <span class="material-symbols-outlined text-tertiary">explore</span>
+        </div>
+        <h4 class="font-bold mb-1">Discover</h4>
+        <p class="text-xs text-on-surface-variant/60">Find trending topics</p>
+      </a>
+      
+      <a href="{{ url_for('drafts') }}" class="glass-card inner-stroke p-6 rounded-2xl hover:bg-surface-container-high/30 transition-all group">
+        <div class="p-3 bg-primary/10 rounded-lg w-fit mb-4 group-hover:bg-primary/20 transition-colors">
+          <span class="material-symbols-outlined text-primary">auto_awesome</span>
+        </div>
+        <h4 class="font-bold mb-1">Generate</h4>
+        <p class="text-xs text-on-surface-variant/60">Create AI content</p>
+      </a>
+      
+      <a href="{{ url_for('qc') }}" class="glass-card inner-stroke p-6 rounded-2xl hover:bg-surface-container-high/30 transition-all group">
+        <div class="p-3 bg-yellow-500/10 rounded-lg w-fit mb-4 group-hover:bg-yellow-500/20 transition-colors">
+          <span class="material-symbols-outlined text-yellow-400">rate_review</span>
+        </div>
+        <h4 class="font-bold mb-1">Review</h4>
+        <p class="text-xs text-on-surface-variant/60">QC pending content</p>
+      </a>
+      
+      <a href="{{ url_for('publish') }}" class="glass-card inner-stroke p-6 rounded-2xl hover:bg-surface-container-high/30 transition-all group">
+        <div class="p-3 bg-green-500/10 rounded-lg w-fit mb-4 group-hover:bg-green-500/20 transition-colors">
+          <span class="material-symbols-outlined text-green-400">rocket_launch</span>
+        </div>
+        <h4 class="font-bold mb-1">Publish</h4>
+        <p class="text-xs text-on-surface-variant/60">Push to sites</p>
+      </a>
     </div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-icon kpi-icon-info"><i class="fa-solid fa-file-lines"></i></div>
-    <div class="kpi-content">
-      <div class="kpi-value">{{ counts.drafts }}</div>
-      <div class="kpi-label">Content Drafts</div>
-    </div>
-    <div class="kpi-status">Active</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-icon kpi-icon-warning"><i class="fa-solid fa-clock"></i></div>
-    <div class="kpi-content">
-      <div class="kpi-value">{{ counts.qc }}</div>
-      <div class="kpi-label">QC Pending</div>
-    </div>
-    <div class="kpi-status">{{ counts.qc }} Review{{ 's' if counts.qc != 1 else '' }}</div>
-  </div>
-  <div class="kpi-card">
-    <div class="kpi-icon kpi-icon-success"><i class="fa-solid fa-check-circle"></i></div>
-    <div class="kpi-content">
-      <div class="kpi-value">{{ counts.approved }}</div>
-      <div class="kpi-label">Approved</div>
-    </div>
-    <div class="kpi-status">Ready</div>
-  </div>
-</div>
-
-<div class="grid grid-2 gap-6">
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title"><i class="fa-solid fa-chart-bar"></i> Latest Metrics</h2>
-      <a href="{{ url_for('metrics') }}" class="btn btn-ghost btn-sm">View All</a>
-    </div>
-    <div class="card-body">
-      {% if latest_metrics %}
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Date</th>
-              <th>Indexing</th>
-              <th>Queries</th>
-              <th>CTR</th>
-              <th>Position</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for m in latest_metrics %}
-            <tr>
-              <td>{{ m.metric_date }}</td>
-              <td>{{ m.indexing_rate or "-" }}</td>
-              <td>{{ m.queries or "-" }}</td>
-              <td>{{ m.ctr or "-" }}</td>
-              <td>{{ m.avg_position or "-" }}</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <div class="empty-state">
-        <i class="fa-solid fa-chart-line"></i>
-        <h3>No metrics yet</h3>
-        <p>Start tracking performance</p>
-        <a href="{{ url_for('metrics') }}" class="btn btn-primary">Add Metrics</a>
-      </div>
-      {% endif %}
-    </div>
-  </div>
-
-  <div class="card">
-    <div class="card-header">
-      <h2 class="card-title"><i class="fa-solid fa-bolt"></i> Quick Actions</h2>
-    </div>
-    <div class="card-body">
-      <div class="quick-actions-grid">
-        <a href="{{ url_for('trend_discovery') }}" class="quick-action-card">
-          <div class="quick-action-icon"><i class="fa-solid fa-compass"></i></div>
-          <div class="quick-action-label">Discover</div>
-        </a>
-        <a href="{{ url_for('drafts') }}" class="quick-action-card">
-          <div class="quick-action-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-          <div class="quick-action-label">Generate</div>
-        </a>
-        <a href="{{ url_for('qc') }}" class="quick-action-card">
-          <div class="quick-action-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-          <div class="quick-action-label">Review</div>
-        </a>
-        <a href="{{ url_for('publish') }}" class="quick-action-card">
-          <div class="quick-action-icon"><i class="fa-solid fa-rocket"></i></div>
-          <div class="quick-action-label">Publish</div>
+    
+    {% if counts.approved > 0 %}
+    <div class="glass-card inner-stroke p-6 rounded-2xl border-green-500/20 bg-green-500/5">
+      <div class="flex items-center gap-4">
+        <div class="p-3 bg-green-500/10 rounded-lg">
+          <span class="material-symbols-outlined text-green-400">check_circle</span>
+        </div>
+        <div class="flex-1">
+          <h4 class="font-bold text-green-400">{{ counts.approved }} approved draft{{ 's' if counts.approved != 1 else '' }}</h4>
+          <p class="text-xs text-on-surface-variant/60">Ready to publish</p>
+        </div>
+        <a href="{{ url_for('publish') }}" class="inline-flex items-center gap-2 bg-green-500 text-on-primary py-2 px-4 rounded-lg font-bold text-xs transition-transform active:scale-95">
+          <span class="material-symbols-outlined text-sm">send</span>
+          Publish Now
         </a>
       </div>
     </div>
+    {% endif %}
   </div>
-</div>
-
-{% if counts.approved > 0 %}
-<div class="alert alert-success">
-  <div class="alert-icon"><i class="fa-solid fa-rocket"></i></div>
-  <div class="alert-content">
-    <strong>{{ counts.approved }} approved draft{{ 's' if counts.approved != 1 else '' }} ready to publish</strong>
-  </div>
-  <a href="{{ url_for('publish') }}" class="btn btn-primary btn-sm"><i class="fa-solid fa-paper-plane"></i> Publish Now</a>
-</div>
-{% endif %}
+</section>
 {% endblock %}

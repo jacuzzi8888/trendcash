@@ -1,132 +1,143 @@
 {% extends "base.html" %}
 {% block page_title %}Publish{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Publish</h1>
-    <p class="muted">Publish approved drafts to your connected sites</p>
-  </div>
+<!-- Page Header -->
+<div class="mb-6">
+  <h1 class="text-2xl font-bold tracking-tight">Publish</h1>
+  <p class="text-on-surface-variant text-sm">Publish approved drafts to your connected sites</p>
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Approved Drafts</h2>
-  </div>
-  <div class="card-body">
-    {% if approved %}
-      {% if sites %}
-      <div class="table-wrapper">
-        <table class="data-table">
-          <thead>
-            <tr>
-              <th>Title</th>
-              <th>Topic</th>
-              <th>Category</th>
-              <th>Publish to Site</th>
-            </tr>
-          </thead>
-          <tbody>
-            {% for d in approved %}
-            <tr>
-              <td><a href="{{ url_for('edit_draft', draft_id=d.id) }}" class="link">{{ d.title[:40] }}{% if d.title|length > 40 %}...{% endif %}</a></td>
-              <td>{{ d.topic[:25] }}{% if d.topic|length > 25 %}...{% endif %}</td>
-              <td><span class="badge">{{ d.category }}</span></td>
-              <td>
-                <form method="post" class="inline-form">
-                  <input type="hidden" name="action" value="publish" />
-                  <input type="hidden" name="draft_id" value="{{ d.id }}" />
-                  <select name="site_id" required class="select-sm">
-                    <option value="">Select site...</option>
-                    {% for site in sites %}
-                    <option value="{{ site.id }}">{{ site.name }} ({{ site.niche }})</option>
-                    {% endfor %}
-                  </select>
-                  <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-paper-plane"></i> Publish</button>
-                </form>
-              </td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
-      </div>
-      {% else %}
-      <div class="empty-state">
-        <i class="fa-solid fa-globe"></i>
-        <h3>No sites connected</h3>
-        <p>Add a site to start publishing.</p>
-        <a href="{{ url_for('sites.new_site') }}" class="btn btn-primary">Add Site</a>
-      </div>
-      {% endif %}
-    {% else %}
-    <div class="empty-state">
-      <i class="fa-solid fa-check-circle"></i>
-      <h3>No approved drafts</h3>
-      <p>Drafts will appear here after QC approval.</p>
-      <a href="{{ url_for('qc') }}" class="btn btn-primary">Go to QC</a>
+<!-- Approved Drafts -->
+<div class="glass-card inner-stroke p-6 rounded-2xl mb-6">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="p-2 bg-green-500/10 rounded-lg">
+      <span class="material-symbols-outlined text-green-400">task_alt</span>
     </div>
-    {% endif %}
+    <h3 class="text-lg font-bold">Approved Drafts</h3>
   </div>
-</div>
-
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Publish History</h2>
-  </div>
-  <div class="card-body">
-    {% if history %}
-    <div class="table-wrapper">
-      <table class="data-table">
+  
+  {% if approved %}
+    {% if sites %}
+    <div class="tonal-stack-1 rounded-xl overflow-hidden border border-outline-variant/10">
+      <table class="w-full text-left border-collapse">
         <thead>
-          <tr>
-            <th>Draft</th>
-            <th>Site</th>
-            <th>Status</th>
-            <th>URL</th>
-            <th>Published</th>
+          <tr class="border-b border-outline-variant/10">
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Title</th>
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Topic</th>
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Category</th>
+            <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Publish to Site</th>
           </tr>
         </thead>
-        <tbody>
-          {% for h in history %}
-          <tr>
-            <td>{{ h.draft_title[:35] }}{% if h.draft_title|length > 35 %}...{% endif %}</td>
-            <td>{{ h.site_name }}</td>
-            <td>
-              {% if h.status == 'success' %}
-              <span class="badge badge-success"><i class="fa-solid fa-check"></i> Success</span>
-              {% else %}
-              <span class="badge badge-error"><i class="fa-solid fa-xmark"></i> Failed</span>
-              {% endif %}
+        <tbody class="divide-y divide-outline-variant/5">
+          {% for d in approved %}
+          <tr class="hover:bg-surface-container-high/30 transition-colors">
+            <td class="px-6 py-4">
+              <a href="{{ url_for('edit_draft', draft_id=d.id) }}" class="font-medium text-primary hover:text-primary-fixed transition-colors">{{ d.title[:40] }}{% if d.title|length > 40 %}...{% endif %}</a>
             </td>
-            <td>
-              {% if h.published_url %}
-              <a href="{{ h.published_url }}" target="_blank" class="link"><i class="fa-solid fa-external-link"></i> View</a>
-              {% else %}
-              <span class="muted">-</span>
-              {% endif %}
+            <td class="px-6 py-4 text-on-surface-variant text-sm">{{ d.topic[:25] }}{% if d.topic|length > 25 %}...{% endif %}</td>
+            <td class="px-6 py-4">
+              <span class="text-[10px] font-bold bg-surface-container-high px-2 py-1 rounded">{{ d.category }}</span>
             </td>
-            <td>{{ (h.published_at or h.created_at)|datetime }}</td>
+            <td class="px-6 py-4">
+              <form method="post" class="flex items-center gap-2">
+                <input type="hidden" name="action" value="publish" />
+                <input type="hidden" name="draft_id" value="{{ d.id }}" />
+                <select name="site_id" required class="bg-surface-container-highest border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary/50">
+                  <option value="">Select site...</option>
+                  {% for site in sites %}
+                  <option value="{{ site.id }}">{{ site.name }} ({{ site.niche }})</option>
+                  {% endfor %}
+                </select>
+                <button type="submit" class="bg-gradient-to-br from-green-500 to-green-600 text-white py-2 px-4 rounded-lg font-bold text-xs transition-transform active:scale-95 flex items-center gap-1">
+                  <span class="material-symbols-outlined text-sm">send</span>
+                  Publish
+                </button>
+              </form>
+            </td>
           </tr>
           {% endfor %}
         </tbody>
       </table>
     </div>
     {% else %}
-    <p class="muted">No publish history yet.</p>
+    <div class="text-center py-12">
+      <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">language</span>
+      <h3 class="text-lg font-bold text-on-surface-variant">No sites connected</h3>
+      <p class="text-on-surface-variant/60 text-sm mb-4">Add a site to start publishing.</p>
+      <a href="{{ url_for('sites.new_site') }}" class="inline-flex items-center gap-2 bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95">
+        <span class="material-symbols-outlined text-sm">add</span>
+        Add Site
+      </a>
+    </div>
     {% endif %}
+  {% else %}
+  <div class="text-center py-12">
+    <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">check_circle</span>
+    <h3 class="text-lg font-bold text-on-surface-variant">No approved drafts</h3>
+    <p class="text-on-surface-variant/60 text-sm mb-4">Drafts will appear here after QC approval.</p>
+    <a href="{{ url_for('qc') }}" class="inline-flex items-center gap-2 bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95">
+      <span class="material-symbols-outlined text-sm">fact_check</span>
+      Go to QC
+    </a>
   </div>
+  {% endif %}
 </div>
-{% endblock %}
 
-{% block scripts %}
-<style>
-.inline-form {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-.select-sm {
-  width: auto;
-  padding: 6px 10px;
-}
-</style>
+<!-- Publish History -->
+<div class="glass-card inner-stroke p-6 rounded-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="p-2 bg-tertiary/10 rounded-lg">
+      <span class="material-symbols-outlined text-tertiary">history</span>
+    </div>
+    <h3 class="text-lg font-bold">Publish History</h3>
+  </div>
+  
+  {% if history %}
+  <div class="tonal-stack-1 rounded-xl overflow-hidden border border-outline-variant/10">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-outline-variant/10">
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Draft</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Site</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Status</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">URL</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Published</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant/5">
+        {% for h in history %}
+        <tr class="hover:bg-surface-container-high/30 transition-colors">
+          <td class="px-6 py-4 font-medium">{{ h.draft_title[:35] }}{% if h.draft_title|length > 35 %}...{% endif %}</td>
+          <td class="px-6 py-4 text-on-surface-variant text-sm">{{ h.site_name }}</td>
+          <td class="px-6 py-4">
+            {% if h.status == 'success' %}
+            <span class="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-1 rounded flex items-center gap-1 w-fit">
+              <span class="material-symbols-outlined text-xs">check</span> Success
+            </span>
+            {% else %}
+            <span class="text-[10px] font-bold bg-error/20 text-error px-2 py-1 rounded flex items-center gap-1 w-fit">
+              <span class="material-symbols-outlined text-xs">close</span> Failed
+            </span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4">
+            {% if h.published_url %}
+            <a href="{{ h.published_url }}" target="_blank" class="text-primary hover:text-primary-fixed transition-colors flex items-center gap-1 text-sm">
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+              View
+            </a>
+            {% else %}
+            <span class="text-on-surface-variant/40">-</span>
+            {% endif %}
+          </td>
+          <td class="px-6 py-4 text-on-surface-variant text-sm">{{ (h.published_at or h.created_at)|datetime }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <p class="text-on-surface-variant/60 text-sm">No publish history yet.</p>
+  {% endif %}
+</div>
 {% endblock %}

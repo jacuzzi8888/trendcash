@@ -1,236 +1,122 @@
 {% extends "base.html" %}
 {% block page_title %}Sites{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Sites Manager</h1>
-    <p class="muted">Manage connected publishing destinations</p>
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Sites Manager</h1>
+    <p class="text-on-surface-variant text-sm">Manage connected publishing destinations</p>
   </div>
-  <div class="page-header-actions">
-    <a href="{{ url_for('sites.new_site') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Site</a>
-  </div>
+  <a href="{{ url_for('sites.new_site') }}" class="bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 flex items-center gap-2">
+    <span class="material-symbols-outlined text-sm">add</span>
+    Add Site
+  </a>
 </div>
 
 {% if sites %}
-<div class="sites-grid">
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
   {% for site in sites %}
-  <div class="site-card">
-    <div class="site-card-header">
-      <div class="site-icon">
-        <i class="fa-solid fa-globe"></i>
+  <div class="glass-card inner-stroke rounded-2xl overflow-hidden">
+    <div class="flex items-center gap-4 p-5 border-b border-outline-variant/10">
+      <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary">language</span>
       </div>
-      <div class="site-info">
-        <div class="site-name">{{ site.name }}</div>
-        <div class="site-slug">{{ site.slug }}</div>
+      <div class="flex-1 min-w-0">
+        <div class="font-bold truncate">{{ site.name }}</div>
+        <div class="text-[11px] text-on-surface-variant truncate">{{ site.slug }}</div>
       </div>
-      <div class="site-status">
+      <div>
         {% if site.is_active %}
-        <span class="badge badge-success"><i class="fa-solid fa-check"></i> Active</span>
+        <span class="text-[10px] font-bold bg-green-500/20 text-green-400 px-2 py-1 rounded flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs">check</span> Active
+        </span>
         {% else %}
-        <span class="badge badge-error"><i class="fa-solid fa-xmark"></i> Inactive</span>
+        <span class="text-[10px] font-bold bg-error/20 text-error px-2 py-1 rounded flex items-center gap-1">
+          <span class="material-symbols-outlined text-xs">close</span> Inactive
+        </span>
         {% endif %}
       </div>
     </div>
-    <div class="site-card-body">
-      <div class="site-meta">
-        <div class="site-meta-item">
-          <i class="fa-solid fa-tag"></i>
-          <span>{{ site.niche }}</span>
-        </div>
-        <div class="site-meta-item">
-          <i class="fa-solid fa-link"></i>
-          <span>{{ site.api_url[:35] }}{% if site.api_url|length > 35 %}...{% endif %}</span>
-        </div>
+    
+    <div class="p-5 space-y-3">
+      <div class="flex items-center gap-2 text-sm text-on-surface-variant">
+        <span class="material-symbols-outlined text-primary text-sm">tag</span>
+        <span>{{ site.niche }}</span>
+      </div>
+      <div class="flex items-center gap-2 text-sm text-on-surface-variant truncate">
+        <span class="material-symbols-outlined text-primary text-sm">link</span>
+        <span class="truncate">{{ site.api_url[:35] }}{% if site.api_url|length > 35 %}...{% endif %}</span>
       </div>
     </div>
-    <div class="site-card-footer">
-      <a href="{{ url_for('sites.edit_site', site_id=site.id) }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-pen"></i> Edit</a>
-      <form action="{{ url_for('sites.delete_site', site_id=site.id) }}" method="POST" class="inline" onsubmit="return confirm('Delete this site?');">
-        <button type="submit" class="btn btn-ghost btn-sm" style="color: var(--error);"><i class="fa-solid fa-trash"></i> Delete</button>
+    
+    <div class="flex gap-2 p-4 bg-surface-container-low">
+      <a href="{{ url_for('sites.edit_site', site_id=site.id) }}" class="flex-1 py-2 bg-surface-container-high hover:bg-surface-container-highest rounded-lg transition-colors text-xs font-bold flex items-center justify-center gap-1">
+        <span class="material-symbols-outlined text-sm">edit</span>
+        Edit
+      </a>
+      <form action="{{ url_for('sites.delete_site', site_id=site.id) }}" method="POST" onsubmit="return confirm('Delete this site?');" class="flex-1">
+        <button type="submit" class="w-full py-2 bg-error/10 hover:bg-error/20 rounded-lg transition-colors text-xs font-bold text-error flex items-center justify-center gap-1">
+          <span class="material-symbols-outlined text-sm">delete</span>
+          Delete
+        </button>
       </form>
     </div>
   </div>
   {% endfor %}
 </div>
 {% else %}
-<div class="card">
-  <div class="card-body">
-    <div class="empty-state">
-      <i class="fa-solid fa-globe"></i>
-      <h3>No sites connected</h3>
-      <p>Add your first site to start publishing content.</p>
-      <a href="{{ url_for('sites.new_site') }}" class="btn btn-primary"><i class="fa-solid fa-plus"></i> Add Site</a>
-    </div>
-  </div>
+<div class="glass-card inner-stroke rounded-2xl p-12 text-center mb-8">
+  <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">language</span>
+  <h3 class="text-lg font-bold text-on-surface-variant">No sites connected</h3>
+  <p class="text-on-surface-variant/60 text-sm mb-4">Add your first site to start publishing content.</p>
+  <a href="{{ url_for('sites.new_site') }}" class="inline-flex items-center gap-2 bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95">
+    <span class="material-symbols-outlined text-sm">add</span>
+    Add Site
+  </a>
 </div>
 {% endif %}
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-question-circle"></i> How to Connect a Site</h2>
+<!-- How to Connect -->
+<div class="glass-card inner-stroke p-6 rounded-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="p-2 bg-tertiary/10 rounded-lg">
+      <span class="material-symbols-outlined text-tertiary">help</span>
+    </div>
+    <h3 class="text-lg font-bold">How to Connect a Site</h3>
   </div>
-  <div class="card-body">
-    <div class="steps-list">
-      <div class="step-item">
-        <div class="step-number">1</div>
-        <div class="step-content">
-          <strong>Build your API endpoint</strong>
-          <p>Create an endpoint at <code>/api/content</code> that accepts POST requests</p>
-        </div>
+  
+  <div class="space-y-4">
+    <div class="flex items-start gap-4">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary font-bold text-sm flex-shrink-0">1</div>
+      <div>
+        <div class="font-bold mb-1">Build your API endpoint</div>
+        <p class="text-sm text-on-surface-variant">Create an endpoint at <code class="bg-surface-container-high px-2 py-0.5 rounded text-xs">/api/content</code> that accepts POST requests</p>
       </div>
-      <div class="step-item">
-        <div class="step-number">2</div>
-        <div class="step-content">
-          <strong>Accept JSON payload</strong>
-          <p>Handle: <code>title, content, category, slug, meta</code></p>
-        </div>
+    </div>
+    
+    <div class="flex items-start gap-4">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary font-bold text-sm flex-shrink-0">2</div>
+      <div>
+        <div class="font-bold mb-1">Accept JSON payload</div>
+        <p class="text-sm text-on-surface-variant">Handle: <code class="bg-surface-container-high px-2 py-0.5 rounded text-xs">title, content, category, slug, meta</code></p>
       </div>
-      <div class="step-item">
-        <div class="step-number">3</div>
-        <div class="step-content">
-          <strong>Secure with Bearer token</strong>
-          <p>Add API key authentication to your endpoint</p>
-        </div>
+    </div>
+    
+    <div class="flex items-start gap-4">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary font-bold text-sm flex-shrink-0">3</div>
+      <div>
+        <div class="font-bold mb-1">Secure with Bearer token</div>
+        <p class="text-sm text-on-surface-variant">Add API key authentication to your endpoint</p>
       </div>
-      <div class="step-item">
-        <div class="step-number">4</div>
-        <div class="step-content">
-          <strong>Add site to NTC</strong>
-          <p>Enter the API URL and key to connect</p>
-        </div>
+    </div>
+    
+    <div class="flex items-start gap-4">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-br from-primary-container to-primary flex items-center justify-center text-on-primary font-bold text-sm flex-shrink-0">4</div>
+      <div>
+        <div class="font-bold mb-1">Add site to NTC</div>
+        <p class="text-sm text-on-surface-variant">Enter the API URL and key to connect</p>
       </div>
     </div>
   </div>
 </div>
-
-<style>
-.sites-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: var(--space-6);
-  margin-bottom: var(--space-6);
-}
-
-.site-card {
-  background: var(--surface-container);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-xl);
-  overflow: hidden;
-  transition: all var(--duration-fast) ease;
-}
-
-.site-card:hover {
-  border-color: var(--primary);
-  box-shadow: var(--shadow-lg);
-}
-
-.site-card-header {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-  padding: var(--space-5);
-  border-bottom: 1px solid var(--border);
-}
-
-.site-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: var(--radius-lg);
-  background: var(--accent-soft);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 20px;
-  color: var(--primary);
-}
-
-.site-info {
-  flex: 1;
-}
-
-.site-name {
-  font-weight: 600;
-  color: var(--on-surface);
-  font-size: 16px;
-}
-
-.site-slug {
-  font-size: 13px;
-  color: var(--on-surface-variant);
-}
-
-.site-card-body {
-  padding: var(--space-4) var(--space-5);
-}
-
-.site-meta {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-2);
-}
-
-.site-meta-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-  font-size: 13px;
-  color: var(--on-surface-variant);
-}
-
-.site-meta-item i {
-  width: 16px;
-  color: var(--primary);
-}
-
-.site-card-footer {
-  display: flex;
-  gap: var(--space-2);
-  padding: var(--space-4) var(--space-5);
-  background: var(--surface-container-low);
-}
-
-.steps-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-4);
-}
-
-.step-item {
-  display: flex;
-  align-items: flex-start;
-  gap: var(--space-4);
-}
-
-.step-number {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  background: var(--primary-gradient);
-  color: white;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  flex-shrink: 0;
-}
-
-.step-content strong {
-  display: block;
-  color: var(--on-surface);
-  margin-bottom: 2px;
-}
-
-.step-content p {
-  font-size: 13px;
-  color: var(--on-surface-variant);
-  margin: 0;
-}
-
-.step-content code {
-  background: var(--surface-container-high);
-  padding: 2px 6px;
-  border-radius: var(--radius-sm);
-  font-size: 12px;
-}
-</style>
 {% endblock %}

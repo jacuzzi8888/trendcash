@@ -1,58 +1,68 @@
 {% extends "base.html" %}
 {% block page_title %}Create{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Drafts</h1>
-    <p class="muted">Manage your content drafts</p>
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Drafts</h1>
+    <p class="text-on-surface-variant text-sm">Manage your content drafts</p>
   </div>
 </div>
 
-<div class="card">
-  <div class="filter-bar">
-    <a href="{{ url_for('drafts') }}" class="filter-btn {% if not status_filter %}active{% endif %}">All</a>
-    <a href="{{ url_for('drafts', status='draft') }}" class="filter-btn {% if status_filter == 'draft' %}active{% endif %}">Draft</a>
-    <a href="{{ url_for('drafts', status='qc') }}" class="filter-btn {% if status_filter == 'qc' %}active{% endif %}">QC</a>
-    <a href="{{ url_for('drafts', status='approved') }}" class="filter-btn {% if status_filter == 'approved' %}active{% endif %}">Approved</a>
-    <a href="{{ url_for('drafts', status='published') }}" class="filter-btn {% if status_filter == 'published' %}active{% endif %}">Published</a>
-  </div>
+<!-- Filter Tabs -->
+<div class="flex gap-2 p-1 bg-surface-container-low rounded-lg border border-outline-variant/10 mb-6 w-fit">
+  <a href="{{ url_for('drafts') }}" class="px-4 py-2 text-xs font-bold rounded-md {% if not status_filter %}bg-surface-container-high text-primary{% else %}text-on-surface-variant/60 hover:text-on-surface transition-colors{% endif %}">All</a>
+  <a href="{{ url_for('drafts', status='draft') }}" class="px-4 py-2 text-xs font-bold rounded-md {% if status_filter == 'draft' %}bg-surface-container-high text-primary{% else %}text-on-surface-variant/60 hover:text-on-surface transition-colors{% endif %}">Draft</a>
+  <a href="{{ url_for('drafts', status='qc') }}" class="px-4 py-2 text-xs font-bold rounded-md {% if status_filter == 'qc' %}bg-surface-container-high text-primary{% else %}text-on-surface-variant/60 hover:text-on-surface transition-colors{% endif %}">QC</a>
+  <a href="{{ url_for('drafts', status='approved') }}" class="px-4 py-2 text-xs font-bold rounded-md {% if status_filter == 'approved' %}bg-surface-container-high text-primary{% else %}text-on-surface-variant/60 hover:text-on-surface transition-colors{% endif %}">Approved</a>
+  <a href="{{ url_for('drafts', status='published') }}" class="px-4 py-2 text-xs font-bold rounded-md {% if status_filter == 'published' %}bg-surface-container-high text-primary{% else %}text-on-surface-variant/60 hover:text-on-surface transition-colors{% endif %}">Published</a>
 </div>
 
-<div class="card">
-  <div class="card-body">
-    {% if drafts %}
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Title</th>
-            <th>Topic</th>
-            <th>Status</th>
-            <th>Updated</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for d in drafts %}
-          <tr>
-            <td>{{ d.title[:50] }}{% if d.title|length > 50 %}...{% endif %}</td>
-            <td>{{ d.topic[:30] }}{% if d.topic|length > 30 %}...{% endif %}</td>
-            <td><span class="badge badge-{{ 'success' if d.status == 'approved' else 'warning' if d.status == 'qc' else 'info' }}">{{ d.status }}</span></td>
-            <td>{{ d.updated_at|datetime }}</td>
-            <td><a href="{{ url_for('edit_draft', draft_id=d.id) }}" class="btn btn-ghost btn-sm"><i class="fa-solid fa-pen"></i> Edit</a></td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="empty-state">
-      <i class="fa-solid fa-file-lines"></i>
-      <h3>No drafts yet</h3>
-      <p>Create drafts from trends with sources.</p>
-      <a href="{{ url_for('trend_discovery') }}" class="btn btn-primary">Discover Trends</a>
-    </div>
-    {% endif %}
-  </div>
+{% if drafts %}
+<!-- Drafts Table -->
+<div class="tonal-stack-1 rounded-2xl overflow-hidden border border-outline-variant/10">
+  <table class="w-full text-left border-collapse">
+    <thead>
+      <tr class="border-b border-outline-variant/10">
+        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Title</th>
+        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Topic</th>
+        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Status</th>
+        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Updated</th>
+        <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">Actions</th>
+      </tr>
+    </thead>
+    <tbody class="divide-y divide-outline-variant/5">
+      {% for d in drafts %}
+      <tr class="hover:bg-surface-container-high/30 transition-colors">
+        <td class="px-6 py-4">
+          <span class="font-medium">{{ d.title[:50] }}{% if d.title|length > 50 %}...{% endif %}</span>
+        </td>
+        <td class="px-6 py-4 text-on-surface-variant text-sm">{{ d.topic[:30] }}{% if d.topic|length > 30 %}...{% endif %}</td>
+        <td class="px-6 py-4">
+          <span class="text-[10px] font-bold {% if d.status == 'approved' %}bg-green-500/20 text-green-400{% elif d.status == 'qc' %}bg-yellow-500/20 text-yellow-400{% elif d.status == 'published' %}bg-tertiary/20 text-tertiary{% else %}bg-primary/20 text-primary{% endif %} px-2 py-1 rounded">{{ d.status }}</span>
+        </td>
+        <td class="px-6 py-4 text-on-surface-variant text-sm">{{ d.updated_at|datetime }}</td>
+        <td class="px-6 py-4 text-right">
+          <a href="{{ url_for('edit_draft', draft_id=d.id) }}" class="inline-flex items-center gap-1 px-3 py-1.5 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors text-xs font-bold">
+            <span class="material-symbols-outlined text-sm">edit</span>
+            Edit
+          </a>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
 </div>
+{% else %}
+<!-- Empty State -->
+<div class="glass-card inner-stroke rounded-2xl p-12 text-center">
+  <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">edit_note</span>
+  <h3 class="text-lg font-bold text-on-surface-variant">No drafts yet</h3>
+  <p class="text-on-surface-variant/60 text-sm mb-4">Create drafts from trends with sources.</p>
+  <a href="{{ url_for('trend_discovery') }}" class="inline-flex items-center gap-2 bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95">
+    <span class="material-symbols-outlined text-sm">explore</span>
+    Discover Trends
+  </a>
+</div>
+{% endif %}
 {% endblock %}

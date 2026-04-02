@@ -1,86 +1,84 @@
 {% extends "base.html" %}
 {% block page_title %}QC Queue{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>QC Dashboard</h1>
-    <p class="muted"><i class="fa-solid fa-info-circle"></i> All checks must pass before approval.</p>
-  </div>
+<!-- Page Header -->
+<div class="mb-6">
+  <h1 class="text-2xl font-bold tracking-tight">QC Dashboard</h1>
+  <p class="text-on-surface-variant text-sm flex items-center gap-2">
+    <span class="material-symbols-outlined text-sm">info</span>
+    All checks must pass before approval.
+  </p>
 </div>
 
 {% if drafts %}
-{% for d in drafts %}
-<div class="card qc-card">
-  <div class="card-header">
-    <h2 class="card-title">{{ d.title[:60] }}{% if d.title|length > 60 %}...{% endif %}</h2>
-    <p class="muted">{{ d.topic }}</p>
-  </div>
-  <div class="card-body">
-    <form method="post" class="form-grid">
-      <input type="hidden" name="draft_id" value="{{ d.id }}" />
-      <div class="form-group">
-        <label>Reviewer</label>
-        <input name="reviewer" placeholder="Your name" />
+<div class="space-y-6">
+  {% for d in drafts %}
+  <div class="glass-card inner-stroke p-6 rounded-2xl border-l-4 border-l-yellow-500">
+    <div class="flex items-start justify-between mb-6">
+      <div>
+        <h3 class="text-lg font-bold">{{ d.title[:60] }}{% if d.title|length > 60 %}...{% endif %}</h3>
+        <p class="text-on-surface-variant text-sm mt-1">{{ d.topic }}</p>
       </div>
-      <div class="form-group">
-        <label>Quality Checks</label>
-        <div class="qc-checks">
-          <label class="check-item"><input type="checkbox" name="source_valid" /> <i class="fa-solid fa-link"></i> Source validity</label>
-          <label class="check-item"><input type="checkbox" name="unique_value" /> <i class="fa-solid fa-star"></i> Unique value</label>
-          <label class="check-item"><input type="checkbox" name="advertiser_safety" /> <i class="fa-solid fa-shield"></i> Advertiser safety</label>
-          <label class="check-item"><input type="checkbox" name="actionability" /> <i class="fa-solid fa-bolt"></i> User actionability</label>
+      <span class="text-[10px] font-bold bg-yellow-500/20 text-yellow-400 px-3 py-1.5 rounded-full">Pending Review</span>
+    </div>
+    
+    <form method="post" class="space-y-6">
+      <input type="hidden" name="draft_id" value="{{ d.id }}" />
+      
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Reviewer</label>
+        <input name="reviewer" placeholder="Your name" class="bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50 w-full max-w-xs" />
+      </div>
+      
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Quality Checks</label>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <label class="flex items-center gap-3 p-4 bg-surface-container-high rounded-xl cursor-pointer hover:bg-surface-container-highest transition-colors">
+            <input type="checkbox" name="source_valid" class="w-5 h-5 rounded bg-surface-container-highest border-none accent-primary" />
+            <span class="material-symbols-outlined text-primary">link</span>
+            <span class="text-sm font-medium">Source validity</span>
+          </label>
+          <label class="flex items-center gap-3 p-4 bg-surface-container-high rounded-xl cursor-pointer hover:bg-surface-container-highest transition-colors">
+            <input type="checkbox" name="unique_value" class="w-5 h-5 rounded bg-surface-container-highest border-none accent-primary" />
+            <span class="material-symbols-outlined text-tertiary">star</span>
+            <span class="text-sm font-medium">Unique value</span>
+          </label>
+          <label class="flex items-center gap-3 p-4 bg-surface-container-high rounded-xl cursor-pointer hover:bg-surface-container-highest transition-colors">
+            <input type="checkbox" name="advertiser_safety" class="w-5 h-5 rounded bg-surface-container-highest border-none accent-primary" />
+            <span class="material-symbols-outlined text-green-400">shield</span>
+            <span class="text-sm font-medium">Advertiser safety</span>
+          </label>
+          <label class="flex items-center gap-3 p-4 bg-surface-container-high rounded-xl cursor-pointer hover:bg-surface-container-highest transition-colors">
+            <input type="checkbox" name="actionability" class="w-5 h-5 rounded bg-surface-container-highest border-none accent-primary" />
+            <span class="material-symbols-outlined text-yellow-400">bolt</span>
+            <span class="text-sm font-medium">User actionability</span>
+          </label>
         </div>
       </div>
-      <div class="form-actions">
-        <button class="btn btn-success" type="submit"><i class="fa-solid fa-check"></i> Approve Draft</button>
-        <a class="btn btn-ghost" href="{{ url_for('edit_draft', draft_id=d.id) }}"><i class="fa-solid fa-pen"></i> Edit Draft</a>
+      
+      <div class="flex items-center gap-3">
+        <button type="submit" class="bg-gradient-to-br from-green-500 to-green-600 text-white py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-green-500/10 transition-transform active:scale-95 flex items-center gap-2">
+          <span class="material-symbols-outlined text-sm">check</span>
+          Approve Draft
+        </button>
+        <a href="{{ url_for('edit_draft', draft_id=d.id) }}" class="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-xl font-bold text-sm transition-colors flex items-center gap-2">
+          <span class="material-symbols-outlined text-sm">edit</span>
+          Edit Draft
+        </a>
       </div>
     </form>
   </div>
+  {% endfor %}
 </div>
-{% endfor %}
 {% else %}
-<div class="card">
-  <div class="card-body">
-    <div class="empty-state">
-      <i class="fa-solid fa-clipboard-check"></i>
-      <h3>No drafts in QC</h3>
-      <p>Drafts will appear here once moved to review.</p>
-      <a href="{{ url_for('drafts') }}" class="btn btn-primary"><i class="fa-solid fa-file-lines"></i> Go to Drafts</a>
-    </div>
-  </div>
+<div class="glass-card inner-stroke rounded-2xl p-12 text-center">
+  <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">fact_check</span>
+  <h3 class="text-lg font-bold text-on-surface-variant">No drafts in QC</h3>
+  <p class="text-on-surface-variant/60 text-sm mb-4">Drafts will appear here once moved to review.</p>
+  <a href="{{ url_for('drafts') }}" class="inline-flex items-center gap-2 bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95">
+    <span class="material-symbols-outlined text-sm">edit_note</span>
+    Go to Drafts
+  </a>
 </div>
 {% endif %}
-{% endblock %}
-
-{% block scripts %}
-<style>
-.qc-checks {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 8px;
-}
-.check-item {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 8px 12px;
-  background: var(--surface-container);
-  border-radius: var(--radius-md);
-  font-weight: normal;
-  cursor: pointer;
-  border: 1px solid var(--border);
-  transition: all var(--duration-fast) var(--ease-out);
-}
-.check-item:hover {
-  background: var(--surface-container-high);
-}
-.check-item input[type="checkbox"] {
-  width: auto;
-  accent-color: var(--primary);
-}
-.qc-card {
-  border-left: 3px solid var(--warning);
-}
-</style>
 {% endblock %}

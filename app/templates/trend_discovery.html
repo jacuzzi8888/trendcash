@@ -1,239 +1,275 @@
 {% extends "base.html" %}
 {% block page_title %}Discover{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Trend Discovery</h1>
-    <p class="muted">Real-time market velocity analysis</p>
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Trend Discovery</h1>
+    <p class="text-on-surface-variant text-sm">Real-time market velocity analysis</p>
   </div>
-  <div class="page-header-actions">
-    <span class="badge badge-success">{{ recent_trends|length }} Active Trends</span>
-  </div>
+  <span class="text-[10px] font-bold bg-tertiary/20 text-tertiary px-3 py-1.5 rounded-full">{{ recent_trends|length }} Active Trends</span>
 </div>
 
-<div class="grid grid-3 gap-6">
-  <div class="grid-span-2">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><i class="fa-solid fa-bolt"></i> Fetch from Google Trends</h2>
-      </div>
-      <div class="card-body">
-        <form method="post" action="{{ url_for('trend_discovery') }}">
-          <div class="form-row">
-            <div class="form-group">
-              <label>Region</label>
-              <select name="geo">
-                <option value="NG" {% if geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
-                <option value="US" {% if geo == 'US' %}selected{% endif %}>United States (US)</option>
-                <option value="GB" {% if geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
-                <option value="" {% if geo == '' %}selected{% endif %}>Global</option>
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Category</label>
-              <div class="category-row">
-                <select name="category" id="category-select" onchange="toggleCustomCategory()">
-                  <option value="general" {% if category == 'general' %}selected{% endif %}>General</option>
-                  <option value="betting" {% if category == 'betting' %}selected{% endif %}>Betting</option>
-                  <option value="crypto" {% if category == 'crypto' %}selected{% endif %}>Crypto</option>
-                  <option value="finance" {% if category == 'finance' %}selected{% endif %}>Finance</option>
-                  <option value="education" {% if category == 'education' %}selected{% endif %}>Education</option>
-                  <option value="politics" {% if category == 'politics' %}selected{% endif %}>Politics</option>
-                  <option value="sports" {% if category == 'sports' %}selected{% endif %}>Sports</option>
-                  <option value="entertainment" {% if category == 'entertainment' %}selected{% endif %}>Entertainment</option>
-                  <option value="travel" {% if category == 'travel' %}selected{% endif %}>Travel</option>
-                  <option value="jobs" {% if category == 'jobs' %}selected{% endif %}>Jobs</option>
-                  {% for cat in custom_categories %}
-                  <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat|title }}</option>
-                  {% endfor %}
-                  <option value="__custom__" {% if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] and category %}selected{% endif %}>+ Add New...</option>
-                </select>
-                <input type="text" name="custom_category" id="custom-category" placeholder="Enter new category" style="display: none;" value="{{ category if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] else '' }}" />
-              </div>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Velocity Score <span class="hint">How fast is it trending?</span></label>
-              <div class="slider-row">
-                <input name="velocity" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
-                <span class="score-value">0.5</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Advertiser Safety <span class="hint">Brand-safe content?</span></label>
-              <div class="slider-row">
-                <input name="advertiser_safety" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
-                <span class="score-value">0.5</span>
-              </div>
-            </div>
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Commercial Intent <span class="hint">Monetization potential?</span></label>
-              <div class="slider-row">
-                <input name="commercial_intent" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
-                <span class="score-value">0.5</span>
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Evergreen Score <span class="hint">Long-term value?</span></label>
-              <div class="slider-row">
-                <input name="evergreen" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" />
-                <span class="score-value">0.5</span>
-              </div>
-            </div>
-          </div>
-          <button class="btn btn-primary" type="submit" style="width:100%"><i class="fa-solid fa-download"></i> Fetch Trends</button>
-        </form>
-        {% if fetch_result %}
-        <div class="fetch-result {% if fetch_result.success %}success{% else %}error{% endif %}">
-          {% if fetch_result.success %}
-          <i class="fa-solid fa-check-circle"></i> Category: <strong>{{ fetch_result.category }}</strong> | Fetched: {{ fetch_result.fetched }} | Added: {{ fetch_result.added }} | Skipped: {{ fetch_result.skipped }}{% if fetch_result.sources_added %} | Sources: {{ fetch_result.sources_added }}{% endif %}
-          {% else %}
-          <i class="fa-solid fa-xmark-circle"></i> Error: {{ fetch_result.error }}
-          {% endif %}
+<!-- Main Layout -->
+<section class="grid grid-cols-1 lg:grid-cols-10 gap-8">
+  <!-- Left Column -->
+  <div class="lg:col-span-7 space-y-6">
+    <!-- Fetch from Google Trends -->
+    <div class="glass-card inner-stroke p-6 rounded-2xl">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-primary/10 rounded-lg">
+          <span class="material-symbols-outlined text-primary">bolt</span>
         </div>
-        {% endif %}
+        <h3 class="text-lg font-bold">Fetch from Google Trends</h3>
       </div>
-    </div>
-
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><i class="fa-solid fa-search"></i> Explore a Keyword</h2>
-      </div>
-      <div class="card-body">
-        <form method="get" class="form-row">
-          <div class="form-group">
-            <label>Keyword</label>
-            <input name="keyword" placeholder="Enter keyword to explore" value="{{ keyword or '' }}" />
-          </div>
-          <div class="form-group">
-            <label>Region</label>
-            <select name="explore_geo">
-              <option value="NG" {% if explore_geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
-              <option value="US" {% if explore_geo == 'US' %}selected{% endif %}>United States (US)</option>
-              <option value="GB" {% if explore_geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
+      
+      <form method="post" action="{{ url_for('trend_discovery') }}" class="space-y-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Region</label>
+            <select name="geo" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50">
+              <option value="NG" {% if geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
+              <option value="US" {% if geo == 'US' %}selected{% endif %}>United States (US)</option>
+              <option value="GB" {% if geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
+              <option value="" {% if geo == '' %}selected{% endif %}>Global</option>
             </select>
           </div>
-          <div class="form-group" style="align-self: end;">
-            <button class="btn btn-primary" type="submit"><i class="fa-solid fa-search"></i> Explore</button>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Category</label>
+            <div class="flex gap-2">
+              <select name="category" id="category-select" onchange="toggleCustomCategory()" class="flex-1 bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50">
+                <option value="general" {% if category == 'general' %}selected{% endif %}>General</option>
+                <option value="betting" {% if category == 'betting' %}selected{% endif %}>Betting</option>
+                <option value="crypto" {% if category == 'crypto' %}selected{% endif %}>Crypto</option>
+                <option value="finance" {% if category == 'finance' %}selected{% endif %}>Finance</option>
+                <option value="education" {% if category == 'education' %}selected{% endif %}>Education</option>
+                <option value="politics" {% if category == 'politics' %}selected{% endif %}>Politics</option>
+                <option value="sports" {% if category == 'sports' %}selected{% endif %}>Sports</option>
+                <option value="entertainment" {% if category == 'entertainment' %}selected{% endif %}>Entertainment</option>
+                <option value="travel" {% if category == 'travel' %}selected{% endif %}>Travel</option>
+                <option value="jobs" {% if category == 'jobs' %}selected{% endif %}>Jobs</option>
+                {% for cat in custom_categories %}
+                <option value="{{ cat }}" {% if category == cat %}selected{% endif %}>{{ cat|title }}</option>
+                {% endfor %}
+                <option value="__custom__" {% if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] and category %}selected{% endif %}>+ Add New...</option>
+              </select>
+              <input type="text" name="custom_category" id="custom-category" placeholder="New category" class="hidden bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" value="{{ category if category not in ['general','betting','crypto','finance','education','politics','sports','entertainment','travel','jobs'] else '' }}" />
+            </div>
           </div>
-        </form>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Velocity Score</label>
+            <p class="text-[11px] text-on-surface-variant/40 mb-2">How fast is it trending?</p>
+            <div class="flex items-center gap-3">
+              <input name="velocity" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" class="flex-1 h-1.5 bg-surface-container-highest rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full" />
+              <span class="min-w-[40px] text-center font-bold text-primary bg-primary/10 px-2 py-1 rounded text-sm">0.5</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Advertiser Safety</label>
+            <p class="text-[11px] text-on-surface-variant/40 mb-2">Brand-safe content?</p>
+            <div class="flex items-center gap-3">
+              <input name="advertiser_safety" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" class="flex-1 h-1.5 bg-surface-container-highest rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full" />
+              <span class="min-w-[40px] text-center font-bold text-primary bg-primary/10 px-2 py-1 rounded text-sm">0.5</span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Commercial Intent</label>
+            <p class="text-[11px] text-on-surface-variant/40 mb-2">Monetization potential?</p>
+            <div class="flex items-center gap-3">
+              <input name="commercial_intent" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" class="flex-1 h-1.5 bg-surface-container-highest rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full" />
+              <span class="min-w-[40px] text-center font-bold text-primary bg-primary/10 px-2 py-1 rounded text-sm">0.5</span>
+            </div>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Evergreen Score</label>
+            <p class="text-[11px] text-on-surface-variant/40 mb-2">Long-term value?</p>
+            <div class="flex items-center gap-3">
+              <input name="evergreen" type="range" min="0" max="10" step="0.5" value="0.5" oninput="this.nextElementSibling.textContent = this.value" class="flex-1 h-1.5 bg-surface-container-highest rounded-full appearance-none cursor-pointer [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4 [&::-webkit-slider-thumb]:bg-primary [&::-webkit-slider-thumb]:rounded-full" />
+              <span class="min-w-[40px] text-center font-bold text-primary bg-primary/10 px-2 py-1 rounded text-sm">0.5</span>
+            </div>
+          </div>
+        </div>
+        
+        <button type="submit" class="w-full bg-gradient-to-br from-primary-container to-primary text-on-primary py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">download</span>
+          Fetch Trends
+        </button>
+      </form>
+      
+      {% if fetch_result %}
+      <div class="mt-4 p-4 rounded-xl {% if fetch_result.success %}bg-green-500/10 border border-green-500/20{% else %}bg-error-container/50 border border-error/20{% endif %}">
+        <div class="flex items-center gap-2">
+          <span class="material-symbols-outlined {% if fetch_result.success %}text-green-400{% else %}text-error{% endif %}">
+            {% if fetch_result.success %}check_circle{% else %}cancel{% endif %}
+          </span>
+          {% if fetch_result.success %}
+          <span class="text-sm">Category: <strong>{{ fetch_result.category }}</strong> | Fetched: {{ fetch_result.fetched }} | Added: {{ fetch_result.added }} | Skipped: {{ fetch_result.skipped }}{% if fetch_result.sources_added %} | Sources: {{ fetch_result.sources_added }}{% endif %}</span>
+          {% else %}
+          <span class="text-sm">Error: {{ fetch_result.error }}</span>
+          {% endif %}
+        </div>
       </div>
+      {% endif %}
     </div>
-
+    
+    <!-- Explore Keyword -->
+    <div class="glass-card inner-stroke p-6 rounded-2xl">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-tertiary/10 rounded-lg">
+          <span class="material-symbols-outlined text-tertiary">search</span>
+        </div>
+        <h3 class="text-lg font-bold">Explore a Keyword</h3>
+      </div>
+      
+      <form method="get" class="flex flex-wrap gap-4">
+        <div class="flex-1 min-w-[200px]">
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Keyword</label>
+          <input name="keyword" placeholder="Enter keyword to explore" value="{{ keyword or '' }}" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Region</label>
+          <select name="explore_geo" class="bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50">
+            <option value="NG" {% if explore_geo == 'NG' %}selected{% endif %}>Nigeria (NG)</option>
+            <option value="US" {% if explore_geo == 'US' %}selected{% endif %}>United States (US)</option>
+            <option value="GB" {% if explore_geo == 'GB' %}selected{% endif %}>United Kingdom (GB)</option>
+          </select>
+        </div>
+        <div class="self-end">
+          <button type="submit" class="bg-gradient-to-br from-tertiary-container to-tertiary text-on-tertiary py-2.5 px-6 rounded-lg font-bold text-sm transition-transform active:scale-95 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">explore</span>
+            Explore
+          </button>
+        </div>
+      </form>
+    </div>
+    
     {% if keyword %}
     {% if interest_data %}
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><i class="fa-solid fa-chart-line"></i> Interest Over Time: "{{ keyword }}"</h2>
-      </div>
-      <div class="card-body">
-        <div class="chart-container">
-          <canvas id="interestChart"></canvas>
+    <div class="glass-card inner-stroke p-6 rounded-2xl">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-primary/10 rounded-lg">
+          <span class="material-symbols-outlined text-primary">show_activity</span>
         </div>
+        <h3 class="text-lg font-bold">Interest Over Time: "{{ keyword }}"</h3>
+      </div>
+      <div class="h-[300px]">
+        <canvas id="interestChart"></canvas>
       </div>
     </div>
     {% endif %}
-
+    
     {% if related_queries and (related_queries.rising or related_queries.top) %}
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><i class="fa-solid fa-question-circle"></i> Related Queries</h2>
+    <div class="glass-card inner-stroke p-6 rounded-2xl">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-tertiary/10 rounded-lg">
+          <span class="material-symbols-outlined text-tertiary">help</span>
+        </div>
+        <h3 class="text-lg font-bold">Related Queries</h3>
       </div>
-      <div class="card-body">
-        <div class="grid grid-2 gap-4">
-          <div>
-            <h4 style="color: var(--on-surface-variant); margin-bottom: var(--space-3);">Rising Queries</h4>
-            {% if related_queries.rising %}
-            <div class="query-list">
-              {% for q in related_queries.rising[:10] %}
-              <div class="query-item">
-                <span class="query-text">{{ q.query }}</span>
-                {% if q.value %}
-                <span class="query-value">+{{ q.value }}%</span>
-                {% endif %}
-              </div>
-              {% endfor %}
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div>
+          <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Rising Queries</h4>
+          {% if related_queries.rising %}
+          <div class="space-y-2">
+            {% for q in related_queries.rising[:10] %}
+            <div class="flex justify-between items-center p-3 bg-surface-container-high rounded-lg">
+              <span class="text-sm">{{ q.query }}</span>
+              {% if q.value %}<span class="text-[10px] font-bold bg-tertiary/20 text-tertiary px-2 py-0.5 rounded-full">+{{ q.value }}%</span>{% endif %}
             </div>
-            {% else %}
-            <p class="muted">No rising queries found.</p>
-            {% endif %}
+            {% endfor %}
           </div>
-          <div>
-            <h4 style="color: var(--on-surface-variant); margin-bottom: var(--space-3);">Top Queries</h4>
-            {% if related_queries.top %}
-            <div class="query-list">
-              {% for q in related_queries.top[:10] %}
-              <div class="query-item">
-                <span class="query-text">{{ q.query }}</span>
-                {% if q.value %}
-                <span class="query-value">{{ q.value }}%</span>
-                {% endif %}
-              </div>
-              {% endfor %}
+          {% else %}
+          <p class="text-on-surface-variant/60 text-sm">No rising queries found.</p>
+          {% endif %}
+        </div>
+        <div>
+          <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Top Queries</h4>
+          {% if related_queries.top %}
+          <div class="space-y-2">
+            {% for q in related_queries.top[:10] %}
+            <div class="flex justify-between items-center p-3 bg-surface-container-high rounded-lg">
+              <span class="text-sm">{{ q.query }}</span>
+              {% if q.value %}<span class="text-[10px] font-bold bg-primary/20 text-primary px-2 py-0.5 rounded-full">{{ q.value }}%</span>{% endif %}
             </div>
-            {% else %}
-            <p class="muted">No top queries found.</p>
-            {% endif %}
+            {% endfor %}
           </div>
+          {% else %}
+          <p class="text-on-surface-variant/60 text-sm">No top queries found.</p>
+          {% endif %}
         </div>
       </div>
     </div>
     {% endif %}
-
+    
     {% if suggestions %}
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><i class="fa-solid fa-lightbulb"></i> Suggestions</h2>
-      </div>
-      <div class="card-body">
-        <div class="cluster-chips">
-          {% for s in suggestions %}
-          <a href="{{ url_for('trend_discovery', keyword=s.title, explore_geo=explore_geo) }}" class="cluster-chip">
-            {{ s.title }}
-            <span class="chip-type">{{ s.type }}</span>
-          </a>
-          {% endfor %}
+    <div class="glass-card inner-stroke p-6 rounded-2xl">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-yellow-500/10 rounded-lg">
+          <span class="material-symbols-outlined text-yellow-400">lightbulb</span>
         </div>
+        <h3 class="text-lg font-bold">Suggestions</h3>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        {% for s in suggestions %}
+        <a href="{{ url_for('trend_discovery', keyword=s.title, explore_geo=explore_geo) }}" class="inline-flex items-center gap-2 px-4 py-2 bg-surface-container-high rounded-lg hover:bg-surface-container-highest transition-colors text-sm">
+          {{ s.title }}
+          <span class="text-[10px] text-on-surface-variant/60">{{ s.type }}</span>
+        </a>
+        {% endfor %}
       </div>
     </div>
     {% endif %}
     {% endif %}
   </div>
-
-  <div>
-    <div class="trend-sidebar-card">
-      <div class="trend-sidebar-title"><i class="fa-solid fa-bolt"></i> Recently Fetched</div>
-      {% if recent_trends %}
-      {% for t in recent_trends[:5] %}
-      <div class="trending-item">
-        <div class="trending-rank">{{ loop.index }}</div>
-        <div style="flex:1">
-          <div class="trending-name">{{ t.topic[:30] }}{% if t.topic|length > 30 %}...{% endif %}</div>
-          <div style="font-size: 12px; color: var(--on-surface-variant);">{{ t.category }}</div>
-        </div>
-        <a href="{{ url_for('sources', candidate_id=t.id) }}" class="trend-action-btn"><i class="fa-solid fa-plus"></i></a>
+  
+  <!-- Right Column: Sidebar -->
+  <div class="lg:col-span-3 space-y-6">
+    <div class="glass-card inner-stroke p-6 rounded-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-primary">bolt</span>
+        <h4 class="font-bold">Recently Fetched</h4>
       </div>
-      {% endfor %}
+      {% if recent_trends %}
+      <div class="space-y-3">
+        {% for t in recent_trends[:5] %}
+        <div class="flex items-center gap-3 p-3 bg-surface-container-low rounded-lg hover:bg-surface-container transition-colors">
+          <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">{{ loop.index }}</div>
+          <div class="flex-1 min-w-0">
+            <div class="font-medium truncate">{{ t.topic[:30] }}{% if t.topic|length > 30 %}...{% endif %}</div>
+            <div class="text-[11px] text-on-surface-variant">{{ t.category }}</div>
+          </div>
+          <a href="{{ url_for('sources', candidate_id=t.id) }}" class="p-2 hover:bg-surface-container-high rounded-lg transition-colors">
+            <span class="material-symbols-outlined text-primary text-sm">add</span>
+          </a>
+        </div>
+        {% endfor %}
+      </div>
       {% else %}
-      <p class="muted">No trends fetched yet.</p>
+      <p class="text-on-surface-variant/60 text-sm">No trends fetched yet.</p>
       {% endif %}
     </div>
-
-    <div class="trend-sidebar-card">
-      <div class="trend-sidebar-title"><i class="fa-solid fa-tags"></i> Top Categories</div>
-      <div class="cluster-chips">
+    
+    <div class="glass-card inner-stroke p-6 rounded-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <span class="material-symbols-outlined text-tertiary">label</span>
+        <h4 class="font-bold">Top Categories</h4>
+      </div>
+      <div class="flex flex-wrap gap-2">
         {% for t in recent_trends %}
         {% if t.category %}
-        <a href="{{ url_for('trend_discovery') }}" class="cluster-chip">{{ t.category }}</a>
+        <a href="{{ url_for('trend_discovery') }}" class="px-3 py-1.5 bg-surface-container-high rounded-lg text-xs font-bold hover:bg-surface-container-highest transition-colors">{{ t.category }}</a>
         {% endif %}
         {% endfor %}
       </div>
     </div>
   </div>
-</div>
+</section>
 
 {% if interest_data %}
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -253,8 +289,8 @@
       datasets: [{
         label: '{{ keyword }}',
         data: values,
-        borderColor: '#c65d2a',
-        backgroundColor: 'rgba(198, 93, 42, 0.1)',
+        borderColor: '#ffb596',
+        backgroundColor: 'rgba(255, 181, 150, 0.1)',
         fill: true,
         tension: 0.3
       }]
@@ -271,38 +307,15 @@
 </script>
 {% endif %}
 
-<style>
-  .chart-container { height: 300px; margin: var(--space-4) 0; }
-  .fetch-result { padding: var(--space-3) var(--space-4); border-radius: var(--radius-md); margin-top: var(--space-4); display: flex; align-items: center; gap: var(--space-2); }
-  .fetch-result.success { background: var(--success-container); color: var(--success); }
-  .fetch-result.error { background: var(--error-container); color: var(--error); }
-  .query-list { display: flex; flex-direction: column; gap: var(--space-2); }
-  .query-item { display: flex; justify-content: space-between; align-items: center; padding: var(--space-2) var(--space-3); background: var(--surface-container-high); border-radius: var(--radius-md); }
-  .query-text { flex: 1; font-size: 13px; }
-  .query-value { background: var(--info-container); color: var(--info); padding: 2px 8px; border-radius: var(--radius-full); font-size: 11px; font-weight: 600; }
-  .category-row { display: flex; gap: var(--space-2); align-items: center; }
-  .category-row select { flex: 1; }
-  .category-row input { flex: 1; }
-  .hint { display: block; font-size: 11px; color: var(--on-surface-variant); font-weight: normal; margin-top: 2px; }
-  .slider-row { display: flex; align-items: center; gap: 12px; }
-  .slider-row input[type="range"] { flex: 1; height: 6px; background: var(--surface-container-high); border-radius: 3px; outline: none; -webkit-appearance: none; }
-  .slider-row input[type="range"]::-webkit-slider-thumb { -webkit-appearance: none; width: 18px; height: 18px; background: var(--primary); border-radius: 50%; cursor: pointer; }
-  .score-value { min-width: 32px; text-align: center; font-weight: 600; color: var(--primary); background: var(--accent-soft); padding: 4px 8px; border-radius: var(--radius-md); font-size: 13px; }
-  .grid-span-2 { grid-column: span 2; }
-  .chip-type { color: var(--on-surface-variant); font-size: 11px; margin-left: var(--space-2); }
-  @media (max-width: 1024px) {
-    .grid-span-2 { grid-column: span 1; }
-  }
-</style>
 <script>
   function toggleCustomCategory() {
     const select = document.getElementById('category-select');
     const customInput = document.getElementById('custom-category');
     if (select.value === '__custom__') {
-      customInput.style.display = 'block';
+      customInput.classList.remove('hidden');
       customInput.focus();
     } else {
-      customInput.style.display = 'none';
+      customInput.classList.add('hidden');
       customInput.value = '';
     }
   }

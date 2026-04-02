@@ -1,145 +1,215 @@
 <!doctype html>
-<html lang="en">
+<html class="dark" lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{{ title }}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=10" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
+    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error-container": "#93000a",
+              "secondary": "#fbb79a",
+              "surface-container-low": "#181c23",
+              "tertiary": "#72d2fb",
+              "surface-tint": "#ffb596",
+              "on-primary-container": "#4d1900",
+              "on-error-container": "#ffdad6",
+              "error": "#ffb4ab",
+              "primary": "#ffb596",
+              "surface": "#0f131b",
+              "on-tertiary-container": "#002e3d",
+              "inverse-primary": "#a0410e",
+              "surface-container": "#1c2027",
+              "on-surface": "#dfe2ec",
+              "surface-container-highest": "#31353d",
+              "outline-variant": "#56423a",
+              "on-surface-variant": "#ddc1b6",
+              "primary-container": "#e1713d",
+              "surface-variant": "#31353d",
+              "on-error": "#690005",
+              "surface-bright": "#353941",
+              "on-primary-fixed-variant": "#7d2d00",
+              "inverse-on-surface": "#2d3038",
+              "secondary-fixed": "#ffdbcd",
+              "on-tertiary-fixed": "#001f2a",
+              "surface-dim": "#0f131b",
+              "on-secondary-container": "#e8a68a",
+              "on-primary": "#581e00",
+              "secondary-container": "#693a25",
+              "on-primary-fixed": "#360f00",
+              "tertiary-fixed-dim": "#72d2fb",
+              "on-tertiary-fixed-variant": "#004d64",
+              "background": "#0f131b",
+              "tertiary-container": "#319bc2",
+              "on-secondary-fixed-variant": "#693a25",
+              "tertiary-fixed": "#bee9ff",
+              "surface-container-high": "#262a32",
+              "primary-fixed-dim": "#ffb596",
+              "on-tertiary": "#003546",
+              "outline": "#a58b81",
+              "on-secondary": "#4e2511",
+              "inverse-surface": "#dfe2ec",
+              "on-secondary-fixed": "#341102",
+              "on-background": "#dfe2ec",
+              "surface-container-lowest": "#0a0e15",
+              "primary-fixed": "#ffdbcd",
+              "secondary-fixed-dim": "#fbb79a"
+            },
+            fontFamily: {
+              "headline": ["Inter", "sans-serif"],
+              "body": ["Inter", "sans-serif"],
+              "label": ["Inter", "sans-serif"]
+            },
+            borderRadius: {
+              "DEFAULT": "0.125rem",
+              "lg": "0.25rem",
+              "xl": "0.5rem",
+              "full": "0.75rem"
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      .material-symbols-outlined {
+        font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+      }
+      .glass-card {
+        background: rgba(49, 53, 61, 0.4);
+        backdrop-filter: blur(12px);
+        border: 1px solid rgba(86, 66, 58, 0.1);
+      }
+      .tonal-stack-1 { background-color: #181c23; }
+      .tonal-stack-2 { background-color: #1c2027; }
+      .inner-stroke { box-shadow: inset 1px 1px 0px 0px rgba(86, 66, 58, 0.15); }
+    </style>
     {% block head %}{% endblock %}
   </head>
-  <body>
-    <div class="app-shell">
-      <!-- Sidebar -->
-      <aside class="sidebar" id="sidebar">
-        <div class="sidebar-header">
-          <div class="sidebar-brand">
-            <div class="sidebar-logo">NTC</div>
-            <div>
-              <div class="sidebar-title">Naija Trend-to-Cash</div>
-              <div class="sidebar-subtitle">Growth Optimization Platform</div>
-            </div>
-          </div>
-        </div>
-        
-        <nav class="sidebar-nav">
-          <a href="{{ url_for('index') }}" class="nav-item {% if request.endpoint == 'index' %}active{% endif %}">
-            <i class="fa-solid fa-chart-line"></i>
-            <span>Dashboard</span>
-          </a>
-          <a href="{{ url_for('trend_discovery') }}" class="nav-item {% if request.endpoint == 'trend_discovery' %}active{% endif %}">
-            <i class="fa-solid fa-compass"></i>
-            <span>Discover</span>
-          </a>
-          <a href="{{ url_for('drafts') }}" class="nav-item {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}active{% endif %}">
-            <i class="fa-solid fa-file-lines"></i>
-            <span>Create</span>
-          </a>
-          <a href="{{ url_for('selection') }}" class="nav-item {% if request.endpoint == 'selection' %}active{% endif %}">
-            <i class="fa-solid fa-filter"></i>
-            <span>Selection</span>
-          </a>
-          <a href="{{ url_for('trends') }}" class="nav-item {% if request.endpoint == 'trends' %}active{% endif %}">
-            <i class="fa-solid fa-list"></i>
-            <span>Trends</span>
-          </a>
-          <a href="{{ url_for('qc') }}" class="nav-item {% if request.endpoint == 'qc' %}active{% endif %}">
-            <i class="fa-solid fa-check-double"></i>
-            <span>QC Queue</span>
-          </a>
-          <a href="{{ url_for('publish') }}" class="nav-item {% if request.endpoint == 'publish' %}active{% endif %}">
-            <i class="fa-solid fa-paper-plane"></i>
-            <span>Publish</span>
-          </a>
-          <a href="{{ url_for('sites.list_sites') }}" class="nav-item {% if 'sites' in (request.endpoint or '') %}active{% endif %}">
-            <i class="fa-solid fa-globe"></i>
-            <span>Sites</span>
-          </a>
-          <a href="{{ url_for('metrics') }}" class="nav-item {% if request.endpoint == 'metrics' %}active{% endif %}">
-            <i class="fa-solid fa-chart-bar"></i>
-            <span>Analytics</span>
-          </a>
-          <a href="{{ url_for('settings') }}" class="nav-item {% if request.endpoint == 'settings' %}active{% endif %}">
-            <i class="fa-solid fa-gear"></i>
-            <span>Settings</span>
-          </a>
-        </nav>
-        
-        <div class="sidebar-footer">
-          <div class="user-info">
-            <div class="user-avatar">
-              <i class="fa-solid fa-user"></i>
-            </div>
-            <div class="user-details">
-              <div class="user-name">Operator</div>
-              <div class="user-plan">Pro Growth Plan</div>
-            </div>
-          </div>
-        </div>
-      </aside>
-
-      <!-- Main Content -->
-      <div class="main-content">
-        <!-- Header -->
-        <header class="header">
-          <div class="hamburger" onclick="toggleSidebar()">
-            <span></span>
-            <span></span>
-            <span></span>
-          </div>
-          
-          <h1 class="header-title">{% block page_title %}Dashboard{% endblock %}</h1>
-          
-          <div class="header-search">
-            <input type="text" placeholder="Search..." class="search-input" />
-          </div>
-          
-          <div class="header-actions">
-            <button class="header-icon-btn" title="Notifications">
-              <i class="fa-solid fa-bell"></i>
-            </button>
-            <button class="header-icon-btn" title="Account">
-              <i class="fa-solid fa-user"></i>
-            </button>
-          </div>
-        </header>
-
-        <!-- Content -->
-        <main class="content">
-          {% with messages = get_flashed_messages(with_categories=true) %}
-            {% if messages %}
-              <div class="flash-stack">
-                {% for category, message in messages %}
-                  <div class="flash {{ category }}">{{ message }}</div>
-                {% endfor %}
-              </div>
-            {% endif %}
-          {% endwith %}
-          {% block content %}{% endblock %}
-        </main>
+  <body class="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary-fixed antialiased">
+    <!-- SideNavBar -->
+    <aside class="fixed left-0 top-0 h-screen w-[240px] z-50 bg-surface flex flex-col py-8 px-4 shadow-[1px_0_0_0_rgba(86,66,58,0.1)]" id="sidebar">
+      <div class="mb-10 px-4">
+        <h1 class="text-2xl font-black tracking-tighter text-primary">NTC</h1>
+        <p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60 font-bold mt-1">Growth Editorial</p>
       </div>
+      
+      <nav class="flex-1 space-y-1">
+        <a href="{{ url_for('index') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'index' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint == 'index' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>dashboard</span>
+          <span class="text-sm">Dashboard</span>
+        </a>
+        <a href="{{ url_for('trend_discovery') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'trend_discovery' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint == 'trend_discovery' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>explore</span>
+          <span class="text-sm">Discover</span>
+        </a>
+        <a href="{{ url_for('drafts') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}style="font-variation-settings: 'FILL' 1;"{% endif %}>add_circle</span>
+          <span class="text-sm">Create</span>
+        </a>
+        <a href="{{ url_for('selection') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'selection' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint == 'selection' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>filter_list</span>
+          <span class="text-sm">Selection</span>
+        </a>
+        <a href="{{ url_for('trends') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'trends' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint == 'trends' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>layers</span>
+          <span class="text-sm">Trends</span>
+        </a>
+        <a href="{{ url_for('qc') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'qc' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint == 'qc' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>fact_check</span>
+          <span class="text-sm">QC Queue</span>
+        </a>
+        <a href="{{ url_for('publish') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'publish' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint == 'publish' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>send</span>
+          <span class="text-sm">Publish</span>
+        </a>
+        <a href="{{ url_for('sites.list_sites') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if 'sites' in (request.endpoint or '') %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if 'sites' in (request.endpoint or '') %}style="font-variation-settings: 'FILL' 1;"{% endif %}>language</span>
+          <span class="text-sm">Sites</span>
+        </a>
+        <a href="{{ url_for('metrics') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'metrics' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint == 'metrics' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>analytics</span>
+          <span class="text-sm">Analytics</span>
+        </a>
+        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'settings' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
+          <span class="material-symbols-outlined" {% if request.endpoint == 'settings' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>settings</span>
+          <span class="text-sm">Settings</span>
+        </a>
+      </nav>
+      
+      <div class="mt-auto pt-6 border-t border-outline-variant/10 px-2">
+        <button class="w-full bg-gradient-to-br from-primary-container to-primary text-on-primary py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 mb-6">
+          New Experiment
+        </button>
+        <div class="flex items-center gap-3 px-2">
+          <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center ring-2 ring-primary/20">
+            <span class="material-symbols-outlined text-primary">person</span>
+          </div>
+          <div class="overflow-hidden">
+            <p class="text-sm font-bold truncate">Operator</p>
+            <p class="text-[10px] text-on-surface-variant truncate">Growth Lead</p>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Main Wrapper -->
+    <div class="ml-[240px] min-h-screen flex flex-col">
+      <!-- TopAppBar -->
+      <header class="sticky top-0 w-full z-40 flex items-center justify-between h-16 px-8 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-[0_40px_40px_-5px_rgba(10,14,21,0.6)]">
+        <div class="flex items-center gap-4">
+          <button class="lg:hidden p-2 hover:bg-surface-container-high/40 rounded-full transition-all" onclick="toggleSidebar()">
+            <span class="material-symbols-outlined text-on-surface-variant">menu</span>
+          </button>
+          <h2 class="font-bold text-xl tracking-tight">{% block page_title %}Dashboard{% endblock %}</h2>
+          <div class="h-4 w-[1px] bg-outline-variant/30 hidden md:block"></div>
+          <div class="relative group hidden md:block">
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/50 text-sm">search</span>
+            <input class="bg-surface-container-highest border-none rounded-full py-1.5 pl-10 pr-4 text-sm w-64 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-on-surface-variant/40" placeholder="Search growth vectors..." type="text"/>
+          </div>
+        </div>
+        <div class="flex items-center gap-6">
+          <div class="flex items-center gap-1">
+            <button class="p-2 hover:bg-surface-container-high/40 rounded-full transition-all relative">
+              <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+              <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-2 ring-surface"></span>
+            </button>
+          </div>
+        </div>
+      </header>
+
+      <!-- Page Content Canvas -->
+      <main class="p-8 space-y-8 max-w-[1600px] mx-auto w-full">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div class="space-y-2">
+              {% for category, message in messages %}
+                <div class="glass-card inner-stroke p-4 rounded-xl {% if category == 'error' %}border-error/30{% elif category == 'success' %}border-green-500/30{% elif category == 'warning' %}border-yellow-500/30{% endif %}">
+                  <div class="flex items-center gap-3">
+                    <span class="material-symbols-outlined {% if category == 'error' %}text-error{% elif category == 'success' %}text-green-400{% elif category == 'warning' %}text-yellow-400{% else %}text-primary{% endif %}">
+                      {% if category == 'error' %}error{% elif category == 'success' %}check_circle{% elif category == 'warning' %}warning{% else %}info{% endif %}
+                    </span>
+                    <span class="text-sm">{{ message }}</span>
+                  </div>
+                </div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        {% block content %}{% endblock %}
+      </main>
     </div>
 
     <script>
       function toggleSidebar() {
         const sidebar = document.getElementById('sidebar');
-        const hamburger = document.querySelector('.hamburger');
-        sidebar.classList.toggle('open');
-        hamburger.classList.toggle('open');
+        sidebar.classList.toggle('-translate-x-full');
       }
-
-      // Close sidebar when clicking outside on mobile
-      document.addEventListener('click', function(e) {
-        const sidebar = document.getElementById('sidebar');
-        const hamburger = document.querySelector('.hamburger');
-        if (window.innerWidth < 1024 && 
-            sidebar.classList.contains('open') && 
-            !sidebar.contains(e.target) && 
-            !hamburger.contains(e.target)) {
-          sidebar.classList.remove('open');
-          hamburger.classList.remove('open');
-        }
-      });
     </script>
     {% block scripts %}{% endblock %}
   </body>
