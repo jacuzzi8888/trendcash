@@ -13,10 +13,13 @@ def get_api_key():
     if not key:
         try:
             from .db import get_db
+            from .crypto import decrypt_value
             conn = get_db()
             from .db import get_setting
-            key = get_setting(conn, "gemini_api_key", "")
+            encrypted = get_setting(conn, "gemini_api_key", "")
             conn.close()
+            if encrypted:
+                key = decrypt_value(encrypted)
         except Exception:
             pass
     return key
@@ -40,8 +43,8 @@ def get_model(model_name='gemini-2.5-flash'):
     return genai.GenerativeModel(model_name)
 
 
-def generate_article(topic, sources, category='general', style='informative', word_count=800):
-    config_result = configure_gemini()
+def generate_article(topic, sources, category='general', style='informative', word_count=800, api_key=None):
+    config_result = configure_gemini(api_key)
     if not config_result['success']:
         return config_result
     
@@ -100,8 +103,8 @@ IMPORTANT:
         return {'success': False, 'error': str(e)}
 
 
-def improve_content(content, instructions='Improve clarity and flow'):
-    config_result = configure_gemini()
+def improve_content(content, instructions='Improve clarity and flow', api_key=None):
+    config_result = configure_gemini(api_key)
     if not config_result['success']:
         return config_result
     
@@ -134,8 +137,8 @@ Return the improved content only, no explanations."""
         return {'success': False, 'error': str(e)}
 
 
-def generate_headline(topic, angle='news'):
-    config_result = configure_gemini()
+def generate_headline(topic, angle='news', api_key=None):
+    config_result = configure_gemini(api_key)
     if not config_result['success']:
         return config_result
     
@@ -166,8 +169,8 @@ Return only the headlines, one per line, numbered 1-5."""
         return {'success': False, 'error': str(e)}
 
 
-def generate_excerpt(content, max_length=160):
-    config_result = configure_gemini()
+def generate_excerpt(content, max_length=160, api_key=None):
+    config_result = configure_gemini(api_key)
     if not config_result['success']:
         return config_result
     
@@ -193,8 +196,8 @@ Return only the excerpt, no explanations."""
         return {'success': False, 'error': str(e)}
 
 
-def generate_faqs(topic, context=''):
-    config_result = configure_gemini()
+def generate_faqs(topic, context='', api_key=None):
+    config_result = configure_gemini(api_key)
     if not config_result['success']:
         return config_result
     
@@ -222,8 +225,8 @@ Keep answers concise (1-2 sentences)."""
         return {'success': False, 'error': str(e)}
 
 
-def test_connection():
-    config_result = configure_gemini()
+def test_connection(api_key=None):
+    config_result = configure_gemini(api_key)
     if not config_result['success']:
         return config_result
     

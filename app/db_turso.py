@@ -255,6 +255,24 @@ def init_turso_db():
             FOREIGN KEY(draft_id) REFERENCES drafts(id) ON DELETE CASCADE,
             FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
         );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'editor',
+            created_at TEXT NOT NULL,
+            updated_at TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS security_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type TEXT NOT NULL,
+            user_id TEXT,
+            ip_address TEXT,
+            details TEXT,
+            created_at TEXT NOT NULL
+        );
     """)
     
     defaults = {

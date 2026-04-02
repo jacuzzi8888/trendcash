@@ -40,6 +40,7 @@
             </td>
             <td class="px-6 py-4">
               <form method="post" class="flex items-center gap-2">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="hidden" name="action" value="publish" />
                 <input type="hidden" name="draft_id" value="{{ d.id }}" />
                 <select name="site_id" required class="bg-surface-container-highest border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary/50">

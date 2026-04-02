@@ -14,6 +14,7 @@
   </div>
   <div class="card-body">
     <form method="post" class="form-grid">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <div class="form-group">
         <label>Source URL</label>
         <input name="url" placeholder="https://official.gov.ng/..." required />
@@ -79,6 +80,7 @@
   <div class="card-body">
     <p class="muted">You have {{ sources|length }} sources. Ready to create a draft with AI assistance.</p>
     <form method="post" action="{{ url_for('create_draft', candidate_id=candidate.id) }}">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <button class="btn btn-primary" type="submit"><i class="fa-solid fa-wand-magic-sparkles"></i> Create AI Draft</button>
     </form>
   </div>

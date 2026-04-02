@@ -11,58 +11,63 @@
 <section class="grid grid-cols-1 lg:grid-cols-12 gap-8">
   <!-- Settings Nav -->
   <div class="lg:col-span-3">
-    <div class="glass-card inner-stroke p-4 rounded-2xl space-y-1">
-      <div class="settings-nav-item active flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all bg-primary/10 text-primary" data-tab="profile">
-        <span class="material-symbols-outlined text-sm">person</span>
+    <nav class="glass-card inner-stroke p-4 rounded-2xl space-y-1" role="navigation" aria-label="Settings navigation">
+      <button class="settings-nav-item active flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all bg-primary/10 text-primary w-full text-left" data-tab="profile" type="button">
+        <span class="material-symbols-outlined text-sm" aria-hidden="true">person</span>
         <span class="text-sm font-medium">Profile</span>
-      </div>
-      <div class="settings-nav-item flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface" data-tab="api">
-        <span class="material-symbols-outlined text-sm">key</span>
+      </button>
+      <button class="settings-nav-item flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface w-full text-left" data-tab="api" type="button">
+        <span class="material-symbols-outlined text-sm" aria-hidden="true">key</span>
         <span class="text-sm font-medium">API Keys</span>
-      </div>
-      <div class="settings-nav-item flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface" data-tab="content">
-        <span class="material-symbols-outlined text-sm">edit_note</span>
+      </button>
+      <button class="settings-nav-item flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface w-full text-left" data-tab="content" type="button">
+        <span class="material-symbols-outlined text-sm" aria-hidden="true">edit_note</span>
         <span class="text-sm font-medium">Content</span>
-      </div>
-      <div class="settings-nav-item flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface" data-tab="sources">
-        <span class="material-symbols-outlined text-sm">travel_explore</span>
+      </button>
+      <button class="settings-nav-item flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface w-full text-left" data-tab="sources" type="button">
+        <span class="material-symbols-outlined text-sm" aria-hidden="true">travel_explore</span>
         <span class="text-sm font-medium">Source Fetching</span>
-      </div>
-    </div>
+      </button>
+      <button class="settings-nav-item flex items-center gap-3 px-4 py-3 rounded-lg cursor-pointer transition-all text-on-surface-variant/60 hover:bg-surface-container-high hover:text-on-surface w-full text-left" data-tab="security" type="button">
+        <span class="material-symbols-outlined text-sm" aria-hidden="true">security</span>
+        <span class="text-sm font-medium">Security</span>
+      </button>
+    </nav>
   </div>
 
   <!-- Settings Content -->
   <div class="lg:col-span-9">
     <!-- Profile Tab -->
-    <div class="settings-tab active" id="tab-profile">
+    <div class="settings-tab active" id="tab-profile" role="tabpanel">
       <div class="glass-card inner-stroke p-6 rounded-2xl">
         <div class="flex items-center gap-3 mb-6">
           <div class="p-2 bg-primary/10 rounded-lg">
-            <span class="material-symbols-outlined text-primary">person</span>
+            <span class="material-symbols-outlined text-primary" aria-hidden="true">person</span>
           </div>
           <h3 class="text-lg font-bold">Profile Settings</h3>
         </div>
         
         <form method="post" class="space-y-6">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Publish Daily Limit</label>
-              <input name="publish_daily_limit" type="number" value="{{ settings.publish_daily_limit }}" min="1" max="100" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
-              <p class="text-[11px] text-on-surface-variant/40 mt-2">Maximum articles to publish per day</p>
+              <label for="publish_daily_limit" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Publish Daily Limit</label>
+              <input id="publish_daily_limit" name="publish_daily_limit" type="number" value="{{ settings.publish_daily_limit }}" min="1" max="100" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" aria-describedby="publish_limit_help" />
+              <p id="publish_limit_help" class="text-[11px] text-on-surface-variant/40 mt-2">Maximum articles to publish per day</p>
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Default Image Policy</label>
-              <select name="image_policy_default" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50">
+              <label for="image_policy_default" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Default Image Policy</label>
+              <select id="image_policy_default" name="image_policy_default" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" aria-describedby="image_policy_help">
                 {% for option in ["none", "priority", "branded"] %}
                 <option value="{{ option }}" {% if settings.image_policy_default == option %}selected{% endif %}>{{ option|title }}</option>
                 {% endfor %}
               </select>
-              <p class="text-[11px] text-on-surface-variant/40 mt-2">Default image handling for new drafts</p>
+              <p id="image_policy_help" class="text-[11px] text-on-surface-variant/40 mt-2">Default image handling for new drafts</p>
             </div>
           </div>
           
           <button type="submit" class="bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">save</span>
+            <span class="material-symbols-outlined text-sm" aria-hidden="true">save</span>
             Save Changes
           </button>
         </form>
@@ -70,11 +75,11 @@
     </div>
 
     <!-- API Keys Tab -->
-    <div class="settings-tab hidden" id="tab-api">
+    <div class="settings-tab hidden" id="tab-api" role="tabpanel">
       <div class="glass-card inner-stroke p-6 rounded-2xl">
         <div class="flex items-center gap-3 mb-6">
           <div class="p-2 bg-tertiary/10 rounded-lg">
-            <span class="material-symbols-outlined text-tertiary">key</span>
+            <span class="material-symbols-outlined text-tertiary" aria-hidden="true">key</span>
           </div>
           <h3 class="text-lg font-bold">API Keys</h3>
         </div>
@@ -82,37 +87,40 @@
         <div class="space-y-4">
           <div class="flex items-center gap-4 p-4 bg-surface-container-high rounded-xl">
             <div class="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center">
-              <span class="material-symbols-outlined text-primary">auto_awesome</span>
+              <span class="material-symbols-outlined text-primary" aria-hidden="true">auto_awesome</span>
             </div>
             <div class="flex-1">
               <div class="font-bold mb-1">Gemini API Key</div>
-              <div class="flex items-center gap-2 text-sm {% if settings.gemini_api_key %}text-green-400{% else %}text-error{% endif %}">
-                <span class="material-symbols-outlined text-sm">{% if settings.gemini_api_key %}check_circle{% else %}cancel{% endif %}</span>
-                {% if settings.gemini_api_key %}Connected{% else %}Not Set{% endif %}
+              <div class="flex items-center gap-2 text-sm {% if settings.gemini_api_key_set %}text-green-400{% else %}text-error{% endif %}">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">{% if settings.gemini_api_key_set %}check_circle{% else %}cancel{% endif %}</span>
+                {% if settings.gemini_api_key_set %}Connected{% else %}Not Set{% endif %}
+                {% if settings.gemini_api_key_masked %}<span class="text-on-surface-variant/60 ml-2">({{ settings.gemini_api_key_masked }})</span>{% endif %}
               </div>
             </div>
-            <form method="post" class="flex gap-2">
-              <input type="password" name="gemini_api_key" value="{{ settings.gemini_api_key }}" placeholder="AIza..." class="bg-surface-container-highest border-none rounded-lg py-2 px-4 text-sm focus:ring-1 focus:ring-primary/50 w-48" />
-              <button type="submit" class="p-2 bg-surface-container-high hover:bg-surface-container-highest rounded-lg transition-colors">
-                <span class="material-symbols-outlined text-sm">save</span>
+            <form method="post" class="flex gap-2" aria-label="Update Gemini API Key">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <label for="gemini_api_key" class="sr-only">Gemini API Key</label>
+              <input type="password" id="gemini_api_key" name="gemini_api_key" placeholder="Enter new key..." class="bg-surface-container-highest border-none rounded-lg py-2 px-4 text-sm focus:ring-1 focus:ring-primary/50 w-48" autocomplete="new-password" />
+              <button type="submit" class="p-2 bg-surface-container-high hover:bg-surface-container-highest rounded-lg transition-colors" aria-label="Save API key">
+                <span class="material-symbols-outlined text-sm" aria-hidden="true">save</span>
               </button>
             </form>
           </div>
         </div>
         
-        <div class="mt-4 p-4 bg-tertiary/10 rounded-xl flex items-center gap-3 text-sm text-tertiary">
-          <span class="material-symbols-outlined">info</span>
-          Get your Gemini API key from <a href="https://aistudio.google.com/apikey" target="_blank" class="underline">Google AI Studio</a>
+        <div class="mt-4 p-4 bg-tertiary/10 rounded-xl flex items-center gap-3 text-sm text-tertiary" role="alert">
+          <span class="material-symbols-outlined" aria-hidden="true">info</span>
+          <span>Get your Gemini API key from <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener noreferrer" class="underline">Google AI Studio</a>. Keys are encrypted at rest.</span>
         </div>
       </div>
     </div>
 
     <!-- Content Tab -->
-    <div class="settings-tab hidden" id="tab-content">
+    <div class="settings-tab hidden" id="tab-content" role="tabpanel">
       <div class="glass-card inner-stroke p-6 rounded-2xl">
         <div class="flex items-center gap-3 mb-6">
           <div class="p-2 bg-primary/10 rounded-lg">
-            <span class="material-symbols-outlined text-primary">edit_note</span>
+            <span class="material-symbols-outlined text-primary" aria-hidden="true">edit_note</span>
           </div>
           <h3 class="text-lg font-bold">Content Settings</h3>
         </div>
@@ -121,11 +129,11 @@
     </div>
 
     <!-- Sources Tab -->
-    <div class="settings-tab hidden" id="tab-sources">
+    <div class="settings-tab hidden" id="tab-sources" role="tabpanel">
       <div class="glass-card inner-stroke p-6 rounded-2xl">
         <div class="flex items-center gap-3 mb-6">
           <div class="p-2 bg-yellow-500/10 rounded-lg">
-            <span class="material-symbols-outlined text-yellow-400">travel_explore</span>
+            <span class="material-symbols-outlined text-yellow-400" aria-hidden="true">travel_explore</span>
           </div>
           <h3 class="text-lg font-bold">Source Fetching</h3>
         </div>
@@ -133,35 +141,88 @@
         <p class="text-on-surface-variant/60 text-sm mb-6">Auto-discover sources when fetching trends. Requires SERPER_API_KEY env variable.</p>
         
         <form method="post" class="space-y-6">
+          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
           <div class="flex items-center justify-between p-4 bg-surface-container-high rounded-xl">
             <div>
               <div class="font-medium mb-1">Auto-fetch Sources</div>
               <p class="text-[11px] text-on-surface-variant/40">Automatically discover sources for new trends</p>
             </div>
             <label class="relative inline-flex items-center cursor-pointer">
-              <input type="checkbox" name="auto_fetch_sources" {% if settings.auto_fetch_sources == 'true' %}checked{% endif %} class="sr-only peer" />
-              <div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+              <input type="checkbox" name="auto_fetch_sources" id="auto_fetch_sources" {% if settings.auto_fetch_sources == 'true' %}checked{% endif %} class="sr-only peer" aria-describedby="auto_fetch_help" />
+              <div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full" aria-hidden="true"></div>
             </label>
           </div>
           
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Days to Look Back</label>
-              <input type="number" name="source_days_back" value="{{ settings.source_days_back }}" min="1" max="30" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
-              <p class="text-[11px] text-on-surface-variant/40 mt-2">How many days back to search for sources</p>
+              <label for="source_days_back" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Days to Look Back</label>
+              <input type="number" id="source_days_back" name="source_days_back" value="{{ settings.source_days_back }}" min="1" max="30" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" aria-describedby="days_back_help" />
+              <p id="days_back_help" class="text-[11px] text-on-surface-variant/40 mt-2">How many days back to search for sources</p>
             </div>
             <div>
-              <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Sources per Trend</label>
-              <input type="number" name="sources_per_trend" value="{{ settings.sources_per_trend }}" min="1" max="10" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
-              <p class="text-[11px] text-on-surface-variant/40 mt-2">Maximum sources to fetch per trend</p>
+              <label for="sources_per_trend" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Sources per Trend</label>
+              <input type="number" id="sources_per_trend" name="sources_per_trend" value="{{ settings.sources_per_trend }}" min="1" max="10" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" aria-describedby="sources_per_help" />
+              <p id="sources_per_help" class="text-[11px] text-on-surface-variant/40 mt-2">Maximum sources to fetch per trend</p>
             </div>
           </div>
           
           <button type="submit" class="bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 flex items-center gap-2">
-            <span class="material-symbols-outlined text-sm">save</span>
+            <span class="material-symbols-outlined text-sm" aria-hidden="true">save</span>
             Save All Settings
           </button>
         </form>
+      </div>
+    </div>
+
+    <!-- Security Tab -->
+    <div class="settings-tab hidden" id="tab-security" role="tabpanel">
+      <div class="glass-card inner-stroke p-6 rounded-2xl">
+        <div class="flex items-center gap-3 mb-6">
+          <div class="p-2 bg-green-500/10 rounded-lg">
+            <span class="material-symbols-outlined text-green-400" aria-hidden="true">security</span>
+          </div>
+          <h3 class="text-lg font-bold">Security Settings</h3>
+        </div>
+        
+        <div class="space-y-6">
+          <div class="p-4 bg-surface-container-high rounded-xl">
+            <h4 class="font-medium mb-2">Change Password</h4>
+            <p class="text-[11px] text-on-surface-variant/40 mb-4">Update your account password. Minimum 8 characters.</p>
+            <a href="{{ url_for('auth.change_password') }}" class="inline-flex items-center gap-2 bg-surface-container-highest hover:bg-surface-container px-4 py-2 rounded-lg text-sm transition-colors">
+              <span class="material-symbols-outlined text-sm" aria-hidden="true">lock</span>
+              Change Password
+            </a>
+          </div>
+          
+          <div class="p-4 bg-tertiary/10 rounded-xl">
+            <h4 class="font-medium mb-2 flex items-center gap-2">
+              <span class="material-symbols-outlined text-sm" aria-hidden="true">verified_user</span>
+              Security Features Enabled
+            </h4>
+            <ul class="text-sm text-on-surface-variant space-y-1">
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-green-400 text-sm" aria-hidden="true">check</span>
+                Authentication required for all pages
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-green-400 text-sm" aria-hidden="true">check</span>
+                API keys encrypted at rest
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-green-400 text-sm" aria-hidden="true">check</span>
+                CSRF protection on all forms
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-green-400 text-sm" aria-hidden="true">check</span>
+                Rate limiting on API endpoints
+              </li>
+              <li class="flex items-center gap-2">
+                <span class="material-symbols-outlined text-green-400 text-sm" aria-hidden="true">check</span>
+                Security headers configured
+              </li>
+            </ul>
+          </div>
+        </div>
       </div>
     </div>
   </div>
@@ -174,13 +235,19 @@ document.querySelectorAll('.settings-nav-item').forEach(item => {
       i.classList.remove('active', 'bg-primary/10', 'text-primary');
       i.classList.add('text-on-surface-variant/60');
     });
-    document.querySelectorAll('.settings-tab').forEach(t => t.classList.add('hidden'));
-    document.querySelectorAll('.settings-tab').forEach(t => t.classList.remove('active'));
+    document.querySelectorAll('.settings-tab').forEach(t => {
+      t.classList.add('hidden');
+      t.classList.remove('active');
+    });
     
     item.classList.add('active', 'bg-primary/10', 'text-primary');
     item.classList.remove('text-on-surface-variant/60');
-    document.getElementById('tab-' + item.dataset.tab).classList.remove('hidden');
-    document.getElementById('tab-' + item.dataset.tab).classList.add('active');
+    const tabId = 'tab-' + item.dataset.tab;
+    const tabElement = document.getElementById(tabId);
+    if (tabElement) {
+      tabElement.classList.remove('hidden');
+      tabElement.classList.add('active');
+    }
   });
 });
 </script>

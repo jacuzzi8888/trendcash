@@ -7,6 +7,7 @@ from flask import (
     render_template,
     request,
     url_for,
+    jsonify,
 )
 
 from .db import get_db, init_db, get_setting, set_setting, utc_now
@@ -21,6 +22,14 @@ from .ai_writer import (
     generate_excerpt, generate_faqs, test_connection
 )
 from .source_fetcher import fetch_sources
+from .auth import auth_bp, login_manager, init_default_user
+from .security import (
+    csrf, limiter, add_security_headers, get_secure_cookie_settings,
+    sanitize_input, validate_id, validate_category, validate_url, validate_score,
+    log_security_event, audit_log
+)
+from .crypto import encrypt_value, decrypt_value, mask_value
+from flask_login import login_required, current_user
 
 
 APP_TITLE = "Naija Trend-to-Cash"
@@ -35,9 +44,32 @@ RUBRIC_WEIGHTS = {
 def create_app():
     static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
     app = Flask(__name__, static_folder=static_folder)
-    app.config["SECRET_KEY"] = os.environ.get("NTC_SECRET_KEY", "dev-secret-key")
-
+    
+    secret_key = os.environ.get("NTC_SECRET_KEY")
+    if not secret_key:
+        raise RuntimeError("NTC_SECRET_KEY environment variable must be set")
+    app.config["SECRET_KEY"] = secret_key
+    
+    for key, value in get_secure_cookie_settings().items():
+        app.config[key] = value
+    
+    app.config["WTF_CSRF_ENABLED"] = True
+    app.config["WTF_CSRF_TIME_LIMIT"] = None
+    
+    csrf.init_app(app)
+    limiter.init_app(app)
+    login_manager.init_app(app)
+    
     init_db()
+    
+    from .db import get_db
+    conn = get_db()
+    init_default_user(conn)
+    conn.close()
+    
+    @app.after_request
+    def security_headers(response):
+        return add_security_headers(response)
     
     @app.template_filter('datetime')
     def format_datetime(value):
@@ -64,9 +96,16 @@ def create_app():
         except:
             return value
     
+    @app.context_processor
+    def inject_csrf_token():
+        from flask_wtf.csrf import generate_csrf
+        return dict(csrf_token=generate_csrf)
+    
+    app.register_blueprint(auth_bp)
     app.register_blueprint(sites_bp)
 
     @app.route("/")
+    @login_required
     def index():
         conn = get_db()
         category_locked = get_setting(conn, "category_locked", "")
@@ -95,17 +134,25 @@ def create_app():
         )
 
     @app.route("/selection", methods=["GET", "POST"])
+    @login_required
     def selection():
         conn = get_db()
         if request.method == "POST":
-            category = request.form.get("category")
+            category = sanitize_input(request.form.get("category", ""), max_length=50)
             if category == "__unlock__":
                 set_setting(conn, "category_locked", "")
                 conn.commit()
                 flash("Category lock cleared.", "success")
+                log_security_event("category_unlock", f"User: {current_user.username}")
                 conn.close()
                 return redirect(url_for("selection"))
             if category:
+                try:
+                    category = validate_category(category)
+                except ValueError as e:
+                    flash(str(e), "error")
+                    conn.close()
+                    return redirect(url_for("selection"))
                 set_setting(conn, "category_locked", category)
                 conn.commit()
                 flash(f"Category locked to: {category}", "success")
@@ -155,19 +202,20 @@ def create_app():
         )
 
     @app.route("/trends", methods=["GET", "POST"])
+    @login_required
     def trends():
         conn = get_db()
         if request.method == "POST":
-            topic = request.form.get("topic", "").strip()
-            category = request.form.get("category", "").strip()
-            source = request.form.get("source", "").strip()
             try:
-                velocity = float(request.form.get("velocity_score", "0"))
-                advertiser = float(request.form.get("advertiser_safety_score", "0"))
-                commercial = float(request.form.get("commercial_intent_score", "0"))
-                evergreen = float(request.form.get("evergreen_score", "0"))
-            except ValueError:
-                flash("Scores must be numeric.", "error")
+                topic = sanitize_input(request.form.get("topic", "").strip(), max_length=200)
+                category = sanitize_input(request.form.get("category", "").strip(), max_length=50)
+                source = sanitize_input(request.form.get("source", "").strip(), max_length=100)
+                velocity = validate_score(request.form.get("velocity_score", "0"), name="Velocity score")
+                advertiser = validate_score(request.form.get("advertiser_safety_score", "0"), name="Advertiser safety score")
+                commercial = validate_score(request.form.get("commercial_intent_score", "0"), name="Commercial intent score")
+                evergreen = validate_score(request.form.get("evergreen_score", "0"), name="Evergreen score")
+            except ValueError as e:
+                flash(str(e), "error")
                 conn.close()
                 return redirect(url_for("trends"))
 
@@ -200,6 +248,7 @@ def create_app():
 
         category_filter = request.args.get("category")
         if category_filter:
+            category_filter = sanitize_input(category_filter, max_length=50)
             rows = conn.execute(
                 """SELECT tc.*, 
                     (SELECT COUNT(*) FROM source_packs sp WHERE sp.candidate_id = tc.id) as source_count
@@ -227,10 +276,12 @@ def create_app():
         )
 
     @app.route("/discover", methods=["GET", "POST"])
+    @login_required
+    @limiter.limit("30 per hour")
     def trend_discovery():
         conn = get_db()
-        keyword = request.args.get("keyword", "").strip()
-        explore_geo = request.args.get("explore_geo", "NG")
+        keyword = sanitize_input(request.args.get("keyword", "").strip(), max_length=100)
+        explore_geo = sanitize_input(request.args.get("explore_geo", "NG"), max_length=5)
         geo = "NG"
         category = "general"
         fetch_result = None
@@ -240,17 +291,22 @@ def create_app():
         suggestions = None
 
         if request.method == "POST":
-            geo = request.form.get("geo", "NG")
-            category = request.form.get("category", "general").strip() or "general"
-            custom_category = request.form.get("custom_category", "").strip()
-            if category == "__custom__" and custom_category:
-                category = custom_category.lower()
-            scores = {
-                "velocity": float(request.form.get("velocity", 0.5)),
-                "advertiser_safety": float(request.form.get("advertiser_safety", 0.5)),
-                "commercial_intent": float(request.form.get("commercial_intent", 0.5)),
-                "evergreen": float(request.form.get("evergreen", 0.5)),
-            }
+            try:
+                geo = sanitize_input(request.form.get("geo", "NG"), max_length=5)
+                category = sanitize_input(request.form.get("category", "general").strip() or "general", max_length=50)
+                custom_category = sanitize_input(request.form.get("custom_category", "").strip(), max_length=50)
+                if category == "__custom__" and custom_category:
+                    category = custom_category.lower()
+                scores = {
+                    "velocity": validate_score(request.form.get("velocity", 0.5)),
+                    "advertiser_safety": validate_score(request.form.get("advertiser_safety", 0.5)),
+                    "commercial_intent": validate_score(request.form.get("commercial_intent", 0.5)),
+                    "evergreen": validate_score(request.form.get("evergreen", 0.5)),
+                }
+            except ValueError as e:
+                flash(str(e), "error")
+                conn.close()
+                return redirect(url_for("trend_discovery"))
             
             auto_fetch = get_setting(conn, "auto_fetch_sources", "true") == "true"
             days_back = int(get_setting(conn, "source_days_back", "7"))
@@ -262,8 +318,8 @@ def create_app():
                 skipped = 0
                 sources_added = 0
                 for trend in result["trends"]:
-                    topic = trend["topic"]
-                    source = trend["source"]
+                    topic = sanitize_input(trend["topic"], max_length=200)
+                    source = sanitize_input(trend["source"], max_length=100)
                     existing = conn.execute(
                         "SELECT id FROM trend_candidates WHERE topic = ? AND source LIKE ?",
                         (topic, "google_autocomplete%"),
@@ -310,10 +366,10 @@ def create_app():
                                     """,
                                     (
                                         candidate_id,
-                                        src["url"],
-                                        src.get("publisher", ""),
+                                        sanitize_input(src["url"], max_length=2048),
+                                        sanitize_input(src.get("publisher", ""), max_length=100),
                                         src.get("published_at"),
-                                        src.get("notes", "")[:500] if src.get("notes") else "",
+                                        sanitize_input(src.get("notes", "")[:500] if src.get("notes") else "", max_length=500),
                                         utc_now(),
                                     ),
                                 )
@@ -381,6 +437,7 @@ def create_app():
         )
 
     @app.route("/sources/<int:candidate_id>", methods=["GET", "POST"])
+    @login_required
     def sources(candidate_id):
         conn = get_db()
         candidate = conn.execute(
@@ -392,10 +449,18 @@ def create_app():
             return redirect(url_for("trends"))
 
         if request.method == "POST":
-            url = request.form.get("url", "").strip()
-            publisher = request.form.get("publisher", "").strip()
-            published_at = request.form.get("published_at", "").strip()
-            notes = request.form.get("notes", "").strip()
+            try:
+                url = sanitize_input(request.form.get("url", "").strip(), max_length=2048)
+                publisher = sanitize_input(request.form.get("publisher", "").strip(), max_length=100)
+                published_at = sanitize_input(request.form.get("published_at", "").strip(), max_length=20)
+                notes = sanitize_input(request.form.get("notes", "").strip(), max_length=500)
+                
+                validate_url(url)
+            except ValueError as e:
+                flash(str(e), "error")
+                conn.close()
+                return redirect(url_for("sources", candidate_id=candidate_id))
+            
             if not url or not publisher:
                 flash("URL and publisher are required.", "error")
             else:
@@ -457,9 +522,10 @@ def create_app():
         }
 
     @app.route("/drafts", methods=["GET"])
+    @login_required
     def drafts():
         conn = get_db()
-        status = request.args.get("status")
+        status = sanitize_input(request.args.get("status", ""), max_length=20)
         if status:
             rows = conn.execute(
                 "SELECT d.*, t.topic FROM drafts d "
@@ -482,6 +548,7 @@ def create_app():
         )
 
     @app.route("/drafts/new/<int:candidate_id>", methods=["POST"])
+    @login_required
     def create_draft(candidate_id):
         conn = get_db()
         candidate = conn.execute(
@@ -533,6 +600,7 @@ def create_app():
         return redirect(url_for("drafts"))
 
     @app.route("/drafts/<int:draft_id>", methods=["GET", "POST"])
+    @login_required
     def edit_draft(draft_id):
         conn = get_db()
         draft = conn.execute(
@@ -544,12 +612,12 @@ def create_app():
             return redirect(url_for("drafts"))
 
         if request.method == "POST":
-            title = request.form.get("title", "").strip()
+            title = sanitize_input(request.form.get("title", "").strip(), max_length=200)
             content = request.form.get("content", "").strip()
-            last_updated = request.form.get("last_updated", "").strip()
-            image_policy = request.form.get("image_policy", "none").strip()
-            image_prompt = request.form.get("image_prompt", "").strip()
-            status_action = request.form.get("status_action", "save")
+            last_updated = sanitize_input(request.form.get("last_updated", "").strip(), max_length=20)
+            image_policy = sanitize_input(request.form.get("image_policy", "none").strip(), max_length=20)
+            image_prompt = sanitize_input(request.form.get("image_prompt", "").strip(), max_length=500)
+            status_action = sanitize_input(request.form.get("status_action", "save"), max_length=20)
             if not title or not content or not last_updated:
                 flash("Title, content, and last updated are required.", "error")
                 conn.close()
@@ -596,11 +664,12 @@ def create_app():
         )
 
     @app.route("/qc", methods=["GET", "POST"])
+    @login_required
     def qc():
         conn = get_db()
         if request.method == "POST":
             draft_id = request.form.get("draft_id")
-            reviewer = request.form.get("reviewer", "").strip()
+            reviewer = sanitize_input(request.form.get("reviewer", "").strip(), max_length=50)
             checks = {
                 "source_valid": request.form.get("source_valid") == "on",
                 "unique_value": request.form.get("unique_value") == "on",
@@ -614,6 +683,13 @@ def create_app():
             if not all(checks.values()):
                 conn.close()
                 flash("All QC checks must pass to approve.", "error")
+                return redirect(url_for("qc"))
+
+            try:
+                draft_id = validate_id(draft_id, "Draft ID")
+            except ValueError as e:
+                flash(str(e), "error")
+                conn.close()
                 return redirect(url_for("qc"))
 
             conn.execute(
@@ -638,6 +714,7 @@ def create_app():
                 ("approved", utc_now(), draft_id),
             )
             conn.commit()
+            log_security_event("draft_approved", f"Draft ID: {draft_id}, Reviewer: {reviewer}", current_user.id)
             conn.close()
             flash("Draft approved.", "success")
             return redirect(url_for("qc"))
@@ -655,14 +732,23 @@ def create_app():
         )
 
     @app.route("/publish", methods=["GET", "POST"])
+    @login_required
     def publish():
         conn = get_db()
         if request.method == "POST":
-            action = request.form.get("action")
+            action = sanitize_input(request.form.get("action", ""), max_length=20)
             draft_id = request.form.get("draft_id")
             site_id = request.form.get("site_id")
             
             if action == "publish" and draft_id and site_id:
+                try:
+                    draft_id = validate_id(draft_id, "Draft ID")
+                    site_id = validate_id(site_id, "Site ID")
+                except ValueError as e:
+                    flash(str(e), "error")
+                    conn.close()
+                    return redirect(url_for("publish"))
+                
                 draft = conn.execute(
                     "SELECT * FROM drafts WHERE id = ?", (draft_id,)
                 ).fetchone()
@@ -717,6 +803,7 @@ def create_app():
                         ("published", utc_now(), draft_id),
                     )
                     conn.commit()
+                    log_security_event("content_published", f"Draft ID: {draft_id}, Site: {site['name']}", current_user.id)
                     flash(f"Published to {site['name']}!", "success")
                 else:
                     flash(f"Publishing failed: {result.get('error')}", "error")
@@ -754,26 +841,46 @@ def create_app():
         )
 
     @app.route("/settings", methods=["GET", "POST"])
+    @login_required
     def settings():
         conn = get_db()
         if request.method == "POST":
-            set_setting(conn, "publish_daily_limit", request.form.get("publish_daily_limit", "10"))
-            set_setting(conn, "image_policy_default", request.form.get("image_policy_default", "none"))
+            try:
+                limit_val = int(sanitize_input(request.form.get("publish_daily_limit", "10"), max_length=10))
+                days_back = int(sanitize_input(request.form.get("source_days_back", "7"), max_length=10))
+                sources_per = int(sanitize_input(request.form.get("sources_per_trend", "3"), max_length=10))
+            except ValueError:
+                flash("Numeric values must be valid integers.", "error")
+                conn.close()
+                return redirect(url_for("settings"))
+            
+            set_setting(conn, "publish_daily_limit", str(limit_val))
+            set_setting(conn, "image_policy_default", sanitize_input(request.form.get("image_policy_default", "none"), max_length=20))
+            
             gemini_key = request.form.get("gemini_api_key", "").strip()
             if gemini_key:
-                set_setting(conn, "gemini_api_key", gemini_key)
-            set_setting(conn, "source_days_back", request.form.get("source_days_back", "7"))
-            set_setting(conn, "sources_per_trend", request.form.get("sources_per_trend", "3"))
+                encrypted_key = encrypt_value(gemini_key)
+                set_setting(conn, "gemini_api_key", encrypted_key)
+            
+            set_setting(conn, "source_days_back", str(days_back))
+            set_setting(conn, "sources_per_trend", str(sources_per))
             set_setting(conn, "auto_fetch_sources", "true" if request.form.get("auto_fetch_sources") else "false")
             conn.commit()
+            log_security_event("settings_updated", f"User: {current_user.username}", current_user.id)
             conn.close()
             flash("Settings updated.", "success")
             return redirect(url_for("settings"))
 
+        encrypted_key = get_setting(conn, "gemini_api_key", "")
+        decrypted_key = decrypt_value(encrypted_key) if encrypted_key else ""
+        masked_key = mask_value(decrypted_key, 4) if decrypted_key else ""
+        
         settings_map = {
             "publish_daily_limit": get_setting(conn, "publish_daily_limit", "10"),
             "image_policy_default": get_setting(conn, "image_policy_default", "none"),
-            "gemini_api_key": get_setting(conn, "gemini_api_key", ""),
+            "gemini_api_key": "",
+            "gemini_api_key_masked": masked_key,
+            "gemini_api_key_set": bool(encrypted_key),
             "source_days_back": get_setting(conn, "source_days_back", "7"),
             "sources_per_trend": get_setting(conn, "sources_per_trend", "3"),
             "auto_fetch_sources": get_setting(conn, "auto_fetch_sources", "true"),
@@ -782,15 +889,16 @@ def create_app():
         return render_template("settings.html", title=APP_TITLE, settings=settings_map)
 
     @app.route("/metrics", methods=["GET", "POST"])
+    @login_required
     def metrics():
         conn = get_db()
         if request.method == "POST":
-            metric_date = request.form.get("metric_date", "").strip()
-            indexing_rate = request.form.get("indexing_rate", "").strip() or None
-            queries = request.form.get("queries", "").strip() or None
-            ctr = request.form.get("ctr", "").strip() or None
-            avg_position = request.form.get("avg_position", "").strip() or None
-            notes = request.form.get("notes", "").strip()
+            metric_date = sanitize_input(request.form.get("metric_date", "").strip(), max_length=20)
+            indexing_rate = sanitize_input(request.form.get("indexing_rate", "").strip() or None, max_length=20)
+            queries = sanitize_input(request.form.get("queries", "").strip() or None, max_length=20)
+            ctr = sanitize_input(request.form.get("ctr", "").strip() or None, max_length=20)
+            avg_position = sanitize_input(request.form.get("avg_position", "").strip() or None, max_length=20)
+            notes = sanitize_input(request.form.get("notes", "").strip(), max_length=500)
             if not metric_date:
                 conn.close()
                 flash("Metric date is required.", "error")
@@ -820,6 +928,8 @@ def create_app():
         )
 
     @app.route("/ai/generate/<int:candidate_id>", methods=["POST"])
+    @login_required
+    @limiter.limit("20 per hour")
     def ai_generate(candidate_id):
         conn = get_db()
         candidate = conn.execute(
@@ -840,66 +950,101 @@ def create_app():
             for s in sources_rows
         ]
 
-        style = request.form.get("style", "informative")
-        word_count = int(request.form.get("word_count", 800))
+        style = sanitize_input(request.form.get("style", "informative"), max_length=20)
+        try:
+            word_count = int(request.form.get("word_count", 800))
+            word_count = min(max(word_count, 200), 2000)
+        except ValueError:
+            word_count = 800
 
+        encrypted_key = get_setting(get_db(), "gemini_api_key", "")
+        api_key = decrypt_value(encrypted_key) if encrypted_key else None
+        
         result = generate_article(
             topic=candidate["topic"],
             sources=sources,
             category=candidate["category"],
             style=style,
-            word_count=word_count
+            word_count=word_count,
+            api_key=api_key
         )
 
         return result
 
     @app.route("/ai/improve", methods=["POST"])
+    @login_required
+    @limiter.limit("30 per hour")
     def ai_improve():
         content = request.form.get("content", "")
-        instructions = request.form.get("instructions", "Improve clarity and flow")
+        instructions = sanitize_input(request.form.get("instructions", "Improve clarity and flow"), max_length=200)
         
         if not content:
             return {"success": False, "error": "No content provided"}, 400
         
-        result = improve_content(content, instructions)
+        encrypted_key = get_setting(get_db(), "gemini_api_key", "")
+        api_key = decrypt_value(encrypted_key) if encrypted_key else None
+        
+        result = improve_content(content, instructions, api_key=api_key)
         return result
 
     @app.route("/ai/headlines", methods=["POST"])
+    @login_required
+    @limiter.limit("30 per hour")
     def ai_headlines():
-        topic = request.form.get("topic", "")
-        angle = request.form.get("angle", "news")
+        topic = sanitize_input(request.form.get("topic", ""), max_length=200)
+        angle = sanitize_input(request.form.get("angle", "news"), max_length=20)
         
         if not topic:
             return {"success": False, "error": "No topic provided"}, 400
         
-        result = generate_headline(topic, angle)
+        encrypted_key = get_setting(get_db(), "gemini_api_key", "")
+        api_key = decrypt_value(encrypted_key) if encrypted_key else None
+        
+        result = generate_headline(topic, angle, api_key=api_key)
         return result
 
     @app.route("/ai/excerpt", methods=["POST"])
+    @login_required
+    @limiter.limit("30 per hour")
     def ai_excerpt():
         content = request.form.get("content", "")
-        max_length = int(request.form.get("max_length", 160))
+        try:
+            max_length = int(request.form.get("max_length", 160))
+            max_length = min(max(max_length, 50), 300)
+        except ValueError:
+            max_length = 160
         
         if not content:
             return {"success": False, "error": "No content provided"}, 400
         
-        result = generate_excerpt(content, max_length)
+        encrypted_key = get_setting(get_db(), "gemini_api_key", "")
+        api_key = decrypt_value(encrypted_key) if encrypted_key else None
+        
+        result = generate_excerpt(content, max_length, api_key=api_key)
         return result
 
     @app.route("/ai/faqs", methods=["POST"])
+    @login_required
+    @limiter.limit("30 per hour")
     def ai_faqs():
-        topic = request.form.get("topic", "")
+        topic = sanitize_input(request.form.get("topic", ""), max_length=200)
         context = request.form.get("context", "")
         
         if not topic:
             return {"success": False, "error": "No topic provided"}, 400
         
-        result = generate_faqs(topic, context)
+        encrypted_key = get_setting(get_db(), "gemini_api_key", "")
+        api_key = decrypt_value(encrypted_key) if encrypted_key else None
+        
+        result = generate_faqs(topic, context, api_key=api_key)
         return result
 
     @app.route("/ai/test", methods=["POST"])
+    @login_required
     def ai_test():
-        result = test_connection()
+        encrypted_key = get_setting(get_db(), "gemini_api_key", "")
+        api_key = decrypt_value(encrypted_key) if encrypted_key else None
+        result = test_connection(api_key=api_key)
         return result
 
     return app
@@ -907,4 +1052,5 @@ def create_app():
 
 if __name__ == "__main__":
     app = create_app()
-    app.run(debug=True, port=5000)
+    debug_mode = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
+    app.run(debug=debug_mode, port=5000)

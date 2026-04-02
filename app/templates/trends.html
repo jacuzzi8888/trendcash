@@ -17,6 +17,7 @@
   </div>
   
   <form method="post" class="space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
       <div>
         <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Topic</label>
@@ -122,6 +123,7 @@
                 <span class="material-symbols-outlined text-sm text-on-surface-variant">link</span>
               </a>
               <form method="post" action="{{ url_for('create_draft', candidate_id=c.id) }}">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <button type="submit" class="p-2 bg-surface-container-high hover:bg-surface-container-highest rounded-lg transition-colors {% if (c.source_count or 0) < 2 %}opacity-50 cursor-not-allowed{% endif %}" {% if (c.source_count or 0) < 2 %}disabled title="Need 2+ sources"{% else %}title="Create Draft"{% endif %}>
                   <span class="material-symbols-outlined text-sm text-primary">edit_note</span>
                 </button>

@@ -3,6 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="referrer" content="strict-origin-when-cross-origin" />
     <title>{{ title }}</title>
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet"/>
@@ -88,110 +89,273 @@
       .tonal-stack-1 { background-color: #181c23; }
       .tonal-stack-2 { background-color: #1c2027; }
       .inner-stroke { box-shadow: inset 1px 1px 0px 0px rgba(86, 66, 58, 0.15); }
+      .sr-only {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        padding: 0;
+        margin: -1px;
+        overflow: hidden;
+        clip: rect(0, 0, 0, 0);
+        white-space: nowrap;
+        border: 0;
+      }
+      
+      /* Sidebar Styling */
+      .sidebar-nav::-webkit-scrollbar {
+        width: 4px;
+      }
+      .sidebar-nav::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      .sidebar-nav::-webkit-scrollbar-thumb {
+        background: rgba(255, 181, 150, 0.2);
+        border-radius: 4px;
+      }
+      .sidebar-nav::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 181, 150, 0.4);
+      }
+      
+      .nav-item {
+        position: relative;
+        overflow: hidden;
+      }
+      .nav-item::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 0;
+        height: 100%;
+        width: 3px;
+        background: linear-gradient(180deg, #ffb596 0%, #e1713d 100%);
+        transform: scaleY(0);
+        transition: transform 0.2s ease;
+        border-radius: 0 2px 2px 0;
+      }
+      .nav-item:hover::before,
+      .nav-item.active::before {
+        transform: scaleY(1);
+      }
+      .nav-item::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(90deg, rgba(255, 181, 150, 0.1) 0%, transparent 100%);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .nav-item:hover::after,
+      .nav-item.active::after {
+        opacity: 1;
+      }
+      
+      .nav-item-indicator {
+        position: absolute;
+        right: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        width: 6px;
+        height: 6px;
+        background: #ffb596;
+        border-radius: 50%;
+        box-shadow: 0 0 8px rgba(255, 181, 150, 0.6);
+        opacity: 0;
+        transition: opacity 0.2s ease;
+      }
+      .nav-item.active .nav-item-indicator {
+        opacity: 1;
+      }
+      
+      .nav-section-title {
+        font-size: 9px;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        color: rgba(223, 226, 236, 0.3);
+        padding: 16px 20px 8px;
+        font-weight: 700;
+      }
+      
+      .sidebar-glow {
+        position: absolute;
+        width: 200px;
+        height: 200px;
+        background: radial-gradient(circle, rgba(255, 181, 150, 0.08) 0%, transparent 70%);
+        pointer-events: none;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+      }
+      aside:hover .sidebar-glow {
+        opacity: 1;
+      }
+      
+      .user-card {
+        background: linear-gradient(135deg, rgba(49, 53, 61, 0.6) 0%, rgba(28, 32, 39, 0.8) 100%);
+        border: 1px solid rgba(86, 66, 58, 0.15);
+        backdrop-filter: blur(8px);
+      }
+      
+      .logout-btn {
+        background: rgba(255, 180, 171, 0.05);
+        border: 1px solid rgba(255, 180, 171, 0.1);
+        transition: all 0.2s ease;
+      }
+      .logout-btn:hover {
+        background: rgba(255, 180, 171, 0.1);
+        border-color: rgba(255, 180, 171, 0.2);
+        transform: translateX(2px);
+      }
     </style>
     {% block head %}{% endblock %}
   </head>
   <body class="bg-surface text-on-surface font-body selection:bg-primary/30 selection:text-primary-fixed antialiased">
     <!-- SideNavBar -->
-    <aside class="fixed left-0 top-0 h-screen w-[240px] z-50 bg-surface flex flex-col py-8 px-4 shadow-[1px_0_0_0_rgba(86,66,58,0.1)]" id="sidebar">
-      <div class="mb-10 px-4">
-        <h1 class="text-2xl font-black tracking-tighter text-primary">NTC</h1>
-        <p class="text-[10px] uppercase tracking-[0.2em] text-on-surface-variant/60 font-bold mt-1">Growth Editorial</p>
+    <aside class="fixed left-0 top-0 h-screen w-[260px] z-50 bg-gradient-to-b from-surface via-surface to-surface-container-low flex flex-col py-6 shadow-[2px_0_20px_rgba(0,0,0,0.3)]" id="sidebar" role="navigation" aria-label="Main navigation">
+      <div class="sidebar-glow"></div>
+      
+      <!-- Logo Section -->
+      <div class="mb-8 px-6">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-container flex items-center justify-center shadow-lg shadow-primary/20">
+            <span class="text-on-primary font-black text-lg">N</span>
+          </div>
+          <div>
+            <h1 class="text-xl font-black tracking-tight text-on-surface">NTC</h1>
+            <p class="text-[9px] uppercase tracking-[0.2em] text-on-surface-variant/50 font-bold">Growth Editorial</p>
+          </div>
+        </div>
       </div>
       
-      <nav class="flex-1 space-y-1 overflow-y-auto">
-        <a href="{{ url_for('index') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'index' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint == 'index' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>dashboard</span>
-          <span class="text-sm">Dashboard</span>
+      <!-- Navigation -->
+      <nav class="flex-1 overflow-y-auto sidebar-nav" aria-label="Primary">
+        <!-- Main Section -->
+        <div class="nav-section-title">Main</div>
+        
+        <a href="{{ url_for('index') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint == 'index' %}active{% endif %} group" aria-current="{% if request.endpoint == 'index' %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint == 'index' %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint == 'index' %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">dashboard</span>
+          <span class="text-sm font-medium {% if request.endpoint == 'index' %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Dashboard</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('trend_discovery') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'trend_discovery' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint == 'trend_discovery' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>explore</span>
-          <span class="text-sm">Discover</span>
+        
+        <a href="{{ url_for('trend_discovery') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint == 'trend_discovery' %}active{% endif %} group" aria-current="{% if request.endpoint == 'trend_discovery' %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint == 'trend_discovery' %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint == 'trend_discovery' %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">explore</span>
+          <span class="text-sm font-medium {% if request.endpoint == 'trend_discovery' %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Discover</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('drafts') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}style="font-variation-settings: 'FILL' 1;"{% endif %}>add_circle</span>
-          <span class="text-sm">Create</span>
+        
+        <a href="{{ url_for('trends') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint == 'trends' %}active{% endif %} group" aria-current="{% if request.endpoint == 'trends' %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint == 'trends' %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint == 'trends' %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">layers</span>
+          <span class="text-sm font-medium {% if request.endpoint == 'trends' %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Trends</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('selection') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'selection' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint == 'selection' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>filter_list</span>
-          <span class="text-sm">Selection</span>
+        
+        <a href="{{ url_for('selection') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint == 'selection' %}active{% endif %} group" aria-current="{% if request.endpoint == 'selection' %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint == 'selection' %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint == 'selection' %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">filter_list</span>
+          <span class="text-sm font-medium {% if request.endpoint == 'selection' %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Selection</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('trends') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'trends' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint == 'trends' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>layers</span>
-          <span class="text-sm">Trends</span>
+        
+        <!-- Content Section -->
+        <div class="nav-section-title mt-4">Content</div>
+        
+        <a href="{{ url_for('drafts') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}active{% endif %} group" aria-current="{% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">add_circle</span>
+          <span class="text-sm font-medium {% if request.endpoint in ['drafts', 'edit_draft', 'sources'] %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Create</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('qc') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'qc' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint == 'qc' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>fact_check</span>
-          <span class="text-sm">QC Queue</span>
+        
+        <a href="{{ url_for('qc') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint == 'qc' %}active{% endif %} group" aria-current="{% if request.endpoint == 'qc' %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint == 'qc' %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint == 'qc' %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">fact_check</span>
+          <span class="text-sm font-medium {% if request.endpoint == 'qc' %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">QC Queue</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('publish') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'publish' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint == 'publish' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>send</span>
-          <span class="text-sm">Publish</span>
+        
+        <a href="{{ url_for('publish') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint == 'publish' %}active{% endif %} group" aria-current="{% if request.endpoint == 'publish' %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint == 'publish' %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint == 'publish' %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">send</span>
+          <span class="text-sm font-medium {% if request.endpoint == 'publish' %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Publish</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('sites.list_sites') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if 'sites' in (request.endpoint or '') %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if 'sites' in (request.endpoint or '') %}style="font-variation-settings: 'FILL' 1;"{% endif %}>language</span>
-          <span class="text-sm">Sites</span>
+        
+        <!-- Manage Section -->
+        <div class="nav-section-title mt-4">Manage</div>
+        
+        <a href="{{ url_for('sites.list_sites') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if 'sites' in (request.endpoint or '') %}active{% endif %} group" aria-current="{% if 'sites' in (request.endpoint or '') %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if 'sites' in (request.endpoint or '') %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if 'sites' in (request.endpoint or '') %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">language</span>
+          <span class="text-sm font-medium {% if 'sites' in (request.endpoint or '') %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Sites</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('metrics') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'metrics' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint == 'metrics' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>analytics</span>
-          <span class="text-sm">Analytics</span>
+        
+        <a href="{{ url_for('metrics') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint == 'metrics' %}active{% endif %} group" aria-current="{% if request.endpoint == 'metrics' %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint == 'metrics' %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint == 'metrics' %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">analytics</span>
+          <span class="text-sm font-medium {% if request.endpoint == 'metrics' %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Analytics</span>
+          <span class="nav-item-indicator"></span>
         </a>
-        <a href="{{ url_for('settings') }}" class="flex items-center gap-3 px-4 py-3 rounded-md {% if request.endpoint == 'settings' %}text-primary font-bold border-r-2 border-primary bg-surface-container scale-[0.98]{% else %}text-on-surface-variant opacity-60 hover:opacity-100 hover:bg-surface-container-low transition-all{% endif %}">
-          <span class="material-symbols-outlined" {% if request.endpoint == 'settings' %}style="font-variation-settings: 'FILL' 1;"{% endif %}>settings</span>
-          <span class="text-sm">Settings</span>
+        
+        <a href="{{ url_for('settings') }}" class="nav-item flex items-center gap-3 px-5 py-3 mx-3 rounded-lg {% if request.endpoint == 'settings' %}active{% endif %} group" aria-current="{% if request.endpoint == 'settings' %}page{% endif %}">
+          <span class="material-symbols-outlined text-lg transition-all group-hover:scale-110 {% if request.endpoint == 'settings' %}text-primary{% else %}text-on-surface-variant/60 group-hover:text-primary{% endif %}" {% if request.endpoint == 'settings' %}style="font-variation-settings: 'FILL' 1;"{% endif %} aria-hidden="true">settings</span>
+          <span class="text-sm font-medium {% if request.endpoint == 'settings' %}text-primary{% else %}text-on-surface-variant/70 group-hover:text-on-surface{% endif %}">Settings</span>
+          <span class="nav-item-indicator"></span>
         </a>
       </nav>
       
-      <div class="mt-auto pt-6 border-t border-outline-variant/10 px-2">
-        <button class="w-full bg-gradient-to-br from-primary-container to-primary text-on-primary py-3 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 mb-6">
-          New Experiment
-        </button>
-        <div class="flex items-center gap-3 px-2">
-          <div class="w-10 h-10 rounded-full bg-surface-container-high flex items-center justify-center ring-2 ring-primary/20">
-            <span class="material-symbols-outlined text-primary">person</span>
-          </div>
-          <div class="overflow-hidden">
-            <p class="text-sm font-bold truncate">Operator</p>
-            <p class="text-[10px] text-on-surface-variant truncate">Growth Lead</p>
+      <!-- User Section -->
+      <div class="mt-auto px-3 pb-2">
+        <div class="user-card rounded-xl p-3 mb-3">
+          <div class="flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary/20 to-tertiary/20 flex items-center justify-center ring-1 ring-primary/30" aria-hidden="true">
+              <span class="material-symbols-outlined text-primary text-lg">person</span>
+            </div>
+            <div class="flex-1 min-w-0">
+              <p class="text-sm font-bold text-on-surface truncate">{{ current_user.username if current_user.is_authenticated else 'Operator' }}</p>
+              <p class="text-[10px] text-on-surface-variant/60 truncate">{{ current_user.role|title if current_user.is_authenticated else 'Growth Lead' }}</p>
+            </div>
           </div>
         </div>
+        
+        <a href="{{ url_for('auth.logout') }}" class="logout-btn flex items-center gap-3 px-4 py-2.5 rounded-lg text-on-surface-variant/70 w-full group" aria-label="Sign out">
+          <span class="material-symbols-outlined text-base group-hover:text-error transition-colors" aria-hidden="true">logout</span>
+          <span class="text-xs font-medium group-hover:text-error transition-colors">Sign Out</span>
+        </a>
       </div>
     </aside>
 
     <!-- Main Wrapper -->
-    <div class="ml-[240px] min-h-screen flex flex-col">
+    <div class="ml-[260px] min-h-screen flex flex-col">
       <!-- TopAppBar -->
-      <header class="sticky top-0 w-full z-40 flex items-center justify-between h-16 px-8 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-[0_40px_40px_-5px_rgba(10,14,21,0.6)]">
+      <header class="sticky top-0 w-full z-40 flex items-center justify-between h-16 px-8 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/10 shadow-[0_40px_40px_-5px_rgba(10,14,21,0.6)]" role="banner">
         <div class="flex items-center gap-4">
-          <button class="lg:hidden p-2 hover:bg-surface-container-high/40 rounded-full transition-all" onclick="toggleSidebar()">
-            <span class="material-symbols-outlined text-on-surface-variant">menu</span>
+          <button class="lg:hidden p-2 hover:bg-surface-container-high/40 rounded-full transition-all" onclick="toggleSidebar()" aria-label="Toggle navigation menu">
+            <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">menu</span>
           </button>
           <h2 class="font-bold text-xl tracking-tight">{% block page_title %}Dashboard{% endblock %}</h2>
-          <div class="h-4 w-[1px] bg-outline-variant/30 hidden md:block"></div>
+          <div class="h-4 w-[1px] bg-outline-variant/30 hidden md:block" aria-hidden="true"></div>
           <div class="relative group hidden md:block">
-            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/50 text-sm">search</span>
-            <input class="bg-surface-container-highest border-none rounded-full py-1.5 pl-10 pr-4 text-sm w-64 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-on-surface-variant/40" placeholder="Search growth vectors..." type="text"/>
+            <label for="global-search" class="sr-only">Search</label>
+            <span class="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/50 text-sm" aria-hidden="true">search</span>
+            <input id="global-search" class="bg-surface-container-highest border-none rounded-full py-1.5 pl-10 pr-4 text-sm w-64 focus:ring-1 focus:ring-primary/50 transition-all placeholder:text-on-surface-variant/40" placeholder="Search growth vectors..." type="search" aria-label="Search growth vectors"/>
           </div>
         </div>
         <div class="flex items-center gap-6">
           <div class="flex items-center gap-1">
-            <button class="p-2 hover:bg-surface-container-high/40 rounded-full transition-all relative">
-              <span class="material-symbols-outlined text-on-surface-variant">notifications</span>
-              <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-2 ring-surface"></span>
+            <button class="p-2 hover:bg-surface-container-high/40 rounded-full transition-all relative" aria-label="Notifications">
+              <span class="material-symbols-outlined text-on-surface-variant" aria-hidden="true">notifications</span>
+              <span class="absolute top-2 right-2 w-2 h-2 bg-primary rounded-full ring-2 ring-surface" aria-hidden="true"></span>
             </button>
           </div>
         </div>
       </header>
 
       <!-- Page Content Canvas -->
-      <main class="p-8 space-y-8 max-w-[1600px] mx-auto w-full">
+      <main class="p-8 space-y-8 max-w-[1600px] mx-auto w-full" role="main" id="main-content">
         {% with messages = get_flashed_messages(with_categories=true) %}
           {% if messages %}
-            <div class="space-y-2">
+            <div class="space-y-2" role="region" aria-live="polite" aria-label="Notifications">
               {% for category, message in messages %}
-                <div class="glass-card inner-stroke p-4 rounded-xl {% if category == 'error' %}border-error/30{% elif category == 'success' %}border-green-500/30{% elif category == 'warning' %}border-yellow-500/30{% endif %}">
+                <div class="glass-card inner-stroke p-4 rounded-xl {% if category == 'error' %}border-error/30{% elif category == 'success' %}border-green-500/30{% elif category == 'warning' %}border-yellow-500/30{% endif %}" role="alert">
                   <div class="flex items-center gap-3">
-                    <span class="material-symbols-outlined {% if category == 'error' %}text-error{% elif category == 'success' %}text-green-400{% elif category == 'warning' %}text-yellow-400{% else %}text-primary{% endif %}">
+                    <span class="material-symbols-outlined {% if category == 'error' %}text-error{% elif category == 'success' %}text-green-400{% elif category == 'warning' %}text-yellow-400{% else %}text-primary{% endif %}" aria-hidden="true">
                       {% if category == 'error' %}error{% elif category == 'success' %}check_circle{% elif category == 'warning' %}warning{% else %}info{% endif %}
                     </span>
                     <span class="text-sm">{{ message }}</span>

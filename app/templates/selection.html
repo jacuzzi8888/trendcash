@@ -10,6 +10,7 @@
   <div class="page-header-actions">
     <span class="status-badge status-locked"><i class="fa-solid fa-lock"></i> {{ category_locked }}</span>
     <form method="post" class="inline">
+      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <input type="hidden" name="category" value="__unlock__" />
       <button class="btn btn-ghost btn-sm" type="submit"><i class="fa-solid fa-unlock"></i> Unlock</button>
     </form>
@@ -99,6 +100,7 @@
               <span class="badge badge-success"><i class="fa-solid fa-lock"></i> Locked</span>
               {% else %}
               <form method="post" class="inline">
+                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
                 <input type="hidden" name="category" value="{{ row.category }}" />
                 <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-lock"></i> Lock</button>
               </form>
