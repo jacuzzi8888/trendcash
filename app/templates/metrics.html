@@ -68,25 +68,25 @@
     <div class="p-4 bg-surface-container-low rounded-xl">
       <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Indexing Rate</h4>
       <div class="h-[180px]">
-        <canvas id="indexingChart"></canvas>
+        <canvas id="indexingChart" style="width: 100%; height: 100%;"></canvas>
       </div>
     </div>
     <div class="p-4 bg-surface-container-low rounded-xl">
       <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Queries</h4>
       <div class="h-[180px]">
-        <canvas id="queriesChart"></canvas>
+        <canvas id="queriesChart" style="width: 100%; height: 100%;"></canvas>
       </div>
     </div>
     <div class="p-4 bg-surface-container-low rounded-xl">
       <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Click-Through Rate</h4>
       <div class="h-[180px]">
-        <canvas id="ctrChart"></canvas>
+        <canvas id="ctrChart" style="width: 100%; height: 100%;"></canvas>
       </div>
     </div>
     <div class="p-4 bg-surface-container-low rounded-xl">
       <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Average Position</h4>
       <div class="h-[180px]">
-        <canvas id="positionChart"></canvas>
+        <canvas id="positionChart" style="width: 100%; height: 100%;"></canvas>
       </div>
     </div>
   </div>
@@ -147,8 +147,9 @@
 </div>
 
 {% if metrics and metrics|length > 0 %}
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
 <script>
+document.addEventListener('DOMContentLoaded', function() {
   const metricsData = {{ metrics | reverse | tojson }};
   const labels = metricsData.map(m => m.metric_date);
   
@@ -221,6 +222,7 @@
     },
     options: { ...chartOptions, scales: { ...chartOptions.scales, y: { reverse: true, beginAtZero: false, grid: { color: 'rgba(255, 255, 255, 0.05)' } } } }
   });
+});
 </script>
 {% endif %}
 {% endblock %}
