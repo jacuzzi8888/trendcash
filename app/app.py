@@ -12,16 +12,6 @@ from flask import (
 
 from .db import get_db, init_db, get_setting, set_setting, utc_now
 from .sites import sites_bp
-from .publisher import publish_to_site, log_publish, get_publish_history
-from .trends_api import (
-    fetch_all_trends, get_interest_over_time, get_related_queries,
-    get_related_topics, get_suggestions
-)
-from .ai_writer import (
-    generate_article, improve_content, generate_headline,
-    generate_excerpt, generate_faqs, test_connection
-)
-from .source_fetcher import fetch_sources
 from .auth import auth_bp, login_manager, init_default_user
 from .security import (
     csrf, limiter, add_security_headers, get_secure_cookie_settings,
@@ -60,12 +50,18 @@ def create_app():
     limiter.init_app(app)
     login_manager.init_app(app)
     
-    init_db()
+    @app.route("/health")
+    def health():
+        return jsonify({"status": "ok"})
     
-    from .db import get_db
-    conn = get_db()
-    init_default_user(conn)
-    conn.close()
+    @app.route("/warmup")
+    def warmup():
+        init_db()
+        from .db import get_db
+        conn = get_db()
+        init_default_user(conn)
+        conn.close()
+        return jsonify({"status": "warmed up"})
     
     @app.after_request
     def security_headers(response):
@@ -292,6 +288,12 @@ def create_app():
     @login_required
     @limiter.limit("30 per hour")
     def trend_discovery():
+        from .trends_api import (
+            fetch_all_trends, get_interest_over_time, get_related_queries,
+            get_related_topics, get_suggestions
+        )
+        from .source_fetcher import fetch_sources
+        
         conn = get_db()
         keyword = sanitize_input(request.args.get("keyword", "").strip(), max_length=100)
         explore_geo = sanitize_input(request.args.get("explore_geo", "NG"), max_length=5)
@@ -747,6 +749,8 @@ def create_app():
     @app.route("/publish", methods=["GET", "POST"])
     @login_required
     def publish():
+        from .publisher import publish_to_site, log_publish, get_publish_history
+        
         conn = get_db()
         if request.method == "POST":
             action = sanitize_input(request.form.get("action", ""), max_length=20)
@@ -944,6 +948,8 @@ def create_app():
     @login_required
     @limiter.limit("20 per hour")
     def ai_generate(candidate_id):
+        from .ai_writer import generate_article
+        
         conn = get_db()
         candidate = conn.execute(
             "SELECT * FROM trend_candidates WHERE id = ?", (candidate_id,)
@@ -988,6 +994,8 @@ def create_app():
     @login_required
     @limiter.limit("30 per hour")
     def ai_improve():
+        from .ai_writer import improve_content
+        
         content = request.form.get("content", "")
         instructions = sanitize_input(request.form.get("instructions", "Improve clarity and flow"), max_length=200)
         
@@ -1004,6 +1012,8 @@ def create_app():
     @login_required
     @limiter.limit("30 per hour")
     def ai_headlines():
+        from .ai_writer import generate_headline
+        
         topic = sanitize_input(request.form.get("topic", ""), max_length=200)
         angle = sanitize_input(request.form.get("angle", "news"), max_length=20)
         
@@ -1020,6 +1030,8 @@ def create_app():
     @login_required
     @limiter.limit("30 per hour")
     def ai_excerpt():
+        from .ai_writer import generate_excerpt
+        
         content = request.form.get("content", "")
         try:
             max_length = int(request.form.get("max_length", 160))
@@ -1040,6 +1052,8 @@ def create_app():
     @login_required
     @limiter.limit("30 per hour")
     def ai_faqs():
+        from .ai_writer import generate_faqs
+        
         topic = sanitize_input(request.form.get("topic", ""), max_length=200)
         context = request.form.get("context", "")
         
@@ -1055,6 +1069,8 @@ def create_app():
     @app.route("/ai/test", methods=["POST"])
     @login_required
     def ai_test():
+        from .ai_writer import test_connection
+        
         encrypted_key = get_setting(get_db(), "gemini_api_key", "")
         api_key = decrypt_value(encrypted_key) if encrypted_key else None
         result = test_connection(api_key=api_key)

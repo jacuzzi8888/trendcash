@@ -2,7 +2,9 @@ import os
 import json
 import requests
 from datetime import datetime, timezone
+from functools import lru_cache
 
+_session = None
 
 def _utc_now():
     return datetime.now(timezone.utc).isoformat()
@@ -11,12 +13,31 @@ def _utc_now():
 TURSO_DATABASE_URL = os.environ.get('TURSO_DATABASE_URL', '')
 TURSO_AUTH_TOKEN = os.environ.get('TURSO_AUTH_TOKEN', '')
 
-# Convert libsql:// URL to https:// for HTTP API
+
+def _get_session():
+    global _session
+    if _session is None:
+        _session = requests.Session()
+        _session.headers.update({
+            'Authorization': f'Bearer {TURSO_AUTH_TOKEN}',
+            'Content-Type': 'application/json'
+        })
+    return _session
+
+
 def _get_http_url():
     url = TURSO_DATABASE_URL
     if url.startswith('libsql://'):
         url = 'https://' + url[9:]
     return url
+
+
+_http_url = None
+def get_http_url():
+    global _http_url
+    if _http_url is None:
+        _http_url = _get_http_url()
+    return _http_url
 
 
 def get_turso_db():
@@ -28,6 +49,8 @@ def get_turso_db():
 
 
 class TursoRow:
+    __slots__ = ['_data']
+    
     def __init__(self, data, columns):
         self._data = dict(zip(columns, data))
     
@@ -42,6 +65,8 @@ class TursoRow:
 
 
 class TursoCursor:
+    __slots__ = ['_rows', '_columns', 'rowcount', 'description', 'lastrowid']
+    
     def __init__(self, rows, columns, lastrowid=None):
         self._rows = rows or []
         self._columns = columns or []
@@ -59,13 +84,11 @@ class TursoCursor:
 
 
 class TursoConnection:
+    __slots__ = ['url', '_session']
+    
     def __init__(self):
-        self.url = _get_http_url()
-        self.token = TURSO_AUTH_TOKEN
-        self.headers = {
-            'Authorization': f'Bearer {self.token}',
-            'Content-Type': 'application/json'
-        }
+        self.url = get_http_url()
+        self._session = _get_session()
     
     def execute(self, sql, params=None):
         params = params or ()
@@ -78,11 +101,10 @@ class TursoConnection:
             ]
         }
         
-        response = requests.post(
+        response = self._session.post(
             self.url,
-            headers=self.headers,
             json=payload,
-            timeout=30
+            timeout=15
         )
         
         if response.status_code != 200:
@@ -103,9 +125,8 @@ class TursoConnection:
             sql_upper = sql.strip().upper()
             if sql_upper.startswith('INSERT'):
                 try:
-                    id_result = requests.post(
+                    id_result = self._session.post(
                         self.url,
-                        headers=self.headers,
                         json={'statements': [{'q': 'SELECT last_insert_rowid() as id'}]},
                         timeout=10
                     )
@@ -132,6 +153,14 @@ class TursoConnection:
     
     def close(self):
         pass
+
+
+@lru_cache(maxsize=32)
+def _get_cached_setting(key):
+    conn = get_turso_db()
+    result = conn.execute("SELECT value FROM settings WHERE key = ?", (key,))
+    row = result.fetchone()
+    return row['value'] if row else None
 
 
 def init_turso_db():
