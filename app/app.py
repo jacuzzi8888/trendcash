@@ -104,6 +104,19 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(sites_bp)
 
+    @app.route("/setup-admin")
+    def setup_admin():
+        from .auth import ensure_admin_user
+        conn = get_db()
+        try:
+            ensure_admin_user(conn, "admin", "admin123")
+            conn.commit()
+            conn.close()
+            return jsonify({"status": "success", "message": "Admin user created/updated", "credentials": {"username": "admin", "password": "admin123"}})
+        except Exception as e:
+            conn.close()
+            return jsonify({"status": "error", "message": str(e)})
+
     @app.route("/")
     @login_required
     def index():

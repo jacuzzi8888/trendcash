@@ -59,14 +59,26 @@ def update_password(conn, user_id, new_password):
 
 
 def init_default_user(conn):
+    default_user = os.environ.get("NTC_DEFAULT_USER", "admin")
+    default_pass = os.environ.get("NTC_DEFAULT_PASSWORD")
+    
     existing = conn.execute("SELECT COUNT(*) as c FROM users").fetchone()
     if existing and existing["c"] > 0:
         return
-    default_user = os.environ.get("NTC_DEFAULT_USER", "admin")
-    default_pass = os.environ.get("NTC_DEFAULT_PASSWORD")
+    
     if default_pass:
         create_user(conn, default_user, default_pass, role="admin")
         conn.commit()
+
+
+def ensure_admin_user(conn, username="admin", password="admin123"):
+    existing = conn.execute("SELECT id FROM users WHERE username = ?", (username,)).fetchone()
+    if existing:
+        password_hash = generate_password_hash(password)
+        conn.execute("UPDATE users SET password_hash = ? WHERE username = ?", (password_hash, username))
+        conn.commit()
+        return existing["id"]
+    return create_user(conn, username, password, role="admin")
 
 
 @login_manager.user_loader
