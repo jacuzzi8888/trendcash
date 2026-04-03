@@ -938,10 +938,11 @@ def create_app():
             "SELECT * FROM metrics ORDER BY metric_date DESC LIMIT 120"
         ).fetchall()
         conn.close()
+        metrics_list = [dict(row) for row in rows]
         return render_template(
             "metrics.html",
             title=APP_TITLE,
-            metrics=rows,
+            metrics=metrics_list,
         )
 
     @app.route("/ai/generate/<int:candidate_id>", methods=["POST"])
