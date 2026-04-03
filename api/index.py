@@ -1,11 +1,15 @@
 import sys
 import os
 import traceback
-from flask import Flask, jsonify
+from flask import Flask, jsonify, request
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 app = Flask(__name__)
+
+# Log initialization errors to help debug
+init_error = None
+init_traceback = None
 
 try:
     from app.app import create_app
@@ -39,12 +43,24 @@ try:
     def handle_exception(e):
         is_debug = os.environ.get("FLASK_DEBUG", "false").lower() == "true"
         if is_debug:
-            return jsonify({"error": str(e)}), 500
+            return jsonify({"error": str(e), "traceback": traceback.format_exc()}), 500
         return jsonify({"error": "An unexpected error occurred"}), 500
         
 except Exception as e:
-    error_msg = str(e) if os.environ.get("FLASK_DEBUG") == "true" else "Application initialization failed"
+    init_error = str(e)
+    init_traceback = traceback.format_exc()
+    
+    # Print to stderr for Vercel logs
+    print(f"INITIALIZATION ERROR: {init_error}", file=sys.stderr)
+    print(f"TRACEBACK:\n{init_traceback}", file=sys.stderr)
+    
     @app.route("/", defaults={"path": ""})
     @app.route("/<path:path>")
     def catch_all(path):
-        return jsonify({"error": error_msg}), 500
+        # Always show error details for debugging initialization issues
+        return jsonify({
+            "error": "Application initialization failed",
+            "details": init_error,
+            "traceback": init_traceback,
+            "hint": "Check Vercel environment variables: NTC_SECRET_KEY is required"
+        }), 500
