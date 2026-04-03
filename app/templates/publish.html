@@ -32,9 +32,9 @@
           {% for d in approved %}
           <tr class="hover:bg-surface-container-high/30 transition-colors">
             <td class="px-6 py-4">
-              <a href="{{ url_for('edit_draft', draft_id=d.id) }}" class="font-medium text-primary hover:text-primary-fixed transition-colors">{{ d.title[:40] }}{% if d.title|length > 40 %}...{% endif %}</a>
+              <a href="{{ url_for('edit_draft', draft_id=d.id) }}" class="font-medium text-primary hover:text-primary-fixed transition-colors" data-tooltip="{{ d.title }}">{{ d.title[:40] }}{% if d.title|length > 40 %}...{% endif %}</a>
             </td>
-            <td class="px-6 py-4 text-on-surface-variant text-sm">{{ d.topic[:25] }}{% if d.topic|length > 25 %}...{% endif %}</td>
+            <td class="px-6 py-4 text-on-surface-variant text-sm" data-tooltip="{{ d.topic }}">{{ d.topic[:25] }}{% if d.topic|length > 25 %}...{% endif %}</td>
             <td class="px-6 py-4">
               <span class="text-[10px] font-bold bg-surface-container-high px-2 py-1 rounded">{{ d.category }}</span>
             </td>

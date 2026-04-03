@@ -1,167 +1,114 @@
 {% extends "base.html" %}
 {% block page_title %}{% if site %}Edit Site{% else %}Add Site{% endif %}{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>{% if site %}Edit Site{% else %}Add New Site{% endif %}</h1>
-    <p class="muted">Configure your publishing destination</p>
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">{% if site %}Edit Site{% else %}Add New Site{% endif %}</h1>
+    <p class="text-on-surface-variant text-sm">Configure your publishing destination</p>
   </div>
+  <a href="{{ url_for('sites.list_sites') }}" class="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-lg text-xs font-bold transition-colors flex items-center gap-2">
+    <span class="material-symbols-outlined text-sm">arrow_back</span>
+    Back to Sites
+  </a>
 </div>
 
-<div class="card">
-  <div class="card-body">
-    <form method="POST">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <div class="form-section">
-        <h3 class="form-section-title"><i class="fa-solid fa-info-circle"></i> Basic Information</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="name">Site Name *</label>
-            <input type="text" id="name" name="name" value="{{ site.name if site else '' }}" required placeholder="My Finance Blog" />
-          </div>
-          <div class="form-group">
-            <label for="slug">Slug *</label>
-            <input type="text" id="slug" name="slug" value="{{ site.slug if site else '' }}" required placeholder="my-finance-blog" />
-            <span class="hint">URL-friendly identifier, lowercase, no spaces</span>
-          </div>
-          <div class="form-group">
-            <label for="niche">Niche *</label>
-            <select id="niche" name="niche" required>
-              <option value="">Select a niche</option>
-              <option value="finance" {% if site and site.niche == 'finance' %}selected{% endif %}>Finance</option>
-              <option value="technology" {% if site and site.niche == 'technology' %}selected{% endif %}>Technology</option>
-              <option value="education" {% if site and site.niche == 'education' %}selected{% endif %}>Education</option>
-              <option value="entertainment" {% if site and site.niche == 'entertainment' %}selected{% endif %}>Entertainment</option>
-              <option value="health" {% if site and site.niche == 'health' %}selected{% endif %}>Health</option>
-              <option value="news" {% if site and site.niche == 'news' %}selected{% endif %}>News</option>
-              <option value="sports" {% if site and site.niche == 'sports' %}selected{% endif %}>Sports</option>
-              <option value="lifestyle" {% if site and site.niche == 'lifestyle' %}selected{% endif %}>Lifestyle</option>
-              <option value="betting" {% if site and site.niche == 'betting' %}selected{% endif %}>Betting Tips</option>
-              <option value="other" {% if site and site.niche == 'other' %}selected{% endif %}>Other</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label for="categories">Categories</label>
-            <input type="text" id="categories" name="categories" value="{{ site.categories_list|join(', ') if site and site.categories_list else '' }}" placeholder="grants, loans, budgeting" />
-            <span class="hint">Comma-separated categories this site accepts</span>
-          </div>
+<!-- Form Card -->
+<div class="glass-card inner-stroke p-6 rounded-2xl">
+  <form method="POST" class="space-y-8">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    
+    <!-- Basic Information -->
+    <div>
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-primary/10 rounded-lg">
+          <span class="material-symbols-outlined text-primary">info</span>
         </div>
-        <div class="form-group">
-          <label for="description">Description</label>
-          <textarea id="description" name="description" rows="2" placeholder="Brief description of the site">{{ site.description if site else '' }}</textarea>
-        </div>
+        <h3 class="text-lg font-bold">Basic Information</h3>
       </div>
-
-      <div class="form-section form-section-highlight">
-        <h3 class="form-section-title"><i class="fa-solid fa-plug"></i> API Configuration</h3>
-        <div class="form-grid">
-          <div class="form-group">
-            <label for="api_url">API URL *</label>
-            <input type="url" id="api_url" name="api_url" value="{{ site.api_url if site else '' }}" required placeholder="https://mysite.com/api/content" />
-            <span class="hint">Full URL to the content endpoint</span>
-          </div>
-          <div class="form-group">
-            <label for="api_key">API Key</label>
-            <input type="password" id="api_key" name="api_key" value="{{ site.api_key if site else '' }}" placeholder="Bearer token for authentication" />
-            <span class="hint">Sent as Authorization: Bearer {key}</span>
-          </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="name" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Site Name *</label>
+          <input type="text" id="name" name="name" value="{{ site.name if site else '' }}" required placeholder="My Finance Blog" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+        </div>
+        <div>
+          <label for="slug" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Slug *</label>
+          <input type="text" id="slug" name="slug" value="{{ site.slug if site else '' }}" required placeholder="my-finance-blog" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+          <p class="text-[11px] text-on-surface-variant/40 mt-1">URL-friendly identifier, lowercase, no spaces</p>
+        </div>
+        <div>
+          <label for="niche" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Niche *</label>
+          <select id="niche" name="niche" required class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50">
+            <option value="">Select a niche</option>
+            <option value="finance" {% if site and site.niche == 'finance' %}selected{% endif %}>Finance</option>
+            <option value="technology" {% if site and site.niche == 'technology' %}selected{% endif %}>Technology</option>
+            <option value="education" {% if site and site.niche == 'education' %}selected{% endif %}>Education</option>
+            <option value="entertainment" {% if site and site.niche == 'entertainment' %}selected{% endif %}>Entertainment</option>
+            <option value="health" {% if site and site.niche == 'health' %}selected{% endif %}>Health</option>
+            <option value="news" {% if site and site.niche == 'news' %}selected{% endif %}>News</option>
+            <option value="sports" {% if site and site.niche == 'sports' %}selected{% endif %}>Sports</option>
+            <option value="lifestyle" {% if site and site.niche == 'lifestyle' %}selected{% endif %}>Lifestyle</option>
+            <option value="betting" {% if site and site.niche == 'betting' %}selected{% endif %}>Betting Tips</option>
+            <option value="other" {% if site and site.niche == 'other' %}selected{% endif %}>Other</option>
+          </select>
+        </div>
+        <div>
+          <label for="categories" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Categories</label>
+          <input type="text" id="categories" name="categories" value="{{ site.categories_list|join(', ') if site and site.categories_list else '' }}" placeholder="grants, loans, budgeting" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+          <p class="text-[11px] text-on-surface-variant/40 mt-1">Comma-separated categories this site accepts</p>
         </div>
       </div>
-
-      <div class="form-group">
-        <label class="toggle">
-          <input type="checkbox" name="is_active" {% if not site or site.is_active %}checked{% endif %} />
-          <span class="toggle-slider"></span>
-          <span class="toggle-label">Site is active (can receive content)</span>
-        </label>
+      
+      <div class="mt-4">
+        <label for="description" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Description</label>
+        <textarea id="description" name="description" rows="2" placeholder="Brief description of the site" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50">{{ site.description if site else '' }}</textarea>
       </div>
-
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary"><i class="fa-solid fa-save"></i> {{ 'Update Site' if site else 'Create Site' }}</button>
-        <a href="{{ url_for('sites.list_sites') }}" class="btn btn-ghost">Cancel</a>
+    </div>
+    
+    <!-- API Configuration -->
+    <div class="p-6 bg-surface-container-low rounded-xl border border-outline-variant/10">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-tertiary/10 rounded-lg">
+          <span class="material-symbols-outlined text-tertiary">api</span>
+        </div>
+        <h3 class="text-lg font-bold">API Configuration</h3>
       </div>
-    </form>
-  </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div>
+          <label for="api_url" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">API URL *</label>
+          <input type="url" id="api_url" name="api_url" value="{{ site.api_url if site else '' }}" required placeholder="https://mysite.com/api/content" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+          <p class="text-[11px] text-on-surface-variant/40 mt-1">Full URL to the content endpoint</p>
+        </div>
+        <div>
+          <label for="api_key" class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">API Key</label>
+          <input type="password" id="api_key" name="api_key" value="{{ site.api_key if site else '' }}" placeholder="Bearer token for authentication" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+          <p class="text-[11px] text-on-surface-variant/40 mt-1">Sent as Authorization: Bearer {key}</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Active Toggle -->
+    <div class="flex items-center justify-between p-4 bg-surface-container-low rounded-xl">
+      <div>
+        <div class="font-medium">Site Status</div>
+        <p class="text-[11px] text-on-surface-variant/40">Active sites can receive published content</p>
+      </div>
+      <label class="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" name="is_active" id="is_active" {% if not site or site.is_active %}checked{% endif %} class="sr-only peer" />
+        <div class="w-11 h-6 bg-surface-container-highest rounded-full peer peer-checked:bg-green-500 after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:after:translate-x-full"></div>
+      </label>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex gap-3">
+      <button type="submit" class="bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">save</span>
+        {{ 'Update Site' if site else 'Create Site' }}
+      </button>
+      <a href="{{ url_for('sites.list_sites') }}" class="px-6 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-xl font-bold text-sm transition-colors">Cancel</a>
+    </div>
+  </form>
 </div>
-
-<style>
-.form-section {
-  margin-bottom: var(--space-6);
-}
-
-.form-section-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--on-surface);
-  margin-bottom: var(--space-4);
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.form-section-title i {
-  color: var(--primary);
-}
-
-.form-section-highlight {
-  background: var(--surface-container-high);
-  padding: var(--space-5);
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--border);
-}
-
-.hint {
-  display: block;
-  margin-top: 4px;
-  font-size: 12px;
-  color: var(--on-surface-variant);
-}
-
-.toggle {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  cursor: pointer;
-}
-
-.toggle input { display: none; }
-
-.toggle-slider {
-  width: 44px;
-  height: 24px;
-  background: var(--surface-container-highest);
-  border-radius: 12px;
-  position: relative;
-  transition: background 0.2s;
-  border: 1px solid var(--border);
-}
-
-.toggle-slider::after {
-  content: '';
-  position: absolute;
-  width: 18px;
-  height: 18px;
-  background: var(--on-surface);
-  border-radius: 50%;
-  top: 2px;
-  left: 2px;
-  transition: transform 0.2s;
-}
-
-.toggle input:checked + .toggle-slider {
-  background: var(--success);
-  border-color: var(--success);
-}
-
-.toggle input:checked + .toggle-slider::after {
-  transform: translateX(20px);
-  background: white;
-}
-
-.toggle-label {
-  font-weight: 500;
-  color: var(--on-surface);
-}
-</style>
 {% endblock %}

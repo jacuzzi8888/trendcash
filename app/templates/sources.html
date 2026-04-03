@@ -1,97 +1,132 @@
 {% extends "base.html" %}
 {% block page_title %}Source Pack{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Source Pack</h1>
-    <p class="muted">Gather reference articles for "{{ candidate.topic }}"</p>
-  </div>
+<!-- Page Header -->
+<div class="mb-6">
+  <h1 class="text-2xl font-bold tracking-tight">Source Pack</h1>
+  <p class="text-on-surface-variant text-sm">Gather reference articles for "{{ candidate.topic }}"</p>
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Add Source</h2>
-  </div>
-  <div class="card-body">
-    <form method="post" class="form-grid">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <div class="form-group">
-        <label>Source URL</label>
-        <input name="url" placeholder="https://official.gov.ng/..." required />
-      </div>
-      <div class="form-group">
-        <label>Publisher</label>
-        <input name="publisher" placeholder="Official Agency, Newsroom" required />
-      </div>
-      <div class="form-group">
-        <label>Published at (optional)</label>
-        <input name="published_at" type="date" placeholder="2026-03-25" />
-      </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <input name="notes" placeholder="Key facts or link section" />
-      </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-plus"></i> Add Source</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title">Existing Sources <span class="badge badge-info">{{ sources|length }}</span></h2>
-  </div>
-  <div class="card-body">
-    {% if sources %}
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Publisher</th>
-            <th>URL</th>
-            <th>Published</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for s in sources %}
-          <tr>
-            <td>{{ s.publisher or "-" }}</td>
-            <td><a href="{{ s.url }}" target="_blank" class="link">{{ s.url[:50] }}{% if s.url|length > 50 %}...{% endif %}</a></td>
-            <td>{{ s.published_at or "-" }}</td>
-            <td>{{ (s.notes or "")[:50] }}{% if s.notes and s.notes|length > 50 %}...{% endif %}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<!-- Add Source Form -->
+<div class="glass-card inner-stroke p-6 rounded-2xl mb-6">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="p-2 bg-primary/10 rounded-lg">
+      <span class="material-symbols-outlined text-primary">add_circle</span>
     </div>
-    {% else %}
-    <p class="muted">No sources yet. Add sources above or fetch trends with auto-sources enabled.</p>
-    {% endif %}
+    <h3 class="text-lg font-bold">Add Source</h3>
   </div>
+  
+  <form method="post" class="space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Source URL</label>
+        <input name="url" placeholder="https://official.gov.ng/..." required class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Publisher</label>
+        <input name="publisher" placeholder="Official Agency, Newsroom" required class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+      </div>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Published at (optional)</label>
+        <input name="published_at" type="date" placeholder="2026-03-25" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+      </div>
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Notes</label>
+        <input name="notes" placeholder="Key facts or link section" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
+      </div>
+    </div>
+    
+    <button type="submit" class="bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm">add</span>
+      Add Source
+    </button>
+  </form>
 </div>
 
+<!-- Existing Sources -->
+<div class="glass-card inner-stroke p-6 rounded-2xl mb-6">
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-tertiary/10 rounded-lg">
+        <span class="material-symbols-outlined text-tertiary">link</span>
+      </div>
+      <h3 class="text-lg font-bold">Existing Sources</h3>
+    </div>
+    <span class="text-[10px] font-bold bg-tertiary/20 text-tertiary px-3 py-1.5 rounded-full">{{ sources|length }} source{{ 's' if sources|length != 1 else '' }}</span>
+  </div>
+  
+  {% if sources %}
+  <div class="tonal-stack-1 rounded-xl overflow-hidden border border-outline-variant/10">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-outline-variant/10">
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Publisher</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">URL</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Published</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Notes</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant/5">
+        {% for s in sources %}
+        <tr class="hover:bg-surface-container-high/30 transition-colors">
+          <td class="px-6 py-4 font-medium">{{ s.publisher or "-" }}</td>
+          <td class="px-6 py-4">
+            <a href="{{ s.url }}" target="_blank" class="text-primary hover:text-primary-fixed transition-colors flex items-center gap-1" data-tooltip="{{ s.url }}">
+              <span class="truncate max-w-[200px]">{{ s.url[:50] }}{% if s.url|length > 50 %}...{% endif %}</span>
+              <span class="material-symbols-outlined text-sm">open_in_new</span>
+            </a>
+          </td>
+          <td class="px-6 py-4 text-on-surface-variant text-sm">{{ s.published_at or "-" }}</td>
+          <td class="px-6 py-4 text-on-surface-variant text-sm">{{ (s.notes or "")[:50] }}{% if s.notes and s.notes|length > 50 %}...{% endif %}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-8">
+    <span class="material-symbols-outlined text-4xl text-on-surface-variant/30 mb-3">link_off</span>
+    <p class="text-on-surface-variant/60 text-sm">No sources yet. Add sources above or fetch trends with auto-sources enabled.</p>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Create Draft Card -->
 {% if sources|length >= 2 %}
-<div class="card card-highlight">
-  <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Create Draft</h2>
+<div class="glass-card inner-stroke p-6 rounded-2xl border-green-500/20 bg-green-500/5">
+  <div class="flex items-center gap-3 mb-4">
+    <div class="p-2 bg-green-500/10 rounded-lg">
+      <span class="material-symbols-outlined text-green-400">auto_awesome</span>
+    </div>
+    <h3 class="text-lg font-bold">Create Draft</h3>
   </div>
-  <div class="card-body">
-    <p class="muted">You have {{ sources|length }} sources. Ready to create a draft with AI assistance.</p>
-    <form method="post" action="{{ url_for('create_draft', candidate_id=candidate.id) }}">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <button class="btn btn-primary" type="submit"><i class="fa-solid fa-wand-magic-sparkles"></i> Create AI Draft</button>
-    </form>
-  </div>
+  <p class="text-on-surface-variant text-sm mb-4">You have <span class="font-bold text-green-400">{{ sources|length }}</span> sources. Ready to create a draft with AI assistance.</p>
+  <form method="post" action="{{ url_for('create_draft', candidate_id=candidate.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <button type="submit" class="bg-gradient-to-br from-green-500 to-green-600 text-white py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-green-500/10 transition-transform active:scale-95 flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm">edit_note</span>
+      Create AI Draft
+    </button>
+  </form>
 </div>
 {% else %}
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-wand-magic-sparkles"></i> Create Draft</h2>
+<div class="glass-card inner-stroke p-6 rounded-2xl">
+  <div class="flex items-center gap-3 mb-4">
+    <div class="p-2 bg-yellow-500/10 rounded-lg">
+      <span class="material-symbols-outlined text-yellow-400">info</span>
+    </div>
+    <h3 class="text-lg font-bold">Create Draft</h3>
   </div>
-  <div class="card-body">
-    <p class="muted">Add at least 2 sources to enable draft creation. Currently: {{ sources|length }} source(s).</p>
+  <p class="text-on-surface-variant text-sm">Add at least <span class="font-bold text-yellow-400">2 sources</span> to enable draft creation. Currently: <span class="font-bold">{{ sources|length }}</span> source{{ 's' if sources|length != 1 else '' }}.</p>
+  <div class="mt-4 flex items-center gap-2">
+    <div class="flex-1 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+      <div class="h-full bg-yellow-500 rounded-full transition-all" style="width: {{ (sources|length / 2 * 100)|min(100) }}%"></div>
+    </div>
+    <span class="text-xs font-bold text-yellow-400">{{ sources|length }}/2</span>
   </div>
 </div>
 {% endif %}

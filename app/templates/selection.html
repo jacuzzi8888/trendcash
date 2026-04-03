@@ -1,237 +1,185 @@
 {% extends "base.html" %}
 {% block page_title %}Selection{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Category Selection</h1>
-    <p class="muted">Rank and select categories based on scoring rubric</p>
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Category Selection</h1>
+    <p class="text-on-surface-variant text-sm">Rank and select categories based on scoring rubric</p>
   </div>
   {% if category_locked %}
-  <div class="page-header-actions">
-    <span class="status-badge status-locked"><i class="fa-solid fa-lock"></i> {{ category_locked }}</span>
-    <form method="post" class="inline">
+  <div class="flex items-center gap-3">
+    <span class="text-[10px] font-bold bg-primary/20 text-primary px-3 py-1.5 rounded-full flex items-center gap-1">
+      <span class="material-symbols-outlined text-sm">lock</span>
+      {{ category_locked }}
+    </span>
+    <form method="post">
       <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
       <input type="hidden" name="category" value="__unlock__" />
-      <button class="btn btn-ghost btn-sm" type="submit"><i class="fa-solid fa-unlock"></i> Unlock</button>
+      <button type="submit" class="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest rounded-lg text-xs font-bold transition-colors flex items-center gap-2">
+        <span class="material-symbols-outlined text-sm">lock_open</span>
+        Unlock
+      </button>
     </form>
   </div>
   {% endif %}
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-chart-bar"></i> Scoring Weights</h2>
+<!-- Scoring Weights -->
+<div class="glass-card inner-stroke p-6 rounded-2xl mb-6">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="p-2 bg-primary/10 rounded-lg">
+      <span class="material-symbols-outlined text-primary">tune</span>
+    </div>
+    <h3 class="text-lg font-bold">Scoring Weights</h3>
   </div>
-  <div class="card-body">
-    <div class="weights-grid">
-      <div class="weight-item">
-        <div class="weight-label">Velocity</div>
-        <div class="weight-bar">
-          <div class="weight-fill" style="width: {{ weights.velocity * 100 }}%"></div>
-        </div>
-        <div class="weight-value">{{ (weights.velocity * 100)|int }}%</div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-tertiary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-tertiary text-sm">speed</span>
       </div>
-      <div class="weight-item">
-        <div class="weight-label">Advertiser Safety</div>
-        <div class="weight-bar">
-          <div class="weight-fill" style="width: {{ weights.advertiser_safety * 100 }}%"></div>
+      <div class="flex-1">
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium">Velocity</span>
+          <span class="text-sm font-bold text-primary">{{ (weights.velocity * 100)|int }}%</span>
         </div>
-        <div class="weight-value">{{ (weights.advertiser_safety * 100)|int }}%</div>
+        <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary-container to-primary rounded-full transition-all" style="width: {{ weights.velocity * 100 }}%"></div>
+        </div>
       </div>
-      <div class="weight-item">
-        <div class="weight-label">Commercial Intent</div>
-        <div class="weight-bar">
-          <div class="weight-fill" style="width: {{ weights.commercial_intent * 100 }}%"></div>
-        </div>
-        <div class="weight-value">{{ (weights.commercial_intent * 100)|int }}%</div>
+    </div>
+    
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-green-400 text-sm">shield</span>
       </div>
-      <div class="weight-item">
-        <div class="weight-label">Evergreen</div>
-        <div class="weight-bar">
-          <div class="weight-fill" style="width: {{ weights.evergreen * 100 }}%"></div>
+      <div class="flex-1">
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium">Advertiser Safety</span>
+          <span class="text-sm font-bold text-primary">{{ (weights.advertiser_safety * 100)|int }}%</span>
         </div>
-        <div class="weight-value">{{ (weights.evergreen * 100)|int }}%</div>
+        <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary-container to-primary rounded-full transition-all" style="width: {{ weights.advertiser_safety * 100 }}%"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-yellow-400 text-sm">payments</span>
+      </div>
+      <div class="flex-1">
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium">Commercial Intent</span>
+          <span class="text-sm font-bold text-primary">{{ (weights.commercial_intent * 100)|int }}%</span>
+        </div>
+        <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary-container to-primary rounded-full transition-all" style="width: {{ weights.commercial_intent * 100 }}%"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex items-center gap-4">
+      <div class="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+        <span class="material-symbols-outlined text-primary text-sm">park</span>
+      </div>
+      <div class="flex-1">
+        <div class="flex justify-between mb-2">
+          <span class="text-sm font-medium">Evergreen</span>
+          <span class="text-sm font-bold text-primary">{{ (weights.evergreen * 100)|int }}%</span>
+        </div>
+        <div class="h-2 bg-surface-container-highest rounded-full overflow-hidden">
+          <div class="h-full bg-gradient-to-r from-primary-container to-primary rounded-full transition-all" style="width: {{ weights.evergreen * 100 }}%"></div>
+        </div>
       </div>
     </div>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-ranking-star"></i> Ranked Categories</h2>
-    <span class="muted">Last 14 days</span>
+<!-- Ranked Categories -->
+<div class="glass-card inner-stroke p-6 rounded-2xl">
+  <div class="flex items-center justify-between mb-6">
+    <div class="flex items-center gap-3">
+      <div class="p-2 bg-tertiary/10 rounded-lg">
+        <span class="material-symbols-outlined text-tertiary">leaderboard</span>
+      </div>
+      <h3 class="text-lg font-bold">Ranked Categories</h3>
+    </div>
+    <span class="text-[10px] font-bold bg-surface-container-high px-3 py-1.5 rounded-full text-on-surface-variant">Last 14 days</span>
   </div>
-  <div class="card-body">
-    {% if scores %}
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Category</th>
-            <th>Avg Score</th>
-            <th>Samples</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for row in scores %}
-          <tr class="{% if category_locked == row.category %}highlighted{% endif %}">
-            <td>
-              <div class="rank-badge rank-{{ loop.index }}">
-                {% if loop.index <= 3 %}<i class="fa-solid fa-trophy"></i>{% endif %}
-                {{ loop.index }}
-              </div>
-            </td>
-            <td>
-              <div class="category-name">{{ row.category }}</div>
-            </td>
-            <td>
-              <div class="score-display">
-                <div class="score-bar">
-                  <div class="score-fill" style="width: {{ row.avg * 10 }}%"></div>
-                </div>
-                <span class="score-text">{{ row.avg }}</span>
-              </div>
-            </td>
-            <td>{{ row.count }}</td>
-            <td>
-              {% if category_locked == row.category %}
-              <span class="badge badge-success"><i class="fa-solid fa-lock"></i> Locked</span>
+  
+  {% if scores %}
+  <div class="tonal-stack-1 rounded-xl overflow-hidden border border-outline-variant/10">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-outline-variant/10">
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 w-16">Rank</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Category</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Avg Score</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-center">Samples</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant/5">
+        {% for row in scores %}
+        <tr class="hover:bg-surface-container-high/30 transition-colors {% if category_locked == row.category %}bg-primary/5{% endif %}">
+          <td class="px-6 py-4">
+            <div class="w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm
+              {% if loop.index == 1 %}bg-gradient-to-br from-yellow-400 to-amber-500 text-black{% elif loop.index == 2 %}bg-gradient-to-br from-gray-300 to-gray-400 text-black{% elif loop.index == 3 %}bg-gradient-to-br from-amber-600 to-amber-700 text-white{% else %}bg-surface-container-high text-on-surface-variant{% endif %}">
+              {% if loop.index <= 3 %}
+              <span class="material-symbols-outlined text-sm">emoji_events</span>
               {% else %}
-              <form method="post" class="inline">
-                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-                <input type="hidden" name="category" value="{{ row.category }}" />
-                <button class="btn btn-primary btn-sm" type="submit"><i class="fa-solid fa-lock"></i> Lock</button>
-              </form>
+              {{ loop.index }}
               {% endif %}
-            </td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
-    </div>
-    {% else %}
-    <div class="empty-state">
-      <i class="fa-solid fa-chart-pie"></i>
-      <h3>No trend candidates yet</h3>
-      <p>Fetch trends to see category rankings</p>
-      <a href="{{ url_for('trend_discovery') }}" class="btn btn-primary"><i class="fa-solid fa-compass"></i> Discover Trends</a>
-    </div>
-    {% endif %}
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <span class="font-medium">{{ row.category }}</span>
+          </td>
+          <td class="px-6 py-4">
+            <div class="flex items-center gap-3">
+              <div class="w-20 h-2 bg-surface-container-highest rounded-full overflow-hidden">
+                <div class="h-full bg-gradient-to-r from-primary-container to-primary rounded-full" style="width: {{ row.avg * 10 }}%"></div>
+              </div>
+              <span class="text-sm font-bold font-mono">{{ row.avg }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="text-[10px] font-bold bg-tertiary/20 text-tertiary px-2 py-1 rounded">{{ row.count }}</span>
+          </td>
+          <td class="px-6 py-4 text-right">
+            {% if category_locked == row.category %}
+            <span class="text-[10px] font-bold bg-green-500/20 text-green-400 px-3 py-1.5 rounded-full flex items-center gap-1 w-fit ml-auto">
+              <span class="material-symbols-outlined text-sm">check</span>
+              Locked
+            </span>
+            {% else %}
+            <form method="post">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+              <input type="hidden" name="category" value="{{ row.category }}" />
+              <button type="submit" class="px-4 py-2 bg-surface-container-high hover:bg-surface-container-highest rounded-lg text-xs font-bold transition-colors flex items-center gap-2 ml-auto">
+                <span class="material-symbols-outlined text-sm">lock</span>
+                Lock
+              </button>
+            </form>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
   </div>
+  {% else %}
+  <div class="text-center py-12">
+    <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">pie_chart</span>
+    <h3 class="text-lg font-bold text-on-surface-variant">No trend candidates yet</h3>
+    <p class="text-on-surface-variant/60 text-sm mb-4">Fetch trends to see category rankings</p>
+    <a href="{{ url_for('trend_discovery') }}" class="inline-flex items-center gap-2 bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95">
+      <span class="material-symbols-outlined text-sm">explore</span>
+      Discover Trends
+    </a>
+  </div>
+  {% endif %}
 </div>
-
-<style>
-.weights-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: var(--space-4);
-}
-
-.weight-item {
-  display: flex;
-  align-items: center;
-  gap: var(--space-3);
-}
-
-.weight-label {
-  min-width: 140px;
-  font-size: 14px;
-  color: var(--on-surface);
-}
-
-.weight-bar {
-  flex: 1;
-  height: 8px;
-  background: var(--surface-container-high);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.weight-fill {
-  height: 100%;
-  background: var(--primary-gradient);
-  border-radius: 4px;
-}
-
-.weight-value {
-  min-width: 40px;
-  text-align: right;
-  font-weight: 600;
-  color: var(--primary);
-}
-
-.rank-badge {
-  width: 32px;
-  height: 32px;
-  border-radius: var(--radius-full);
-  background: var(--surface-container-high);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.rank-badge.rank-1 {
-  background: linear-gradient(135deg, #FFD700, #FFA500);
-  color: #000;
-}
-
-.rank-badge.rank-2 {
-  background: linear-gradient(135deg, #C0C0C0, #A9A9A9);
-  color: #000;
-}
-
-.rank-badge.rank-3 {
-  background: linear-gradient(135deg, #CD7F32, #8B4513);
-  color: white;
-}
-
-.rank-badge i {
-  font-size: 12px;
-}
-
-.category-name {
-  font-weight: 600;
-  color: var(--on-surface);
-}
-
-.score-display {
-  display: flex;
-  align-items: center;
-  gap: var(--space-2);
-}
-
-.score-bar {
-  width: 80px;
-  height: 6px;
-  background: var(--surface-container-highest);
-  border-radius: 3px;
-  overflow: hidden;
-}
-
-.score-fill {
-  height: 100%;
-  background: var(--primary-gradient);
-  border-radius: 3px;
-}
-
-.score-text {
-  font-weight: 600;
-  color: var(--on-surface);
-  min-width: 40px;
-}
-
-tr.highlighted {
-  background: var(--accent-soft);
-}
-
-@media (max-width: 768px) {
-  .weights-grid {
-    grid-template-columns: 1fr;
-  }
-}
-</style>
 {% endblock %}

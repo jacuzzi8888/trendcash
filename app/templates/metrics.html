@@ -1,72 +1,91 @@
 {% extends "base.html" %}
 {% block page_title %}Analytics{% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Analytics</h1>
-    <p class="muted">Track content performance and SEO metrics</p>
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Analytics</h1>
+    <p class="text-on-surface-variant text-sm">Track content performance and SEO metrics</p>
   </div>
 </div>
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-plus-circle"></i> Add Metrics</h2>
+<!-- Add Metrics Form -->
+<div class="glass-card inner-stroke p-6 rounded-2xl mb-6">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="p-2 bg-primary/10 rounded-lg">
+      <span class="material-symbols-outlined text-primary">add_circle</span>
+    </div>
+    <h3 class="text-lg font-bold">Add Metrics</h3>
   </div>
-  <div class="card-body">
-    <form method="post" class="form-grid">
-      <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-      <div class="form-group">
-        <label>Date</label>
-        <input name="metric_date" type="date" required />
+  
+  <form method="post" class="space-y-6">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+    <div class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Date</label>
+        <input name="metric_date" type="date" required class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
       </div>
-      <div class="form-group">
-        <label>Indexing rate %</label>
-        <input name="indexing_rate" placeholder="42.5" step="0.1" />
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Indexing %</label>
+        <input name="indexing_rate" placeholder="42.5" step="0.1" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
       </div>
-      <div class="form-group">
-        <label>Queries</label>
-        <input name="queries" placeholder="1200" type="number" />
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Queries</label>
+        <input name="queries" placeholder="1200" type="number" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
       </div>
-      <div class="form-group">
-        <label>CTR %</label>
-        <input name="ctr" placeholder="1.8" step="0.01" />
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">CTR %</label>
+        <input name="ctr" placeholder="1.8" step="0.01" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
       </div>
-      <div class="form-group">
-        <label>Average position</label>
-        <input name="avg_position" placeholder="28.4" step="0.1" />
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Avg Position</label>
+        <input name="avg_position" placeholder="28.4" step="0.1" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
       </div>
-      <div class="form-group">
-        <label>Notes</label>
-        <input name="notes" placeholder="Observations..." />
+      <div>
+        <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Notes</label>
+        <input name="notes" placeholder="Observations..." class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
       </div>
-      <div class="form-actions">
-        <button class="btn btn-primary" type="submit"><i class="fa-solid fa-save"></i> Save Metrics</button>
-      </div>
-    </form>
-  </div>
+    </div>
+    
+    <button type="submit" class="bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 flex items-center gap-2">
+      <span class="material-symbols-outlined text-sm">save</span>
+      Save Metrics
+    </button>
+  </form>
 </div>
 
 {% if metrics and metrics|length > 0 %}
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-chart-line"></i> Performance Trends</h2>
+<!-- Performance Charts -->
+<div class="glass-card inner-stroke p-6 rounded-2xl mb-6">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="p-2 bg-tertiary/10 rounded-lg">
+      <span class="material-symbols-outlined text-tertiary">monitoring</span>
+    </div>
+    <h3 class="text-lg font-bold">Performance Trends</h3>
   </div>
-  <div class="card-body">
-    <div class="chart-grid">
-      <div class="chart-box">
-        <h4>Indexing Rate</h4>
+  
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="p-4 bg-surface-container-low rounded-xl">
+      <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Indexing Rate</h4>
+      <div class="h-[180px]">
         <canvas id="indexingChart"></canvas>
       </div>
-      <div class="chart-box">
-        <h4>Queries</h4>
+    </div>
+    <div class="p-4 bg-surface-container-low rounded-xl">
+      <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Queries</h4>
+      <div class="h-[180px]">
         <canvas id="queriesChart"></canvas>
       </div>
-      <div class="chart-box">
-        <h4>CTR</h4>
+    </div>
+    <div class="p-4 bg-surface-container-low rounded-xl">
+      <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Click-Through Rate</h4>
+      <div class="h-[180px]">
         <canvas id="ctrChart"></canvas>
       </div>
-      <div class="chart-box">
-        <h4>Avg Position</h4>
+    </div>
+    <div class="p-4 bg-surface-container-low rounded-xl">
+      <h4 class="text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-3">Average Position</h4>
+      <div class="h-[180px]">
         <canvas id="positionChart"></canvas>
       </div>
     </div>
@@ -74,46 +93,57 @@
 </div>
 {% endif %}
 
-<div class="card">
-  <div class="card-header">
-    <h2 class="card-title"><i class="fa-solid fa-history"></i> History</h2>
-  </div>
-  <div class="card-body">
-    {% if metrics %}
-    <div class="table-wrapper">
-      <table class="data-table">
-        <thead>
-          <tr>
-            <th>Date</th>
-            <th>Index %</th>
-            <th>Queries</th>
-            <th>CTR %</th>
-            <th>Avg Pos</th>
-            <th>Notes</th>
-          </tr>
-        </thead>
-        <tbody>
-          {% for m in metrics %}
-          <tr>
-            <td>{{ m.metric_date }}</td>
-            <td>{{ m.indexing_rate or "-" }}</td>
-            <td>{{ m.queries or "-" }}</td>
-            <td>{{ m.ctr or "-" }}</td>
-            <td>{{ m.avg_position or "-" }}</td>
-            <td>{{ m.notes[:30] + "..." if m.notes and m.notes|length > 30 else m.notes or "-" }}</td>
-          </tr>
-          {% endfor %}
-        </tbody>
-      </table>
+<!-- History Table -->
+<div class="glass-card inner-stroke p-6 rounded-2xl">
+  <div class="flex items-center gap-3 mb-6">
+    <div class="p-2 bg-primary/10 rounded-lg">
+      <span class="material-symbols-outlined text-primary">history</span>
     </div>
-    {% else %}
-    <div class="empty-state">
-      <i class="fa-solid fa-chart-bar"></i>
-      <h3>No metrics yet</h3>
-      <p>Add your first metrics above to start tracking performance.</p>
-    </div>
-    {% endif %}
+    <h3 class="text-lg font-bold">History</h3>
   </div>
+  
+  {% if metrics %}
+  <div class="tonal-stack-1 rounded-xl overflow-hidden border border-outline-variant/10">
+    <table class="w-full text-left border-collapse">
+      <thead>
+        <tr class="border-b border-outline-variant/10">
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Date</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">Index %</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">Queries</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">CTR %</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 text-right">Avg Pos</th>
+          <th class="px-6 py-4 text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60">Notes</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-outline-variant/5">
+        {% for m in metrics %}
+        <tr class="hover:bg-surface-container-high/30 transition-colors">
+          <td class="px-6 py-4 font-medium">{{ m.metric_date }}</td>
+          <td class="px-6 py-4 text-right font-mono text-sm">
+            {% if m.indexing_rate %}
+            <span class="{% if m.indexing_rate >= 80 %}text-green-400{% elif m.indexing_rate >= 50 %}text-yellow-400{% else %}text-on-surface-variant{% endif %}">{{ m.indexing_rate }}</span>
+            {% else %}-{% endif %}
+          </td>
+          <td class="px-6 py-4 text-right font-mono text-sm">{{ m.queries or "-" }}</td>
+          <td class="px-6 py-4 text-right font-mono text-sm">{{ m.ctr or "-" }}</td>
+          <td class="px-6 py-4 text-right font-mono text-sm">
+            {% if m.avg_position %}
+            <span class="{% if m.avg_position <= 10 %}text-green-400{% elif m.avg_position <= 30 %}text-yellow-400{% else %}text-on-surface-variant{% endif %}">{{ m.avg_position }}</span>
+            {% else %}-{% endif %}
+          </td>
+          <td class="px-6 py-4 text-on-surface-variant text-sm">{{ (m.notes[:30] + "...") if m.notes and m.notes|length > 30 else (m.notes or "-") }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}
+  <div class="text-center py-12">
+    <span class="material-symbols-outlined text-5xl text-on-surface-variant/30 mb-4">analytics</span>
+    <h3 class="text-lg font-bold text-on-surface-variant">No metrics yet</h3>
+    <p class="text-on-surface-variant/60 text-sm mb-4">Add your first metrics above to start tracking performance.</p>
+  </div>
+  {% endif %}
 </div>
 
 {% if metrics and metrics|length > 0 %}
@@ -183,8 +213,8 @@
       labels: labels,
       datasets: [{
         data: metricsData.map(m => m.avg_position || 0),
-        borderColor: '#c65d2a',
-        backgroundColor: 'rgba(198, 93, 42, 0.1)',
+        borderColor: '#ffb596',
+        backgroundColor: 'rgba(255, 181, 150, 0.1)',
         fill: true,
         tension: 0.3
       }]
@@ -192,13 +222,5 @@
     options: { ...chartOptions, scales: { ...chartOptions.scales, y: { reverse: true, beginAtZero: false, grid: { color: 'rgba(255, 255, 255, 0.05)' } } } }
   });
 </script>
-<style>
-  .chart-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
-  .chart-box { height: 200px; }
-  .chart-box h4 { margin: 0 0 8px 0; font-size: 13px; color: var(--muted); }
-  @media (max-width: 600px) {
-    .chart-grid { grid-template-columns: 1fr; }
-  }
-</style>
 {% endif %}
 {% endblock %}

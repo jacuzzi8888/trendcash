@@ -45,7 +45,7 @@
       </div>
       <div class="flex items-center gap-2 text-sm text-on-surface-variant truncate">
         <span class="material-symbols-outlined text-primary text-sm">link</span>
-        <span class="truncate">{{ site.api_url[:35] }}{% if site.api_url|length > 35 %}...{% endif %}</span>
+        <span class="truncate" data-tooltip="{{ site.api_url }}">{{ site.api_url[:35] }}{% if site.api_url|length > 35 %}...{% endif %}</span>
       </div>
     </div>
     

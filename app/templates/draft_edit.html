@@ -1,152 +1,213 @@
 {% extends "base.html" %}
 {% block page_title %}Content Creator{% endblock %}
 {% block head %}
-<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js?api_key=no-api-key"></script>
+<script src="https://cdn.jsdelivr.net/npm/tinymce@7/tinymce.min.js?api-key=no-api-key"></script>
 {% endblock %}
 {% block content %}
-<div class="page-header">
-  <div class="page-header-content">
-    <h1>Content Creator</h1>
-    <p class="muted">AI-powered content generation studio</p>
+<!-- Page Header -->
+<div class="flex items-end justify-between mb-6">
+  <div>
+    <h1 class="text-2xl font-bold tracking-tight">Content Creator</h1>
+    <p class="text-on-surface-variant text-sm">AI-powered content generation studio</p>
   </div>
+  <span class="text-[10px] font-bold {% if draft.status == 'approved' %}bg-green-500/20 text-green-400{% elif draft.status == 'qc' %}bg-yellow-500/20 text-yellow-400{% else %}bg-primary/20 text-primary{% endif %} px-3 py-1.5 rounded-full">{{ draft.status }}</span>
 </div>
 
-<div class="creator-layout">
-  <div class="creator-main">
-    <div class="card">
-      <div class="card-header">
-        <h2 class="card-title"><i class="fa-solid fa-edit"></i> Edit Draft</h2>
-        <div class="card-actions">
-          <span class="badge badge-{{ 'success' if draft.status == 'approved' else 'warning' if draft.status == 'qc' else 'info' }}">{{ draft.status }}</span>
+<!-- Main Layout -->
+<section class="grid grid-cols-1 xl:grid-cols-10 gap-6">
+  <!-- Editor Column -->
+  <div class="xl:col-span-7 space-y-6">
+    <div class="glass-card inner-stroke p-6 rounded-2xl">
+      <div class="flex items-center gap-3 mb-6">
+        <div class="p-2 bg-primary/10 rounded-lg">
+          <span class="material-symbols-outlined text-primary">edit_note</span>
         </div>
+        <h3 class="text-lg font-bold">Edit Draft</h3>
       </div>
-      <div class="card-body">
-        <form method="post" id="draftForm">
-          <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Title</label>
-              <input name="title" id="title" value="{{ draft.title }}" required />
-            </div>
-            <div class="form-group">
-              <label>Last Updated</label>
-              <input name="last_updated" value="{{ draft.last_updated }}" required />
-            </div>
+      
+      <form method="post" id="draftForm" class="space-y-6">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Title</label>
+            <input name="title" id="title" value="{{ draft.title }}" required class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
           </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label>Image Policy</label>
-              <select name="image_policy">
-                {% for option in ["none", "priority", "branded"] %}
-                <option value="{{ option }}" {% if draft.image_policy == option %}selected{% endif %}>{{ option }}</option>
-                {% endfor %}
-              </select>
-            </div>
-            <div class="form-group">
-              <label>Image Prompt (optional)</label>
-              <input name="image_prompt" value="{{ draft.image_prompt or '' }}" />
-            </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Last Updated</label>
+            <input name="last_updated" value="{{ draft.last_updated }}" required class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
           </div>
-          <div class="form-group">
-            <label>Content</label>
-            <textarea name="content" id="content" rows="20">{{ draft.content }}</textarea>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Image Policy</label>
+            <select name="image_policy" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50">
+              {% for option in ["none", "priority", "branded"] %}
+              <option value="{{ option }}" {% if draft.image_policy == option %}selected{% endif %}>{{ option|title }}</option>
+              {% endfor %}
+            </select>
           </div>
-          <div class="editor-toolbar">
-            <button class="btn btn-primary" type="submit" name="status_action" value="save"><i class="fa-solid fa-save"></i> Save Draft</button>
-            <button class="btn btn-secondary" type="submit" name="status_action" value="send_qc"><i class="fa-solid fa-paper-plane"></i> Send to QC</button>
-            <button class="btn btn-ghost" type="button" onclick="toggleEditorMode()">
-              <span id="editorModeText"><i class="fa-solid fa-code"></i> Markdown</span>
-            </button>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Image Prompt (optional)</label>
+            <input name="image_prompt" value="{{ draft.image_prompt or '' }}" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50" />
           </div>
-        </form>
-      </div>
+        </div>
+        
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-2">Content</label>
+          <textarea name="content" id="content" rows="20" class="w-full bg-surface-container-highest border-none rounded-lg py-2.5 px-4 text-sm focus:ring-1 focus:ring-primary/50">{{ draft.content }}</textarea>
+        </div>
+        
+        <div class="flex flex-wrap gap-3">
+          <button type="submit" name="status_action" value="save" class="bg-gradient-to-br from-primary-container to-primary text-on-primary py-2.5 px-6 rounded-xl font-bold text-sm shadow-lg shadow-primary/10 transition-transform active:scale-95 flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">save</span>
+            Save Draft
+          </button>
+          <button type="submit" name="status_action" value="send_qc" class="px-6 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-xl font-bold text-sm transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm">send</span>
+            Send to QC
+          </button>
+          <button type="button" onclick="toggleEditorMode()" class="px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-xl font-bold text-sm transition-colors flex items-center gap-2">
+            <span class="material-symbols-outlined text-sm" id="editorModeIcon">code</span>
+            <span id="editorModeText">Markdown</span>
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 
-  <div class="creator-sidebar">
-    <div class="generator-card">
-      <div class="generator-header">
-        <div class="generator-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
-        <div class="generator-title">AI Assistant</div>
-      </div>
-
-      <div class="form-row single">
-        <div class="form-group">
-          <label>Generate Headlines</label>
-          <select id="headlineAngle">
-            <option value="news">News style</option>
-            <option value="how-to">How-to style</option>
-            <option value="listicle">Listicle style</option>
-            <option value="opinion">Opinion style</option>
-          </select>
+  <!-- AI Sidebar -->
+  <div class="xl:col-span-3 space-y-4">
+    <!-- Generate Headlines -->
+    <div class="glass-card inner-stroke p-5 rounded-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-yellow-500/10 rounded-lg">
+          <span class="material-symbols-outlined text-yellow-400 text-sm">lightbulb</span>
         </div>
+        <h4 class="font-bold text-sm">Generate Headlines</h4>
       </div>
-      <button class="btn btn-ghost" onclick="generateHeadlines()" id="btnHeadlines" style="width:100%"><i class="fa-solid fa-lightbulb"></i> Generate Headlines</button>
-      <div id="headlinesResult" class="ai-result"></div>
+      <div class="space-y-3">
+        <select id="headlineAngle" class="w-full bg-surface-container-highest border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary/50">
+          <option value="news">News style</option>
+          <option value="how-to">How-to style</option>
+          <option value="listicle">Listicle style</option>
+          <option value="opinion">Opinion style</option>
+        </select>
+        <button onclick="generateHeadlines()" id="btnHeadlines" class="w-full px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">auto_awesome</span>
+          Generate
+        </button>
+        <div id="headlinesResult" class="text-sm"></div>
+      </div>
     </div>
 
-    <div class="generator-card">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Excerpt Length</label>
-          <input type="number" id="excerptLength" value="160" max="300" />
+    <!-- Generate Excerpt -->
+    <div class="glass-card inner-stroke p-5 rounded-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-tertiary/10 rounded-lg">
+          <span class="material-symbols-outlined text-tertiary text-sm">short_text</span>
         </div>
+        <h4 class="font-bold text-sm">Generate Excerpt</h4>
       </div>
-      <button class="btn btn-ghost" onclick="generateExcerpt()" id="btnExcerpt" style="width:100%"><i class="fa-solid fa-paragraph"></i> Generate Excerpt</button>
-      <div id="excerptResult" class="ai-result"></div>
+      <div class="space-y-3">
+        <div>
+          <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Max Length</label>
+          <input type="number" id="excerptLength" value="160" max="300" class="w-full bg-surface-container-highest border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary/50" />
+        </div>
+        <button onclick="generateExcerpt()" id="btnExcerpt" class="w-full px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">paragraph</span>
+          Generate
+        </button>
+        <div id="excerptResult" class="text-sm"></div>
+      </div>
     </div>
 
-    <div class="generator-card">
-      <div class="form-group">
-        <label>Improve Content</label>
-        <select id="improveType">
+    <!-- Improve Content -->
+    <div class="glass-card inner-stroke p-5 rounded-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-primary/10 rounded-lg">
+          <span class="material-symbols-outlined text-primary text-sm">magic_button</span>
+        </div>
+        <h4 class="font-bold text-sm">Improve Content</h4>
+      </div>
+      <div class="space-y-3">
+        <select id="improveType" class="w-full bg-surface-container-highest border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary/50">
           <option value="Improve clarity and flow">Clarity & flow</option>
           <option value="Make more engaging and conversational">More engaging</option>
           <option value="Simplify language for general audience">Simplify</option>
           <option value="Add more detail and depth">Add detail</option>
         </select>
+        <button onclick="improveContent()" id="btnImprove" class="w-full px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">auto_fix_high</span>
+          Improve
+        </button>
+        <div id="improveResult" class="text-sm"></div>
       </div>
-      <button class="btn btn-ghost" onclick="improveContent()" id="btnImprove" style="width:100%"><i class="fa-solid fa-magic"></i> Improve</button>
-      <div id="improveResult" class="ai-result"></div>
     </div>
 
-    <div class="generator-card">
-      <div class="form-group">
-        <label>Generate FAQs</label>
-        <input type="text" id="faqContext" placeholder="Additional context (optional)" />
+    <!-- Generate FAQs -->
+    <div class="glass-card inner-stroke p-5 rounded-2xl">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-green-500/10 rounded-lg">
+          <span class="material-symbols-outlined text-green-400 text-sm">help</span>
+        </div>
+        <h4 class="font-bold text-sm">Generate FAQs</h4>
       </div>
-      <button class="btn btn-ghost" onclick="generateFaqs()" id="btnFaqs" style="width:100%"><i class="fa-solid fa-question-circle"></i> Generate FAQs</button>
-      <div id="faqsResult" class="ai-result"></div>
+      <div class="space-y-3">
+        <input type="text" id="faqContext" placeholder="Additional context (optional)" class="w-full bg-surface-container-highest border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary/50" />
+        <button onclick="generateFaqs()" id="btnFaqs" class="w-full px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">quiz</span>
+          Generate
+        </button>
+        <div id="faqsResult" class="text-sm"></div>
+      </div>
     </div>
 
     {% if candidate %}
-    <div class="generator-card">
-      <div class="form-row">
-        <div class="form-group">
-          <label>Article Style</label>
-          <select id="articleStyle">
-            <option value="informative">Informative</option>
-            <option value="news">News report</option>
-            <option value="guide">How-to guide</option>
-            <option value="analysis">Analysis</option>
-          </select>
+    <!-- Regenerate Article -->
+    <div class="glass-card inner-stroke p-5 rounded-2xl border-primary/20">
+      <div class="flex items-center gap-3 mb-4">
+        <div class="p-2 bg-primary/10 rounded-lg">
+          <span class="material-symbols-outlined text-primary text-sm">refresh</span>
         </div>
-        <div class="form-group">
-          <label>Word Count</label>
-          <input type="number" id="wordCount" value="800" min="300" max="2000" step="100" />
-        </div>
+        <h4 class="font-bold text-sm">Regenerate Article</h4>
       </div>
-      <button class="btn btn-ghost" onclick="regenerateArticle()" id="btnRegenerate" style="width:100%"><i class="fa-solid fa-rotate"></i> Regenerate Article</button>
-      <div id="regenerateResult" class="ai-result"></div>
+      <div class="space-y-3">
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Style</label>
+            <select id="articleStyle" class="w-full bg-surface-container-highest border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary/50">
+              <option value="informative">Informative</option>
+              <option value="news">News report</option>
+              <option value="guide">How-to guide</option>
+              <option value="analysis">Analysis</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold uppercase tracking-widest text-on-surface-variant/60 mb-1">Words</label>
+            <input type="number" id="wordCount" value="800" min="300" max="2000" step="100" class="w-full bg-surface-container-highest border-none rounded-lg py-2 px-3 text-sm focus:ring-1 focus:ring-primary/50" />
+          </div>
+        </div>
+        <button onclick="regenerateArticle()" id="btnRegenerate" class="w-full px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
+          <span class="material-symbols-outlined text-sm">autorenew</span>
+          Regenerate
+        </button>
+        <div id="regenerateResult" class="text-sm"></div>
+      </div>
     </div>
     {% endif %}
 
-    <div class="generator-card">
-      <button class="btn btn-secondary" onclick="testAIConnection()" style="width:100%"><i class="fa-solid fa-plug"></i> Test AI Connection</button>
-      <div id="testResult" class="ai-result"></div>
+    <!-- Test AI Connection -->
+    <div class="glass-card inner-stroke p-5 rounded-2xl">
+      <button onclick="testAIConnection()" class="w-full px-4 py-2.5 bg-surface-container-high hover:bg-surface-container-highest rounded-lg font-bold text-sm transition-colors flex items-center justify-center gap-2">
+        <span class="material-symbols-outlined text-sm">power</span>
+        Test AI Connection
+      </button>
+      <div id="testResult" class="text-sm mt-3"></div>
     </div>
   </div>
-</div>
+</section>
 {% endblock %}
 
 {% block scripts %}
@@ -172,19 +233,22 @@
 
   function toggleEditorMode() {
     const textarea = document.getElementById('content');
-    const btn = document.getElementById('editorModeText');
+    const btnText = document.getElementById('editorModeText');
+    const btnIcon = document.getElementById('editorModeIcon');
 
     if (isRichMode) {
       const content = tinymce.get('content').getContent();
       tinymce.get('content').destroy();
       textarea.value = content;
       textarea.style.display = 'block';
-      btn.innerHTML = '<i class="fa-solid fa-eye"></i> Rich Editor';
+      btnText.textContent = 'Rich Editor';
+      btnIcon.textContent = 'visibility';
       isRichMode = false;
     } else {
       textarea.style.display = 'none';
       initTinyMCE();
-      btn.innerHTML = '<i class="fa-solid fa-code"></i> Markdown';
+      btnText.textContent = 'Markdown';
+      btnIcon.textContent = 'code';
       isRichMode = true;
     }
   }
@@ -230,7 +294,7 @@
     if (loading) {
       btn.disabled = true;
       btn.dataset.originalText = btn.innerHTML;
-      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Loading...';
+      btn.innerHTML = '<span class="material-symbols-outlined text-sm animate-spin">progress_activity</span> Loading...';
     } else {
       btn.disabled = false;
       btn.innerHTML = btn.dataset.originalText;
@@ -256,14 +320,14 @@
 
       if (result.success) {
         const headlinesHtml = result.headlines.map((h, i) =>
-          `<div class="headline-option" onclick="useHeadline('${h.replace(/'/g, "\\'")}')">${i + 1}. ${h}</div>`
+          `<div class="p-3 bg-surface-container-high rounded-lg cursor-pointer hover:bg-primary/10 transition-colors text-sm mb-2" onclick="useHeadline('${h.replace(/'/g, "\\'")}')">${i + 1}. ${h}</div>`
         ).join('');
         showResult('headlinesResult', headlinesHtml);
       } else {
-        showResult('headlinesResult', `<span class="error">${result.error}</span>`);
+        showResult('headlinesResult', `<span class="text-error">${result.error}</span>`);
       }
     } catch (e) {
-      showResult('headlinesResult', `<span class="error">Request failed: ${e.message}</span>`);
+      showResult('headlinesResult', `<span class="text-error">Request failed: ${e.message}</span>`);
     }
     setLoading('btnHeadlines', false);
   }
@@ -286,12 +350,12 @@
       const result = await response.json();
 
       if (result.success) {
-        showResult('excerptResult', `<div class="excerpt-text">${result.excerpt}</div>`);
+        showResult('excerptResult', `<div class="p-3 bg-surface-container-high rounded-lg text-sm leading-relaxed">${result.excerpt}</div>`);
       } else {
-        showResult('excerptResult', `<span class="error">${result.error}</span>`);
+        showResult('excerptResult', `<span class="text-error">${result.error}</span>`);
       }
     } catch (e) {
-      showResult('excerptResult', `<span class="error">Request failed: ${e.message}</span>`);
+      showResult('excerptResult', `<span class="text-error">Request failed: ${e.message}</span>`);
     }
     setLoading('btnExcerpt', false);
   }
@@ -302,7 +366,7 @@
     const instructions = document.getElementById('improveType').value;
 
     if (!content.trim()) {
-      showResult('improveResult', '<span class="error">No content to improve</span>');
+      showResult('improveResult', '<span class="text-error">No content to improve</span>');
       setLoading('btnImprove', false);
       return;
     }
@@ -317,13 +381,13 @@
 
       if (result.success) {
         showResult('improveResult',
-          `<button class="btn btn-primary btn-sm" onclick="applyImproved()">Apply Changes</button>`);
+          `<button class="px-4 py-2 bg-green-500 text-white rounded-lg font-bold text-xs transition-colors hover:bg-green-600" onclick="applyImproved()">Apply Changes</button>`);
         window.improvedContent = result.content;
       } else {
-        showResult('improveResult', `<span class="error">${result.error}</span>`);
+        showResult('improveResult', `<span class="text-error">${result.error}</span>`);
       }
     } catch (e) {
-      showResult('improveResult', `<span class="error">Request failed: ${e.message}</span>`);
+      showResult('improveResult', `<span class="text-error">Request failed: ${e.message}</span>`);
     }
     setLoading('btnImprove', false);
   }
@@ -331,7 +395,7 @@
   function applyImproved() {
     if (window.improvedContent) {
       setContent(window.improvedContent);
-      showResult('improveResult', '<span class="success"><i class="fa-solid fa-check"></i> Content updated!</span>');
+      showResult('improveResult', '<span class="text-green-400 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check</span> Content updated!</span>');
     }
   }
 
@@ -349,19 +413,19 @@
       const result = await response.json();
 
       if (result.success) {
-        showResult('faqsResult', `<pre class="faqs-preview">${result.faqs}</pre>`);
+        showResult('faqsResult', `<pre class="p-3 bg-surface-container-high rounded-lg text-xs overflow-auto max-h-40 whitespace-pre-wrap">${result.faqs}</pre>`);
       } else {
-        showResult('faqsResult', `<span class="error">${result.error}</span>`);
+        showResult('faqsResult', `<span class="text-error">${result.error}</span>`);
       }
     } catch (e) {
-      showResult('faqsResult', `<span class="error">Request failed: ${e.message}</span>`);
+      showResult('faqsResult', `<span class="text-error">Request failed: ${e.message}</span>`);
     }
     setLoading('btnFaqs', false);
   }
 
   async function regenerateArticle() {
     if (!candidateId) {
-      showResult('regenerateResult', '<span class="error">No candidate linked</span>');
+      showResult('regenerateResult', '<span class="text-error">No candidate linked</span>');
       return;
     }
 
@@ -381,12 +445,12 @@
 
       if (result.success) {
         setContent(result.content);
-        showResult('regenerateResult', '<span class="success"><i class="fa-solid fa-check"></i> Article generated!</span>');
+        showResult('regenerateResult', '<span class="text-green-400 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check</span> Article generated!</span>');
       } else {
-        showResult('regenerateResult', `<span class="error">${result.error}</span>`);
+        showResult('regenerateResult', `<span class="text-error">${result.error}</span>`);
       }
     } catch (e) {
-      showResult('regenerateResult', `<span class="error">Request failed: ${e.message}</span>`);
+      showResult('regenerateResult', `<span class="text-error">Request failed: ${e.message}</span>`);
     }
     setLoading('btnRegenerate', false);
   }
@@ -397,12 +461,12 @@
       const result = await response.json();
 
       if (result.success) {
-        showResult('testResult', `<span class="success"><i class="fa-solid fa-check"></i> AI connected: ${result.response}</span>`);
+        showResult('testResult', `<span class="text-green-400 flex items-center gap-1"><span class="material-symbols-outlined text-sm">check</span> AI connected: ${result.response}</span>`);
       } else {
-        showResult('testResult', `<span class="error"><i class="fa-solid fa-xmark"></i> Connection failed: ${result.error}</span>`);
+        showResult('testResult', `<span class="text-error flex items-center gap-1"><span class="material-symbols-outlined text-sm">close</span> Connection failed: ${result.error}</span>`);
       }
     } catch (e) {
-      showResult('testResult', `<span class="error">Request failed: ${e.message}</span>`);
+      showResult('testResult', `<span class="text-error">Request failed: ${e.message}</span>`);
     }
   }
 </script>
@@ -412,54 +476,15 @@
     display: none;
   }
   .tox-tinymce {
-    border-radius: var(--radius-lg) !important;
-    border: 1px solid var(--border) !important;
+    border-radius: 12px !important;
+    border: 1px solid rgba(255, 255, 255, 0.1) !important;
   }
-  .ai-result {
-    margin-top: var(--space-3);
-    font-size: 14px;
+  @keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
   }
-  .headline-option {
-    padding: var(--space-3);
-    margin: var(--space-1) 0;
-    background: var(--surface-container-high);
-    border-radius: var(--radius-md);
-    cursor: pointer;
-    font-size: 13px;
-    border: 1px solid var(--border);
-    transition: all var(--duration-fast) ease;
-  }
-  .headline-option:hover {
-    background: var(--accent-soft);
-    border-color: var(--primary);
-  }
-  .excerpt-text {
-    padding: var(--space-3);
-    background: var(--surface-container-high);
-    border-radius: var(--radius-md);
-    font-size: 13px;
-    line-height: 1.6;
-  }
-  .faqs-preview {
-    white-space: pre-wrap;
-    font-size: 12px;
-    background: var(--surface-container-high);
-    padding: var(--space-3);
-    border-radius: var(--radius-md);
-    max-height: 200px;
-    overflow-y: auto;
-    font-family: inherit;
-  }
-  .success {
-    color: var(--success);
-  }
-  .error {
-    color: var(--error);
-  }
-  .card-actions {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
+  .animate-spin {
+    animation: spin 1s linear infinite;
   }
 </style>
 {% endblock %}
