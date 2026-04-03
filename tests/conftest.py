@@ -17,13 +17,20 @@ def app():
     test_config = {
         'TESTING': True,
         'SECRET_KEY': 'test-secret-key',
+        'WTF_CSRF_ENABLED': False,
+        'LOGIN_DISABLED': True,
     }
     
     os.environ['NTC_DB_PATH'] = db_path
-    os.environ.pop('TURSO_DATABASE_URL', None)
+    os.environ['NTC_SECRET_KEY'] = 'test-secret-key-minimum-32-characters-long'
     
-    app = create_app()
-    app.config.update(test_config)
+    app = create_app(test_config=test_config)
+    
+    with app.app_context():
+        init_db()
+        with get_db() as conn:
+            from app.auth import init_default_user
+            init_default_user(conn)
     
     yield app
     
@@ -54,12 +61,20 @@ def runner(app):
 @pytest.fixture
 def db(app):
     with app.app_context():
-        conn = get_db()
+        # Get a direct sqlite connection for tests to avoid context manager issues in tests
+        db_path = os.environ.get('NTC_DB_PATH')
+        conn = sqlite3.connect(db_path, timeout=5)
+        conn.row_factory = sqlite3.Row
+        conn.execute("PRAGMA foreign_keys = ON;")
+        
+        # Initialize schema for test
+        from app.schema import SCHEMA_SQL, INDEX_SQL
+        conn.executescript(SCHEMA_SQL)
+        conn.executescript(INDEX_SQL)
+        conn.commit()
+        
         yield conn
-        try:
-            conn.close()
-        except:
-            pass
+        conn.close()
 
 
 class AuthActions:

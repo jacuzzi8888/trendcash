@@ -13,19 +13,19 @@ from flask import (
 )
 from flask_login import login_required, current_user
 
-from .db import get_db, init_db, get_setting, set_setting, utc_now, paginate_query
+from .database import get_db, init_db, get_setting, set_setting, utc_now, paginate_query
 from .cache import SettingsCache, UserCache
-from .security import (
+from .security_new import (
     csrf, limiter, add_security_headers, get_secure_cookie_settings,
     validator, sanitize_input, validate_id, validate_category, validate_url, validate_score,
-    require_admin,
+    log_security_event, audit_log, require_admin,
 )
-from .crypto import encrypt_value, decrypt_value, mask_value
+from .crypto_new import encrypt_value, decrypt_value, mask_value
 from .errors import (
     APIError, ValidationError, NotFoundError, UnauthorizedError,
     success_response, error_response, register_error_handlers,
 )
-from .logging_config import init_sentry, log_info, log_error, LogContext, log_security_event, audit_log
+from .logging_config import init_sentry, log_info, log_error, LogContext
 from .schema import DEFAULT_SETTINGS
 
 
@@ -42,14 +42,11 @@ DEFAULT_PAGE_SIZE = 20
 MAX_PAGE_SIZE = 100
 
 
-def create_app(test_config=None) -> Flask:
+def create_app() -> Flask:
     static_folder = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static')
     app = Flask(__name__, static_folder=static_folder)
     
-    if test_config:
-        app.config.update(test_config)
-    
-    secret_key = app.config.get('SECRET_KEY') or os.environ.get("NTC_SECRET_KEY")
+    secret_key = os.environ.get("NTC_SECRET_KEY")
     if not secret_key:
         raise RuntimeError("NTC_SECRET_KEY environment variable must be set")
     
@@ -59,10 +56,10 @@ def create_app(test_config=None) -> Flask:
     app.config["SECRET_KEY"] = secret_key
     
     for key, value in get_secure_cookie_settings().items():
-        app.config.setdefault(key, value)
+        app.config[key] = value
     
-    app.config.setdefault("WTF_CSRF_ENABLED", True)
-    app.config.setdefault("WTF_CSRF_TIME_LIMIT", None)
+    app.config["WTF_CSRF_ENABLED"] = True
+    app.config["WTF_CSRF_TIME_LIMIT"] = None
     
     csrf.init_app(app)
     limiter.init_app(app)

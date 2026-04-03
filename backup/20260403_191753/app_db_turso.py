@@ -1,0 +1,324 @@
+import os
+import json
+import requests
+from datetime import datetime, timezone
+from functools import lru_cache
+
+_session = None
+
+def _utc_now():
+    return datetime.now(timezone.utc).isoformat()
+
+
+TURSO_DATABASE_URL = os.environ.get('TURSO_DATABASE_URL', '')
+TURSO_AUTH_TOKEN = os.environ.get('TURSO_AUTH_TOKEN', '')
+
+
+def _get_session():
+    global _session
+    if _session is None:
+        _session = requests.Session()
+        _session.headers.update({
+            'Authorization': f'Bearer {TURSO_AUTH_TOKEN}',
+            'Content-Type': 'application/json'
+        })
+    return _session
+
+
+def _get_http_url():
+    url = TURSO_DATABASE_URL
+    if url.startswith('libsql://'):
+        url = 'https://' + url[9:]
+    return url
+
+
+_http_url = None
+def get_http_url():
+    global _http_url
+    if _http_url is None:
+        _http_url = _get_http_url()
+    return _http_url
+
+
+def get_turso_db():
+    if not TURSO_DATABASE_URL:
+        raise RuntimeError("TURSO_DATABASE_URL not set")
+    if not TURSO_AUTH_TOKEN:
+        raise RuntimeError("TURSO_AUTH_TOKEN not set")
+    return TursoConnection()
+
+
+class TursoRow:
+    __slots__ = ['_data']
+    
+    def __init__(self, data, columns):
+        self._data = dict(zip(columns, data))
+    
+    def __getitem__(self, key):
+        return self._data[key]
+    
+    def get(self, key, default=None):
+        return self._data.get(key, default)
+    
+    def keys(self):
+        return self._data.keys()
+
+
+class TursoCursor:
+    __slots__ = ['_rows', '_columns', 'rowcount', 'description', 'lastrowid']
+    
+    def __init__(self, rows, columns, lastrowid=None):
+        self._rows = rows or []
+        self._columns = columns or []
+        self.rowcount = len(self._rows)
+        self.description = [(col,) for col in self._columns]
+        self.lastrowid = lastrowid
+    
+    def fetchone(self):
+        if self._rows:
+            return TursoRow(self._rows[0], self._columns)
+        return None
+    
+    def fetchall(self):
+        return [TursoRow(row, self._columns) for row in self._rows]
+
+
+class TursoConnection:
+    __slots__ = ['url', '_session']
+    
+    def __init__(self):
+        self.url = get_http_url()
+        self._session = _get_session()
+    
+    def execute(self, sql, params=None):
+        params = params or ()
+        if isinstance(params, list):
+            params = tuple(params)
+        
+        payload = {
+            'statements': [
+                {'q': sql, 'params': list(params)}
+            ]
+        }
+        
+        response = self._session.post(
+            self.url,
+            json=payload,
+            timeout=15
+        )
+        
+        if response.status_code != 200:
+            raise RuntimeError(f"Turso error: {response.status_code} - {response.text}")
+        
+        result = response.json()
+        
+        if isinstance(result, list) and len(result) > 0:
+            stmt_result = result[0]
+            if 'error' in stmt_result:
+                raise RuntimeError(f"SQL error: {stmt_result['error']}")
+            
+            results = stmt_result.get('results', {})
+            columns = results.get('columns', [])
+            rows = results.get('rows', [])
+            
+            lastrowid = None
+            sql_upper = sql.strip().upper()
+            if sql_upper.startswith('INSERT'):
+                try:
+                    id_result = self._session.post(
+                        self.url,
+                        json={'statements': [{'q': 'SELECT last_insert_rowid() as id'}]},
+                        timeout=10
+                    )
+                    if id_result.status_code == 200:
+                        id_data = id_result.json()
+                        if id_data and len(id_data) > 0:
+                            id_rows = id_data[0].get('results', {}).get('rows', [])
+                            if id_rows:
+                                lastrowid = id_rows[0][0]
+                except:
+                    pass
+            
+            return TursoCursor(rows, columns, lastrowid)
+        
+        return TursoCursor([], [])
+    
+    def executescript(self, sql):
+        statements = [s.strip() for s in sql.split(';') if s.strip()]
+        for stmt in statements:
+            self.execute(stmt)
+    
+    def commit(self):
+        pass
+    
+    def close(self):
+        pass
+
+
+@lru_cache(maxsize=32)
+def _get_cached_setting(key):
+    conn = get_turso_db()
+    result = conn.execute("SELECT value FROM settings WHERE key = ?", (key,))
+    row = result.fetchone()
+    return row['value'] if row else None
+
+
+def init_turso_db():
+    conn = get_turso_db()
+    conn.executescript("""
+        CREATE TABLE IF NOT EXISTS trend_candidates (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            topic TEXT NOT NULL,
+            category TEXT NOT NULL,
+            source TEXT NOT NULL,
+            velocity_score REAL NOT NULL,
+            advertiser_safety_score REAL NOT NULL,
+            commercial_intent_score REAL NOT NULL,
+            evergreen_score REAL NOT NULL,
+            created_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS source_packs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_id INTEGER NOT NULL,
+            url TEXT NOT NULL,
+            publisher TEXT NOT NULL,
+            published_at TEXT,
+            notes TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(candidate_id) REFERENCES trend_candidates(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS drafts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            candidate_id INTEGER NOT NULL,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            status TEXT NOT NULL,
+            last_updated TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL,
+            image_policy TEXT NOT NULL DEFAULT 'none',
+            image_prompt TEXT,
+            target_site_id INTEGER,
+            FOREIGN KEY(candidate_id) REFERENCES trend_candidates(id) ON DELETE CASCADE,
+            FOREIGN KEY(target_site_id) REFERENCES sites(id) ON DELETE SET NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS qc_reviews (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            draft_id INTEGER NOT NULL,
+            source_valid INTEGER NOT NULL,
+            unique_value INTEGER NOT NULL,
+            advertiser_safety INTEGER NOT NULL,
+            actionability INTEGER NOT NULL,
+            reviewer TEXT,
+            reviewed_at TEXT NOT NULL,
+            FOREIGN KEY(draft_id) REFERENCES drafts(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS publish_queue (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            draft_id INTEGER NOT NULL,
+            site_id INTEGER,
+            status TEXT NOT NULL,
+            post_id TEXT,
+            published_url TEXT,
+            published_at TEXT,
+            notes TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(draft_id) REFERENCES drafts(id) ON DELETE CASCADE,
+            FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE SET NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS posts (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            slug TEXT NOT NULL UNIQUE,
+            title TEXT NOT NULL,
+            content TEXT NOT NULL,
+            excerpt TEXT,
+            category TEXT NOT NULL,
+            published_at TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS metrics (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            metric_date TEXT NOT NULL,
+            indexing_rate REAL,
+            queries INTEGER,
+            ctr REAL,
+            avg_position REAL,
+            notes TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS settings (
+            key TEXT PRIMARY KEY,
+            value TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS sites (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            name TEXT NOT NULL,
+            slug TEXT NOT NULL UNIQUE,
+            niche TEXT NOT NULL,
+            description TEXT,
+            api_url TEXT NOT NULL,
+            api_key TEXT,
+            categories TEXT,
+            is_active INTEGER DEFAULT 1,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        );
+
+        CREATE TABLE IF NOT EXISTS publish_log (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            draft_id INTEGER NOT NULL,
+            site_id INTEGER NOT NULL,
+            status TEXT NOT NULL,
+            response TEXT,
+            published_url TEXT,
+            published_at TEXT,
+            created_at TEXT NOT NULL,
+            FOREIGN KEY(draft_id) REFERENCES drafts(id) ON DELETE CASCADE,
+            FOREIGN KEY(site_id) REFERENCES sites(id) ON DELETE CASCADE
+        );
+
+        CREATE TABLE IF NOT EXISTS users (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            username TEXT NOT NULL UNIQUE,
+            password_hash TEXT NOT NULL,
+            role TEXT NOT NULL DEFAULT 'editor',
+            created_at TEXT NOT NULL,
+            updated_at TEXT
+        );
+
+        CREATE TABLE IF NOT EXISTS security_logs (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            event_type TEXT NOT NULL,
+            user_id TEXT,
+            ip_address TEXT,
+            details TEXT,
+            created_at TEXT NOT NULL
+        );
+    """)
+    
+    defaults = {
+        "category_locked": "",
+        "publish_daily_limit": "10",
+        "image_policy_default": "none",
+        "source_days_back": "7",
+        "sources_per_trend": "3",
+        "auto_fetch_sources": "true",
+    }
+    for key, value in defaults.items():
+        result = conn.execute("SELECT value FROM settings WHERE key = ?", (key,))
+        if result.fetchone() is None:
+            conn.execute("INSERT OR IGNORE INTO settings (key, value) VALUES (?, ?)", (key, value))
+    
+    conn.close()
+
+
+def utc_now():
+    return _utc_now()

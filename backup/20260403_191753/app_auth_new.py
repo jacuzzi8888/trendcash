@@ -11,10 +11,10 @@ from flask import Blueprint, render_template, redirect, url_for, request, flash,
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 
-from .db import get_db, utc_now
+from .database import get_db, utc_now
 from .cache import UserCache
-from .security import validator, limiter
-from .logging_config import log_info, log_error, log_security_event
+from .security_new import validator, log_security_event
+from .logging_config import log_info, log_error
 
 
 auth_bp = Blueprint("auth", __name__, url_prefix="/auth")
@@ -247,4 +247,11 @@ def admin_required(f):
     return role_required("admin")(f)
 
 
+from flask_limiter import Limiter
+limiter = Limiter()
 
+
+@auth_bp.route("/login", methods=["GET", "POST"])
+@limiter.limit("10 per minute")
+def login_with_limit():
+    return login()

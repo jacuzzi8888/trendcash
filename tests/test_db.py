@@ -4,28 +4,27 @@ from app.db import get_db, get_setting, set_setting, utc_now
 
 def test_get_db_returns_connection(app):
     with app.app_context():
-        conn = get_db()
-        assert conn is not None
-        assert hasattr(conn, 'execute')
+        with get_db() as conn:
+            assert conn is not None
+            assert hasattr(conn, 'execute')
 
 
 def test_init_db_creates_tables(app):
     with app.app_context():
-        conn = get_db()
-        
-        tables = conn.execute(
-            "SELECT name FROM sqlite_master WHERE type='table'"
-        ).fetchall()
-        table_names = [t['name'] for t in tables]
-        
-        assert 'trend_candidates' in table_names
-        assert 'source_packs' in table_names
-        assert 'drafts' in table_names
-        assert 'qc_reviews' in table_names
-        assert 'publish_queue' in table_names
-        assert 'sites' in table_names
-        assert 'settings' in table_names
-        assert 'metrics' in table_names
+        with get_db() as conn:
+            tables = conn.execute(
+                "SELECT name FROM sqlite_master WHERE type='table'"
+            ).fetchall()
+            table_names = [t['name'] for t in tables]
+            
+            assert 'trend_candidates' in table_names
+            assert 'source_packs' in table_names
+            assert 'drafts' in table_names
+            assert 'qc_reviews' in table_names
+            assert 'publish_queue' in table_names
+            assert 'sites' in table_names
+            assert 'settings' in table_names
+            assert 'metrics' in table_names
 
 
 def test_get_setting_default(db):

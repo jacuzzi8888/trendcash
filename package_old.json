@@ -1,0 +1,30 @@
+{
+  "name": "naija_trend_cash",
+  "version": "1.0.0",
+  "description": "A content operations dashboard for aggregating trending data, managing content workflow, and publishing to multiple external websites.",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/jacuzzi8888/trendcash.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/jacuzzi8888/trendcash/issues"
+  },
+  "homepage": "https://github.com/jacuzzi8888/trendcash#readme",
+  "devDependencies": {
+    "@tailwindcss/container-queries": "^0.1.1",
+    "@tailwindcss/forms": "^0.5.11",
+    "autoprefixer": "^10.4.27",
+    "postcss": "^8.5.8",
+    "tailwindcss": "^4.2.2"
+  }
+}

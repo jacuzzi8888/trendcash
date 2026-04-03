@@ -1,0 +1,105 @@
+- generic [active] [ref=e1]:
+  - banner [ref=e2]:
+    - generic [ref=e3]:
+      - generic [ref=e4]: NTC
+      - generic [ref=e5]:
+        - generic [ref=e6]: Naija Trend-to-Cash
+        - generic [ref=e7]: Content operations dashboard
+    - navigation [ref=e8]:
+      - link " Dashboard" [ref=e9] [cursor=pointer]:
+        - /url: /
+        - generic [ref=e10]: 
+        - text: Dashboard
+      - link " Discover" [ref=e11] [cursor=pointer]:
+        - /url: /discover
+        - generic [ref=e12]: 
+        - text: Discover
+      - link " Selection" [ref=e13] [cursor=pointer]:
+        - /url: /selection
+        - generic [ref=e14]: 
+        - text: Selection
+      - link " Trends" [ref=e15] [cursor=pointer]:
+        - /url: /trends
+        - generic [ref=e16]: 
+        - text: Trends
+      - link " Drafts" [ref=e17] [cursor=pointer]:
+        - /url: /drafts
+        - generic [ref=e18]: 
+        - text: Drafts
+      - link " QC" [ref=e19] [cursor=pointer]:
+        - /url: /qc
+        - generic [ref=e20]: 
+        - text: QC
+      - link " Publish" [ref=e21] [cursor=pointer]:
+        - /url: /publish
+        - generic [ref=e22]: 
+        - text: Publish
+      - link " Sites" [ref=e23] [cursor=pointer]:
+        - /url: /sites/
+        - generic [ref=e24]: 
+        - text: Sites
+      - link " Metrics" [ref=e25] [cursor=pointer]:
+        - /url: /metrics
+        - generic [ref=e26]: 
+        - text: Metrics
+      - link " Settings" [ref=e27] [cursor=pointer]:
+        - /url: /settings
+        - generic [ref=e28]: 
+        - text: Settings
+  - main [ref=e29]:
+    - generic [ref=e30]:
+      - generic [ref=e31]:
+        - generic [ref=e32]: 
+        - text: Launch Status
+      - generic [ref=e33]:
+        - text: "Category lock:"
+        - generic [ref=e34]:
+          - generic [ref=e35]: 
+          - text: Not locked
+    - generic [ref=e36]:
+      - generic [ref=e37]:
+        - generic [ref=e38]: 
+        - generic [ref=e39]:
+          - generic [ref=e40]: Trend Candidates
+          - generic [ref=e41]: "59"
+      - generic [ref=e42]:
+        - generic [ref=e43]: 
+        - generic [ref=e44]:
+          - generic [ref=e45]: Drafts
+          - generic [ref=e46]: "2"
+      - generic [ref=e47]:
+        - generic [ref=e48]: 
+        - generic [ref=e49]:
+          - generic [ref=e50]: QC Pending
+          - generic [ref=e51]: "1"
+      - generic [ref=e52]:
+        - generic [ref=e53]: 
+        - generic [ref=e54]:
+          - generic [ref=e55]: Approved
+          - generic [ref=e56]: "1"
+    - generic [ref=e57]:
+      - generic [ref=e58]:
+        - generic [ref=e59]: 
+        - text: Latest Metrics
+      - table [ref=e61]:
+        - rowgroup [ref=e62]:
+          - row "Date Indexing Queries CTR Pos" [ref=e63]:
+            - columnheader "Date" [ref=e64]
+            - columnheader "Indexing" [ref=e65]
+            - columnheader "Queries" [ref=e66]
+            - columnheader "CTR" [ref=e67]
+            - columnheader "Pos" [ref=e68]
+        - rowgroup [ref=e69]:
+          - row "2026-03-29 85.0 1000 3.5 -" [ref=e70]:
+            - cell "2026-03-29" [ref=e71]
+            - cell "85.0" [ref=e72]
+            - cell "1000" [ref=e73]
+            - cell "3.5" [ref=e74]
+            - cell "-" [ref=e75]
+    - generic [ref=e76]:
+      - generic [ref=e77]: 
+      - generic [ref=e78]: 1 approved draft ready to publish
+      - link " Publish Now" [ref=e79] [cursor=pointer]:
+        - /url: /publish
+        - generic [ref=e80]: 
+        - text: Publish Now

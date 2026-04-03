@@ -268,24 +268,13 @@ def get_db():
         if USE_TURSO:
             conn = TursoConnection()
         else:
-            db_path = os.environ.get("NTC_DB_PATH", DEFAULT_DB_PATH)
-            if "test" in db_path.lower():
-                # Direct connection for tests to avoid pooling deadlocks
-                conn = sqlite3.connect(db_path, timeout=5)
-                conn.row_factory = sqlite3.Row
-                conn.execute("PRAGMA foreign_keys = ON;")
-            else:
-                conn = get_pool().get()
+            conn = get_pool().get()
         yield conn
     finally:
         if conn:
             try:
-                db_path = os.environ.get("NTC_DB_PATH", "")
-                if USE_TURSO or "test" in db_path.lower():
-                    conn.close()
-                else:
-                    get_pool().return_connection(conn)
-            except Exception:
+                conn.close()
+            except:
                 pass
 
 

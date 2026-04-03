@@ -3,8 +3,8 @@
   "version": "1.0.0",
   "description": "Naija Trend-to-Cash Editorial Pipeline",
   "scripts": {
-    "build:css": "npx @tailwindcss/cli -i ./app/static/src/input.css -o ./app/static/dist/output.css --minify",
-    "watch:css": "npx @tailwindcss/cli -i ./app/static/src/input.css -o ./app/static/dist/output.css --watch",
+    "build:css": "tailwindcss -i ./app/static/src/input.css -o ./app/static/dist/output.css --minify",
+    "watch:css": "tailwindcss -i ./app/static/src/input.css -o ./app/static/dist/output.css --watch",
     "dev": "npm run watch:css",
     "build": "npm run build:css"
   },
